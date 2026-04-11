@@ -1,0 +1,8 @@
+{
+  "extends": "@templ-project/tsconfig/esm.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true
+  },
+  "include": ["src"]
+}

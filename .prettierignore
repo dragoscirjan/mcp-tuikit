@@ -1,0 +1,13 @@
+.prettierignore
+.gitignore
+LICENSE
+*.txt
+dist
+build
+*.map
+.ai.tmp
+.specs
+node_modules
+pnpm-lock.yaml
+.husky
+.jscpd

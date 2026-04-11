@@ -1,0 +1,2 @@
+mise exec -- npx lint-staged
+mise run jscpd

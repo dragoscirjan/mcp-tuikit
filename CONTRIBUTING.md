@@ -6,16 +6,16 @@ First off, thank you for considering contributing to `mcp-tuikit`! This document
 
 We utilize a **pnpm workspaces** monorepo structure to keep the core server and its associated modules organized and interdependencies properly linked:
 
-*   **`src/`**: Contains the core MCP server implementation.
-*   **`packages/`**: Contains separated modules, such as flow engines, native adapters, and other distinct libraries.
-*   **`tests/`**: Test suites (unit, integration, and e2e) ensuring cross-platform stability.
+- **`src/`**: Contains the core MCP server implementation.
+- **`packages/`**: Contains separated modules, such as flow engines, native adapters, and other distinct libraries.
+- **`tests/`**: Test suites (unit, integration, and e2e) ensuring cross-platform stability.
 
 ## 🛠️ Toolchain & Environment
 
 To ensure consistency across different development environments, we enforce strict toolchain management:
 
 1.  **Mise**: We use [`mise`](https://mise.jdx.dev/) for managing all programming languages and toolchains (Node.js, Python, C++, Rust, etc.). You must use the provided `.mise.toml` template to guarantee environment parity. Please ensure `mise` is installed and run `mise install` upon cloning the repository.
-2.  **Task Runner**: Since the project leverages `pnpm workspaces` (which can have unfamiliar syntax), we abstract all common development tasks via a `Taskfile.yml`. Use `task` (via [go-task](https://taskfile.dev/)) for all operations (e.g., `task build`, `task test`, `task lint`). Do not run raw `pnpm` commands manually unless necessary.
+2.  **Task Runner**: Since the project leverages `pnpm workspaces` (which can have unfamiliar syntax), we abstract all common development tasks via `.mise.toml`. Use `mise run` for all operations (e.g., `mise run build`, `mise run test`, `mise run lint`). Do not run raw `pnpm` commands manually unless necessary.
 3.  **Strict Linting & Formatting**: Any new language introduced must have a strict linter and formatter configured (e.g., ESLint/Prettier for TS/JS, `clang-format` for C++, `ruff` for Python). We enforce these via pre-commit hooks (`husky` + `lint-staged`) and continuous integration (CI) pipelines.
 4.  **Duplicate Code**: We use `jscpd` to detect and prevent copy-pasted code. Keep the codebase DRY. Like formatting, this is enforced via pre-commit hooks and CI.
 

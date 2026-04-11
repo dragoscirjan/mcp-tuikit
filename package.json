@@ -1,0 +1,41 @@
+{
+  "name": "mcp-tuikit",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-tuikit": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@mcp-tuikit/core": "workspace:*",
+    "@mcp-tuikit/tmux": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@templ-project/commitlint": "latest",
+    "@templ-project/eslint": "latest",
+    "@templ-project/prettier": "latest",
+    "@templ-project/tsconfig": "latest",
+    "@templ-project/vitest": "latest",
+    "@types/node": "^25.6.0",
+    "husky": "^9.1.7",
+    "jscpd": "^4.0.9",
+    "lint-staged": "^16.4.0",
+    "prettier-plugin-toml": "^2.0.6",
+    "typescript": "latest",
+    "vitest": "latest"
+  },
+  "prettier": "@templ-project/prettier",
+  "lint-staged": {
+    "*.{js,ts,mjs,cjs,tsx,jsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,yml,yaml,toml}": ["prettier --write"]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  }
+}
