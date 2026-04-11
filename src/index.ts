@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { FlowRunner, parseFlow } from '@mcp-tuikit/flow-engine';
 import { TmuxBackend } from '@mcp-tuikit/tmux';
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -102,6 +103,36 @@ server.registerTool(
     return {
       content: [{ type: 'text', text: found ? 'Pattern found' : 'Timeout reached' }],
     };
+  },
+);
+
+server.registerTool(
+  'run_flow',
+  {
+    description: 'Run a flow definition from a YAML file',
+    inputSchema: z.object({
+      yaml_path: z.string().describe('Path to the YAML flow definition file'),
+    }),
+  },
+  async ({ yaml_path }) => {
+    try {
+      const flow = await parseFlow(yaml_path);
+      const runner = new FlowRunner(backend);
+      const artifacts = await runner.run(flow);
+      await runner.cleanup();
+
+      const artifactText = artifacts.length > 0 ? `\nGenerated artifacts:\n- ${artifacts.join('\n- ')}` : '';
+
+      return {
+        content: [{ type: 'text', text: `Flow executed successfully from ${yaml_path}.${artifactText}` }],
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return {
+        content: [{ type: 'text', text: `Flow execution failed: ${msg}` }],
+        isError: true,
+      };
+    }
   },
 );
 
