@@ -34,13 +34,15 @@ process.on('exit', () => {
   // Sync fallback, ideally all handled in async events above
 });
 
-server.tool(
+server.registerTool(
   'create_session',
-  'Create a new terminal session',
   {
-    command: z.string().describe('Command to run in the session'),
-    cols: z.number().default(80).describe('Terminal columns'),
-    rows: z.number().default(24).describe('Terminal rows'),
+    description: 'Create a new terminal session',
+    inputSchema: z.object({
+      command: z.string().describe('Command to run in the session'),
+      cols: z.number().default(80).describe('Terminal columns'),
+      rows: z.number().default(24).describe('Terminal rows'),
+    }),
   },
   async ({ command, cols, rows }) => {
     const sessionId = await backend.createSession(command, cols, rows);
@@ -51,11 +53,13 @@ server.tool(
   },
 );
 
-server.tool(
+server.registerTool(
   'close_session',
-  'Close an existing terminal session',
   {
-    session_id: z.string().describe('ID of the session to close'),
+    description: 'Close an existing terminal session',
+    inputSchema: z.object({
+      session_id: z.string().describe('ID of the session to close'),
+    }),
   },
   async ({ session_id }) => {
     await backend.closeSession(session_id);
@@ -66,12 +70,14 @@ server.tool(
   },
 );
 
-server.tool(
+server.registerTool(
   'send_keys',
-  'Send keys to a terminal session',
   {
-    session_id: z.string().describe('ID of the session'),
-    keys: z.string().describe('Keys to send (tmux format)'),
+    description: 'Send keys to a terminal session',
+    inputSchema: z.object({
+      session_id: z.string().describe('ID of the session'),
+      keys: z.string().describe('Keys to send (tmux format)'),
+    }),
   },
   async ({ session_id, keys }) => {
     await backend.sendKeys(session_id, keys);
@@ -81,13 +87,15 @@ server.tool(
   },
 );
 
-server.tool(
+server.registerTool(
   'wait_for_text',
-  'Wait for text to appear in a terminal session',
   {
-    session_id: z.string().describe('ID of the session'),
-    pattern: z.string().describe('Regex pattern to wait for'),
-    timeout_ms: z.number().default(5000).describe('Timeout in milliseconds'),
+    description: 'Wait for text to appear in a terminal session',
+    inputSchema: z.object({
+      session_id: z.string().describe('ID of the session'),
+      pattern: z.string().describe('Regex pattern to wait for'),
+      timeout_ms: z.number().default(5000).describe('Timeout in milliseconds'),
+    }),
   },
   async ({ session_id, pattern, timeout_ms }) => {
     const found = await backend.waitForText(session_id, pattern, timeout_ms);
@@ -97,15 +105,19 @@ server.tool(
   },
 );
 
-server.tool('list_sessions', 'List active terminal sessions', {}, async () => {
+server.registerTool('list_sessions', { description: 'List active terminal sessions' }, async () => {
   return {
     content: [{ type: 'text', text: `Active sessions: ${Array.from(activeSessions).join(', ')}` }],
   };
 });
 
-server.resource(
+server.registerResource(
   'terminal_screen_plaintext',
   new ResourceTemplate('terminal://session/{id}/screen.txt?maxLines={limit}', { list: undefined }),
+  {
+    description: 'Visible terminal buffer. Supports line truncation to avoid context overflow.',
+    mimeType: 'text/plain',
+  },
   async (uri, variables) => {
     const id = Array.isArray(variables.id) ? variables.id[0] : variables.id;
     const limit = Array.isArray(variables.limit) ? variables.limit[0] : variables.limit;
@@ -121,9 +133,13 @@ server.resource(
   },
 );
 
-server.resource(
+server.registerResource(
   'terminal_screen_json',
   new ResourceTemplate('terminal://session/{id}/screen.json', { list: undefined }),
+  {
+    description: 'Buffer with cursor position, dimensions, and session state (alive, blocked).',
+    mimeType: 'application/json',
+  },
   async (uri, variables) => {
     const id = Array.isArray(variables.id) ? variables.id[0] : variables.id;
     const json = await backend.getScreenJson(id);
