@@ -1,4 +1,59 @@
-.ai.tmp
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory
+coverage/
+*.lcov
+.nyc_output/
+
+# Dependency directories
 node_modules/
-dist/
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Cache directory
+.npm
+.pnpm-store
+.eslintcache
+.stylelintcache
+
+# dotenv environment variables file
+.env
+.env.test
+.env.production
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 .env.ai
+
+# Mac OS files
+.DS_Store
+
+# Project build output
+dist/
+build/
+packages/*/dist/
+packages/*/build/
+src/dist/
+src/build/
+
+# AI workspace
+.ai.tmp
