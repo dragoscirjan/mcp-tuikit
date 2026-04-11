@@ -7,7 +7,8 @@
     "mcp-tuikit": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "husky"
   },
   "dependencies": {
     "@mcp-tuikit/core": "workspace:*",
@@ -22,11 +23,21 @@
     "@templ-project/tsconfig": "latest",
     "@templ-project/vitest": "latest",
     "@types/node": "^25.6.0",
+    "husky": "^9.1.7",
+    "jscpd": "^4.0.9",
+    "lint-staged": "^16.4.0",
     "prettier-plugin-toml": "^2.0.6",
     "typescript": "latest",
     "vitest": "latest"
   },
   "prettier": "@templ-project/prettier",
+  "lint-staged": {
+    "*.{js,ts,mjs,cjs,tsx,jsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,yml,yaml,toml}": ["prettier --write"]
+  },
+  "jscpd": {
+    "ignore": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.husky/**", "**/.mise.toml", "**/.specs/**"]
+  },
   "pnpm": {
     "onlyBuiltDependencies": ["esbuild"]
   }

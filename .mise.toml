@@ -12,8 +12,12 @@ run = "pnpm vitest run"
 
 [tasks.lint]
 description = "Run ESLint"
-run = "pnpm eslint ."
+run = "pnpm eslint --fix ."
 
 [tasks.format]
 description = "Format with Prettier"
 run = "pnpm prettier --write ."
+
+[tasks.jscpd]
+description = "Run JSCPD to check for duplicated code"
+run = "pnpm jscpd ."
