@@ -1,3 +1,19 @@
 [tools]
 node = "lts"
 pnpm = "latest"
+
+[tasks.build]
+description = "Build the monorepo"
+run = "pnpm -r run build"
+
+[tasks.test]
+description = "Run vitest tests"
+run = "pnpm vitest run"
+
+[tasks.lint]
+description = "Run ESLint"
+run = "pnpm eslint ."
+
+[tasks.format]
+description = "Format with Prettier"
+run = "pnpm prettier --write ."
