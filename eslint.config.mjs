@@ -1,1 +1,8 @@
-export { default } from '@templ-project/eslint';
+import templEslintConfig from '@templ-project/eslint';
+
+export default [
+  {
+    ignores: ['.jscpd/**'],
+  },
+  ...templEslintConfig,
+];
