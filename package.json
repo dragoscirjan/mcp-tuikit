@@ -35,9 +35,6 @@
     "*.{js,ts,mjs,cjs,tsx,jsx}": ["eslint --fix", "prettier --write"],
     "*.{json,md,yml,yaml,toml}": ["prettier --write"]
   },
-  "jscpd": {
-    "ignore": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.husky/**", "**/.mise.toml", "**/.specs/**"]
-  },
   "pnpm": {
     "onlyBuiltDependencies": ["esbuild"]
   }

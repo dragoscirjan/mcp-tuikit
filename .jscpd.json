@@ -1,0 +1,26 @@
+{
+  "absolute": true,
+  "blame": true,
+  "gitignore": true,
+  "ignore": [
+    "**/*.config.js",
+    "**/*.config.mjs",
+    "**/*.min.js",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "coverage/**",
+    "dist/**",
+    "build/**",
+    "node_modules/**",
+    "**/package.json",
+    "**/tsconfig.json",
+    "**/tsconfig.*.json",
+    "**/.husky/**",
+    "**/.mise.toml",
+    "**/.specs/**"
+  ],
+  "output": ".jscpd",
+  "reporters": ["console", "html"],
+  "silent": false,
+  "threshold": 1
+}
