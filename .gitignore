@@ -1,1 +1,4 @@
 .ai.tmp
+node_modules/
+dist/
+.env.ai

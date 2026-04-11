@@ -1,0 +1,22 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Build the monorepo
+    cmds:
+      - pnpm -r run build
+
+  test:
+    desc: Run vitest tests
+    cmds:
+      - vitest run
+
+  lint:
+    desc: Run ESLint
+    cmds:
+      - eslint .
+
+  format:
+    desc: Format with Prettier
+    cmds:
+      - prettier --write .

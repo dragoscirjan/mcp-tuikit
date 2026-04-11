@@ -6,9 +6,9 @@ First off, thank you for considering contributing to `mcp-tuikit`! This document
 
 We utilize a **pnpm workspaces** monorepo structure to keep the core server and its associated modules organized and interdependencies properly linked:
 
-*   **`src/`**: Contains the core MCP server implementation.
-*   **`packages/`**: Contains separated modules, such as flow engines, native adapters, and other distinct libraries.
-*   **`tests/`**: Test suites (unit, integration, and e2e) ensuring cross-platform stability.
+- **`src/`**: Contains the core MCP server implementation.
+- **`packages/`**: Contains separated modules, such as flow engines, native adapters, and other distinct libraries.
+- **`tests/`**: Test suites (unit, integration, and e2e) ensuring cross-platform stability.
 
 ## 🛠️ Toolchain & Environment
 

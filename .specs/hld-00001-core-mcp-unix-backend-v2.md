@@ -11,6 +11,7 @@ version: "2"
 # High-Level Design: Core MCP & Unix Backend
 
 ## 1. Overview
+
 `mcp-tuikit` bridges Large Language Models (LLMs) and Terminal User Interfaces (TUIs). It exposes terminal screen states as Model Context Protocol (MCP) resources and provides MCP tools to interact with running terminal sessions asynchronously.
 
 ## 2. System Architecture
@@ -49,19 +50,19 @@ Resources support pagination and limits to restrict context size. Tools return i
 
 ```yaml
 resources:
-  - uri: "terminal://session/{id}/screen.txt?maxLines={limit}"
-    name: "Terminal Screen (Plaintext)"
-    description: "Visible terminal buffer. Supports line truncation to avoid context overflow."
-    mimeType: "text/plain"
-    
-  - uri: "terminal://session/{id}/screen.json"
-    name: "Terminal Screen (JSON)"
-    description: "Buffer with cursor position, dimensions, and session state (alive, blocked)."
-    mimeType: "application/json"
+  - uri: 'terminal://session/{id}/screen.txt?maxLines={limit}'
+    name: 'Terminal Screen (Plaintext)'
+    description: 'Visible terminal buffer. Supports line truncation to avoid context overflow.'
+    mimeType: 'text/plain'
+
+  - uri: 'terminal://session/{id}/screen.json'
+    name: 'Terminal Screen (JSON)'
+    description: 'Buffer with cursor position, dimensions, and session state (alive, blocked).'
+    mimeType: 'application/json'
 
 tools:
   - name: send_keys
-    description: "Send keystrokes asynchronously. Returns the immediate next screen state."
+    description: 'Send keystrokes asynchronously. Returns the immediate next screen state.'
     parameters:
       type: object
       properties:
@@ -70,7 +71,7 @@ tools:
       required: [session_id, keys]
 
   - name: wait_for_text
-    description: "Wait for specific text via event-driven stream matching. Prevents race conditions."
+    description: 'Wait for specific text via event-driven stream matching. Prevents race conditions.'
     parameters:
       type: object
       properties:
@@ -91,6 +92,7 @@ tools:
 ## 6. Race Condition Mitigation (`wait_for_text`)
 
 To mitigate TUI asynchronous rendering:
+
 1. **Event-Driven Matching:** The system monitors the persistent output stream of the terminal, evaluating the regex pattern against incoming chunks in real-time.
 2. **Fallback Polling:** If streaming is unavailable, the system uses non-blocking `setTimeout` with `async/await` to poll the screen state, preventing event-loop starvation.
 3. **Completion Detection:** When possible, shell prompt markers are utilized alongside text matching to reliably detect command completion.

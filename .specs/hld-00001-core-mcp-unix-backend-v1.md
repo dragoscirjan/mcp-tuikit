@@ -50,19 +50,19 @@ Resources support pagination and limits to restrict context size. Tools return i
 
 ```yaml
 resources:
-  - uri: "terminal://session/{id}/screen.txt?maxLines={limit}"
-    name: "Terminal Screen (Plaintext)"
-    description: "Visible terminal buffer. Supports line truncation to avoid context overflow."
-    mimeType: "text/plain"
-    
-  - uri: "terminal://session/{id}/screen.json"
-    name: "Terminal Screen (JSON)"
-    description: "Buffer with cursor position, dimensions, and session state (alive, blocked)."
-    mimeType: "application/json"
+  - uri: 'terminal://session/{id}/screen.txt?maxLines={limit}'
+    name: 'Terminal Screen (Plaintext)'
+    description: 'Visible terminal buffer. Supports line truncation to avoid context overflow.'
+    mimeType: 'text/plain'
+
+  - uri: 'terminal://session/{id}/screen.json'
+    name: 'Terminal Screen (JSON)'
+    description: 'Buffer with cursor position, dimensions, and session state (alive, blocked).'
+    mimeType: 'application/json'
 
 tools:
   - name: send_keys
-    description: "Send keystrokes asynchronously. Returns the immediate next screen state."
+    description: 'Send keystrokes asynchronously. Returns the immediate next screen state.'
     parameters:
       type: object
       properties:
@@ -71,7 +71,7 @@ tools:
       required: [session_id, keys]
 
   - name: wait_for_text
-    description: "Wait for specific text via event-driven stream matching. Prevents race conditions."
+    description: 'Wait for specific text via event-driven stream matching. Prevents race conditions.'
     parameters:
       type: object
       properties:
