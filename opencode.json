@@ -3,6 +3,11 @@
   "mcp": {
     "codeindex_cocoindex": {
       "enabled": true
+    },
+    "mcp-tuikit-dev": {
+      "type": "local",
+      "command": ["node", "dist/index.js"],
+      "enabled": true
     }
   }
 }
