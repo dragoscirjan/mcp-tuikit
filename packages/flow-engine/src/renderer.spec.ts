@@ -4,10 +4,23 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { HeadlessRenderer, detectNerdFont } from './renderer.js';
 
 vi.mock('node:fs/promises');
-vi.mock('canvas', () => ({
-  createCanvas: vi.fn(),
-  registerFont: vi.fn(),
-}));
+vi.mock('canvas', () => {
+  const mockContext = {
+    fillStyle: '',
+    fillRect: vi.fn(),
+    fillText: vi.fn(),
+    font: '',
+    textBaseline: '',
+  };
+  const mockCanvas = {
+    getContext: vi.fn(() => mockContext),
+    toBuffer: vi.fn(() => Buffer.from('mock-png-data')),
+  };
+  return {
+    createCanvas: vi.fn(() => mockCanvas),
+    registerFont: vi.fn(),
+  };
+});
 
 describe('detectNerdFont', () => {
   afterEach(() => {
@@ -54,5 +67,14 @@ describe('HeadlessRenderer', () => {
 
     const json = await renderer.exportJson();
     expect(json.content).toContain('Hello JSON');
+  });
+
+  it('should export PNG with correctly mapped colors', async () => {
+    const renderer = new HeadlessRenderer(10, 2);
+    // Write text with red foreground (31) and green background (42) and inverse (7)
+    await renderer.write('\x1b[31;42mR\x1b[0m\x1b[7mI\x1b[0m');
+
+    await renderer.exportPng('test.png');
+    expect(fs.writeFile).toHaveBeenCalledWith('test.png', expect.any(Buffer));
   });
 });

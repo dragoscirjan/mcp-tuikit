@@ -59,6 +59,43 @@ export async function detectNerdFont(): Promise<string | null> {
   return null;
 }
 
+const PALETTE: string[] = [
+  '#000000',
+  '#cd0000',
+  '#00cd00',
+  '#cdcd00',
+  '#0000ee',
+  '#cd00cd',
+  '#00cdcd',
+  '#e5e5e5', // 0-7
+  '#7f7f7f',
+  '#ff0000',
+  '#00ff00',
+  '#ffff00',
+  '#5c5cff',
+  '#ff00ff',
+  '#00ffff',
+  '#ffffff', // 8-15
+];
+
+// Generate the 6x6x6 color cube (indices 16-231)
+const levels = [0, 95, 135, 175, 215, 255];
+for (let r = 0; r < 6; r++) {
+  for (let g = 0; g < 6; g++) {
+    for (let b = 0; b < 6; b++) {
+      const rgb = (levels[r] << 16) | (levels[g] << 8) | levels[b];
+      PALETTE.push(`#${rgb.toString(16).padStart(6, '0')}`);
+    }
+  }
+}
+
+// Generate the 24 grayscale colors (indices 232-255)
+for (let i = 0; i < 24; i++) {
+  const level = 8 + i * 10;
+  const rgb = (level << 16) | (level << 8) | level;
+  PALETTE.push(`#${rgb.toString(16).padStart(6, '0')}`);
+}
+
 export class HeadlessRenderer {
   public terminal: Terminal;
   private cols: number;
@@ -133,11 +170,37 @@ export class HeadlessRenderer {
       for (let x = 0; x < this.terminal.cols; x++) {
         const cell = line.getCell(x);
         if (!cell) continue;
+
+        let fgColor = '#ffffff';
+        let bgColor = '#000000';
+
+        if (cell.isFgRGB()) {
+          fgColor = `#${cell.getFgColor().toString(16).padStart(6, '0')}`;
+        } else if (cell.isFgPalette()) {
+          fgColor = PALETTE[cell.getFgColor()] || '#ffffff';
+        }
+
+        if (cell.isBgRGB()) {
+          bgColor = `#${cell.getBgColor().toString(16).padStart(6, '0')}`;
+        } else if (cell.isBgPalette()) {
+          bgColor = PALETTE[cell.getBgColor()] || '#000000';
+        }
+
+        if (cell.isInverse()) {
+          const temp = fgColor;
+          fgColor = bgColor;
+          bgColor = temp;
+        }
+
+        if (bgColor !== '#000000') {
+          ctx.fillStyle = bgColor;
+          ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+        }
+
         const char = cell.getChars();
         if (!char || char === ' ') continue;
 
-        // In a full implementation, we'd extract colors from cell.getFgColor()
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = fgColor;
         ctx.fillText(char, x * cellWidth, y * cellHeight);
       }
     }
