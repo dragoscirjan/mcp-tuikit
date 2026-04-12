@@ -27,6 +27,8 @@ export const ActionSchema = z.discriminatedUnion('action', [
     action: z.literal('snapshot'),
     format: z.enum(['png', 'txt', 'json']).optional().default('txt'),
     outputPath: z.string(),
+    cols: z.number().optional(),
+    rows: z.number().optional(),
   }),
 ]);
 

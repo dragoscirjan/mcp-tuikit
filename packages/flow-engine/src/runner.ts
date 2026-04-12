@@ -1,20 +1,21 @@
-import fs from 'node:fs/promises';
 import { TerminalBackend } from '@mcp-tuikit/core';
-import { HeadlessRenderer } from './renderer.js';
+import { capturePlaywrightSnapshot } from './backends/playwright.js';
+import { getBackendConfig } from './config.js';
 import { Flow, Action } from './schema.js';
+import { captureMacOsWindow } from './snapshotters/macos.js';
+import { spawnTerminal } from './spawner.js';
 
 export class FlowRunner {
   private backend: TerminalBackend;
-  private renderer: HeadlessRenderer;
   private sessionId: string | null = null;
   private rollingBuffer: string = '';
   public artifacts: string[] = [];
   private dataListener: { dispose: () => void } | null = null;
+  private backendConfig: string;
 
   constructor(backend: TerminalBackend) {
     this.backend = backend;
-    // Delayed initialization happens in spawn action
-    this.renderer = new HeadlessRenderer(80, 24);
+    this.backendConfig = getBackendConfig();
   }
 
   public async run(flow: Flow): Promise<string[]> {
@@ -38,10 +39,22 @@ export class FlowRunner {
   private async executeStep(step: Action): Promise<void> {
     switch (step.action) {
       case 'spawn': {
-        this.sessionId = await this.backend.createSession(step.cmd, step.cols ?? 80, step.rows ?? 24);
-        this.renderer = new HeadlessRenderer(step.cols ?? 80, step.rows ?? 24);
+        const tmuxSessionName = `tuikit_${Date.now()}`;
 
-        // Pipe raw ANSI stream continuously to xterm/headless rather than feeding it plaintext later
+        if (this.backendConfig !== 'playwright') {
+          const cols = step.cols ?? 120;
+          const rows = step.rows ?? 40;
+          this.sessionId = await this.backend.createSession(
+            `tmux new-session -s ${tmuxSessionName} -x ${cols} -y ${rows} -d '${step.cmd}' && tmux attach -t ${tmuxSessionName}`,
+            cols,
+            rows,
+          );
+          await spawnTerminal(this.backendConfig, tmuxSessionName);
+        } else {
+          this.sessionId = await this.backend.createSession(step.cmd, step.cols ?? 120, step.rows ?? 40);
+        }
+
+        // Pipe raw ANSI stream continuously
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const backendAny = this.backend as any;
         if (typeof backendAny.onData === 'function') {
@@ -50,8 +63,6 @@ export class FlowRunner {
             if (this.rollingBuffer.length > 50000) {
               this.rollingBuffer = this.rollingBuffer.slice(-25000);
             }
-            // Fire-and-forget write to terminal
-            this.renderer.write(data).catch(() => {});
           });
         }
         break;
@@ -72,22 +83,12 @@ export class FlowRunner {
       case 'snapshot': {
         if (!this.sessionId) throw new Error('No active session');
 
-        // If onData was not available, we must fetch screen plaintext as fallback to update the renderer state
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (typeof (this.backend as any).onData !== 'function') {
-          const plaintext = await this.backend.getScreenPlaintext(this.sessionId, 0);
-          await this.renderer.write(plaintext);
+        if (this.backendConfig === 'playwright') {
+          await capturePlaywrightSnapshot(this.rollingBuffer, step.outputPath, step.cols ?? 120, step.rows ?? 40);
+        } else if (process.platform === 'darwin') {
+          await captureMacOsWindow(this.backendConfig, step.outputPath);
         }
 
-        if (step.format === 'png') {
-          await this.renderer.exportPng(step.outputPath);
-        } else if (step.format === 'json') {
-          const json = await this.renderer.exportJson();
-          await fs.writeFile(step.outputPath, JSON.stringify(json, null, 2), 'utf8');
-        } else {
-          const txt = await this.renderer.exportTxt();
-          await fs.writeFile(step.outputPath, txt, 'utf8');
-        }
         this.artifacts.push(step.outputPath);
         break;
       }
@@ -106,8 +107,6 @@ export class FlowRunner {
       return new Promise<void>((resolve, reject) => {
         let isResolved = false;
 
-        // Use an object to hold mutable references to avoid prefer-const eslint warnings
-        // and ReferenceError if accessed synchronously before assignment
         const state: {
           timer?: ReturnType<typeof setTimeout>;
           listener?: { dispose: () => void };
@@ -126,7 +125,6 @@ export class FlowRunner {
           if (state.listener) state.listener.dispose();
         };
 
-        // Pre-check before attaching listener, avoiding synchronous resolution race conditions
         checkBuffer();
         if (isResolved) return;
 
