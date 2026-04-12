@@ -60,3 +60,6 @@ src/build/
 
 # jscpd
 .jscpd/
+
+# snapshots
+snapshots/

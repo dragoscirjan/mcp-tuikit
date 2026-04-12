@@ -1,56 +1,71 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getBackendConfig } from './config';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { getBackendConfig, isHeadedMode } from './config';
 
-describe('Config', () => {
+describe('getBackendConfig', () => {
   const originalEnv = process.env;
-  const originalPlatform = process.platform;
 
   beforeEach(() => {
-    vi.resetModules();
     process.env = { ...originalEnv };
+    delete process.env.TUIKIT_TERMINAL;
   });
 
   afterEach(() => {
     process.env = originalEnv;
-    Object.defineProperty(process, 'platform', {
-      value: originalPlatform,
-    });
   });
 
-  it('should return process.env.TUIKIT_TERMINAL if set', () => {
-    process.env.TUIKIT_TERMINAL = 'custom-term';
-    expect(getBackendConfig()).toBe('custom-term');
+  it('defaults to xterm.js when TUIKIT_TERMINAL is not set', () => {
+    expect(getBackendConfig()).toBe('xterm.js');
   });
 
-  it('should default to iterm2 on darwin', () => {
-    delete process.env.TUIKIT_TERMINAL;
-    Object.defineProperty(process, 'platform', {
-      value: 'darwin',
-    });
+  it('returns TUIKIT_TERMINAL when set to xterm.js', () => {
+    process.env.TUIKIT_TERMINAL = 'xterm.js';
+    expect(getBackendConfig()).toBe('xterm.js');
+  });
+
+  it('returns TUIKIT_TERMINAL when set to ghostty', () => {
+    process.env.TUIKIT_TERMINAL = 'ghostty';
+    expect(getBackendConfig()).toBe('ghostty');
+  });
+
+  it('returns TUIKIT_TERMINAL when set to iterm2', () => {
+    process.env.TUIKIT_TERMINAL = 'iterm2';
     expect(getBackendConfig()).toBe('iterm2');
   });
 
-  it('should default to gnome-terminal on linux', () => {
-    delete process.env.TUIKIT_TERMINAL;
-    Object.defineProperty(process, 'platform', {
-      value: 'linux',
-    });
-    expect(getBackendConfig()).toBe('gnome-terminal');
+  it('returns TUIKIT_TERMINAL when set to alacritty', () => {
+    process.env.TUIKIT_TERMINAL = 'alacritty';
+    expect(getBackendConfig()).toBe('alacritty');
   });
 
-  it('should default to windows-terminal on win32', () => {
-    delete process.env.TUIKIT_TERMINAL;
-    Object.defineProperty(process, 'platform', {
-      value: 'win32',
-    });
-    expect(getBackendConfig()).toBe('windows-terminal');
+  it('returns TUIKIT_TERMINAL when set to wezterm', () => {
+    process.env.TUIKIT_TERMINAL = 'wezterm';
+    expect(getBackendConfig()).toBe('wezterm');
+  });
+});
+
+describe('isHeadedMode', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+    delete process.env.TUIKIT_HEADLESS;
   });
 
-  it('should fallback to xterm for unknown platforms if no env set', () => {
-    delete process.env.TUIKIT_TERMINAL;
-    Object.defineProperty(process, 'platform', {
-      value: 'freebsd',
-    });
-    expect(getBackendConfig()).toBe('xterm');
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true (headed) when TUIKIT_HEADLESS is not set', () => {
+    expect(isHeadedMode()).toBe(true);
+  });
+
+  it('returns true (headed) when TUIKIT_HEADLESS=0', () => {
+    process.env.TUIKIT_HEADLESS = '0';
+    expect(isHeadedMode()).toBe(true);
+  });
+
+  it('returns false (headless) when TUIKIT_HEADLESS=1', () => {
+    process.env.TUIKIT_HEADLESS = '1';
+    expect(isHeadedMode()).toBe(false);
   });
 });

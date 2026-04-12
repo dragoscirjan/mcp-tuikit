@@ -3,7 +3,7 @@ id: "00006"
 type: lld
 title: "Flow Engine & Multi-Backend High-Fidelity Rendering LLD"
 version: 3
-status: draft
+status: superseded
 parent: 00002
 opencode-agent: lead-engineer
 ---

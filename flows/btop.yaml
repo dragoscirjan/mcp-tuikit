@@ -1,0 +1,26 @@
+version: '1.0'
+description: 'Open btop, wait for it to render, take a snapshot'
+steps:
+  - action: spawn
+    cmd: btop
+
+  # Wait for btop to fully render (CPU meter appears)
+  - action: wait_for
+    pattern: 'CPU'
+    timeoutMs: 15000
+
+  - action: sleep
+    ms: 1000
+
+  - action: snapshot
+    format: txt
+    outputPath: 'snapshots/btop-{hash}.txt'
+    intent: 'btop default view with CPU meter'
+
+  - action: snapshot
+    format: png
+    outputPath: 'snapshots/btop-{hash}.png'
+    intent: 'btop default view screenshot'
+
+  - action: sleep
+    ms: 2000

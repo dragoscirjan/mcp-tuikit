@@ -1,12 +1,13 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { TerminalBackend, TimeoutError, TmuxExecutionError } from '@mcp-tuikit/core';
+import { nanoid } from 'nanoid';
 
 const execAsync = promisify(exec);
 
 export class TmuxBackend implements TerminalBackend {
   async createSession(cmd: string, cols: number, rows: number): Promise<string> {
-    const sessionId = `mcp-${Date.now()}`;
+    const sessionId = `mcp-${nanoid(8)}`;
     const tmuxCmd = `tmux new-session -d -s ${sessionId} -x ${cols} -y ${rows} "${cmd}"`;
     try {
       await execAsync(tmuxCmd);
@@ -74,8 +75,9 @@ export class TmuxBackend implements TerminalBackend {
     try {
       const { stdout } = await execAsync(`tmux display-message -p -t ${sessionId} '#{session_id}'`);
       return stdout.trim();
-    } catch (err) {
-      throw new TmuxExecutionError(`Failed to get session state: ${(err as Error).message}`);
+    } catch {
+      // tmux exits non-zero when the session doesn't exist; treat as empty state
+      return '';
     }
   }
 
@@ -85,9 +87,13 @@ export class TmuxBackend implements TerminalBackend {
     const regex = new RegExp(pattern);
 
     while (Date.now() - start < timeoutMs) {
-      const text = await this.getScreenPlaintext(sessionId, 0);
-      if (regex.test(text)) {
-        return { success: true, matchedPattern: pattern };
+      try {
+        const text = await this.getScreenPlaintext(sessionId, 0);
+        if (regex.test(text)) {
+          return { success: true, matchedPattern: pattern };
+        }
+      } catch {
+        // Session may not be ready yet — keep polling
       }
       await new Promise((r) => setTimeout(r, intervalMs));
     }
