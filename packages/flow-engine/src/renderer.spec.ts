@@ -1,4 +1,3 @@
-import { Dirent } from 'node:fs';
 import fs from 'node:fs/promises';
 import { registerFont } from 'canvas';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -19,10 +18,10 @@ describe('detectNerdFont', () => {
     vi.mocked(fs.readdir).mockImplementation(async (dir) => {
       if (typeof dir === 'string' && dir.includes('Fonts')) {
         return [
-          { isDirectory: () => false, isFile: () => true, name: 'SomeNerdFont-Regular.ttf' } as unknown as Dirent,
-        ];
+          { isDirectory: () => false, isFile: () => true, name: 'SomeNerdFont-Regular.ttf' },
+        ] as unknown as ReturnType<typeof fs.readdir>;
       }
-      return [];
+      return [] as unknown as ReturnType<typeof fs.readdir>;
     });
 
     const fontPath = await detectNerdFont();
