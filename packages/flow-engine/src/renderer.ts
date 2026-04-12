@@ -1,8 +1,11 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { Terminal } from '@xterm/headless';
+import xterm from '@xterm/headless';
+import type { Terminal as ITerminal } from '@xterm/headless';
 import { createCanvas, registerFont } from 'canvas';
+
+const { Terminal } = xterm;
 
 async function* findNerdFont(dir: string): AsyncGenerator<string> {
   let entries;
@@ -120,7 +123,7 @@ const PALETTE: string[] = (() => {
 })();
 
 export class HeadlessRenderer {
-  public terminal: Terminal;
+  public terminal: ITerminal;
   private cols: number;
   private rows: number;
 
