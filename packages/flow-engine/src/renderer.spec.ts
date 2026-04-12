@@ -18,7 +18,9 @@ describe('detectNerdFont', () => {
   it('should detect a font and register it', async () => {
     vi.mocked(fs.readdir).mockImplementation(async (dir) => {
       if (typeof dir === 'string' && dir.includes('Fonts')) {
-        return [{ isDirectory: () => false, isFile: () => true, name: 'SomeNerdFont-Regular.ttf' } as Dirent];
+        return [
+          { isDirectory: () => false, isFile: () => true, name: 'SomeNerdFont-Regular.ttf' } as unknown as Dirent,
+        ];
       }
       return [];
     });
