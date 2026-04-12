@@ -4,25 +4,45 @@ import path from 'node:path';
 import { Terminal } from '@xterm/headless';
 import { createCanvas, registerFont } from 'canvas';
 
-async function findNerdFont(dir: string): Promise<string | null> {
+async function* findNerdFont(dir: string): AsyncGenerator<string> {
+  let entries;
   try {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        const result = await findNerdFont(fullPath);
-        if (result) return result;
-      } else if (entry.isFile()) {
-        const name = entry.name.toLowerCase();
-        if (name.includes('nerdfont') && name.endsWith('.ttf')) {
-          return fullPath;
-        }
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch (err: unknown) {
+    const nodeErr = err as NodeJS.ErrnoException;
+    if (nodeErr.code === 'ENOENT' || nodeErr.code === 'EACCES') {
+      return;
+    }
+    throw err;
+  }
+
+  const dirs: string[] = [];
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      dirs.push(fullPath);
+    } else if (entry.isFile()) {
+      const name = entry.name.toLowerCase();
+      if (name.includes('nerdfont') && name.endsWith('.ttf')) {
+        yield fullPath;
       }
     }
-  } catch {
-    // Ignore errors (e.g., ENOENT, EACCES)
   }
-  return null;
+
+  const subDirPromises = dirs.map(async (d) => {
+    const results: string[] = [];
+    for await (const font of findNerdFont(d)) {
+      results.push(font);
+    }
+    return results;
+  });
+
+  const subDirResults = await Promise.all(subDirPromises);
+  for (const results of subDirResults) {
+    for (const font of results) {
+      yield font;
+    }
+  }
 }
 
 export async function detectNerdFont(): Promise<string | null> {
@@ -45,8 +65,7 @@ export async function detectNerdFont(): Promise<string | null> {
   }
 
   for (const dir of paths) {
-    const fontPath = await findNerdFont(dir);
-    if (fontPath) {
+    for await (const fontPath of findNerdFont(dir)) {
       try {
         registerFont(fontPath, { family: 'Nerd Font' });
         return fontPath;
@@ -59,42 +78,46 @@ export async function detectNerdFont(): Promise<string | null> {
   return null;
 }
 
-const PALETTE: string[] = [
-  '#000000',
-  '#cd0000',
-  '#00cd00',
-  '#cdcd00',
-  '#0000ee',
-  '#cd00cd',
-  '#00cdcd',
-  '#e5e5e5', // 0-7
-  '#7f7f7f',
-  '#ff0000',
-  '#00ff00',
-  '#ffff00',
-  '#5c5cff',
-  '#ff00ff',
-  '#00ffff',
-  '#ffffff', // 8-15
-];
+const PALETTE: string[] = (() => {
+  const palette: string[] = [
+    '#000000',
+    '#cd0000',
+    '#00cd00',
+    '#cdcd00',
+    '#0000ee',
+    '#cd00cd',
+    '#00cdcd',
+    '#e5e5e5', // 0-7
+    '#7f7f7f',
+    '#ff0000',
+    '#00ff00',
+    '#ffff00',
+    '#5c5cff',
+    '#ff00ff',
+    '#00ffff',
+    '#ffffff', // 8-15
+  ];
 
-// Generate the 6x6x6 color cube (indices 16-231)
-const levels = [0, 95, 135, 175, 215, 255];
-for (let r = 0; r < 6; r++) {
-  for (let g = 0; g < 6; g++) {
-    for (let b = 0; b < 6; b++) {
-      const rgb = (levels[r] << 16) | (levels[g] << 8) | levels[b];
-      PALETTE.push(`#${rgb.toString(16).padStart(6, '0')}`);
+  // Generate the 6x6x6 color cube (indices 16-231)
+  const levels = [0, 95, 135, 175, 215, 255];
+  for (let r = 0; r < 6; r++) {
+    for (let g = 0; g < 6; g++) {
+      for (let b = 0; b < 6; b++) {
+        const rgb = (levels[r] << 16) | (levels[g] << 8) | levels[b];
+        palette.push(`#${rgb.toString(16).padStart(6, '0')}`);
+      }
     }
   }
-}
 
-// Generate the 24 grayscale colors (indices 232-255)
-for (let i = 0; i < 24; i++) {
-  const level = 8 + i * 10;
-  const rgb = (level << 16) | (level << 8) | level;
-  PALETTE.push(`#${rgb.toString(16).padStart(6, '0')}`);
-}
+  // Generate the 24 grayscale colors (indices 232-255)
+  for (let i = 0; i < 24; i++) {
+    const level = 8 + i * 10;
+    const rgb = (level << 16) | (level << 8) | level;
+    palette.push(`#${rgb.toString(16).padStart(6, '0')}`);
+  }
+
+  return palette;
+})();
 
 export class HeadlessRenderer {
   public terminal: Terminal;

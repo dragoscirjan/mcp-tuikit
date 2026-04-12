@@ -43,6 +43,29 @@ describe('detectNerdFont', () => {
     expect(registerFont).toHaveBeenCalledWith(fontPath, { family: 'Nerd Font' });
   });
 
+  it('should try multiple fonts if registerFont fails', async () => {
+    vi.mocked(fs.readdir).mockImplementation(async (dir) => {
+      if (typeof dir === 'string' && dir.includes('Fonts')) {
+        return [
+          { isDirectory: () => false, isFile: () => true, name: 'BadNerdFont.ttf' },
+          { isDirectory: () => false, isFile: () => true, name: 'GoodNerdFont.ttf' },
+        ] as unknown as ReturnType<typeof fs.readdir>;
+      }
+      return [] as unknown as ReturnType<typeof fs.readdir>;
+    });
+
+    vi.mocked(registerFont).mockImplementation((path) => {
+      if (typeof path === 'string' && path.includes('BadNerdFont')) {
+        throw new Error('Failed to load font');
+      }
+    });
+
+    const fontPath = await detectNerdFont();
+    expect(fontPath).toBeDefined();
+    expect(fontPath).toMatch(/GoodNerdFont\.ttf$/);
+    expect(registerFont).toHaveBeenCalledTimes(2);
+  });
+
   it('should fall back gracefully if no font is found', async () => {
     vi.mocked(fs.readdir).mockRejectedValue(new Error('ENOENT'));
 
