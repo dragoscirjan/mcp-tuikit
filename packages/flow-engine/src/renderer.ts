@@ -1,6 +1,63 @@
 import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { Terminal } from '@xterm/headless';
 import { createCanvas, registerFont } from 'canvas';
+
+async function findNerdFont(dir: string): Promise<string | null> {
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        const result = await findNerdFont(fullPath);
+        if (result) return result;
+      } else if (entry.isFile()) {
+        const name = entry.name.toLowerCase();
+        if (name.includes('nerdfont') && name.endsWith('.ttf')) {
+          return fullPath;
+        }
+      }
+    }
+  } catch {
+    // Ignore errors (e.g., ENOENT, EACCES)
+  }
+  return null;
+}
+
+export async function detectNerdFont(): Promise<string | null> {
+  const homedir = os.homedir();
+  const paths: string[] = [];
+
+  if (process.platform === 'win32') {
+    const localAppData = process.env.LOCALAPPDATA || path.join(homedir, 'AppData', 'Local');
+    paths.push(path.join(localAppData, 'Microsoft', 'Windows', 'Fonts'));
+    const winDir = process.env.WINDIR || 'C:\\Windows';
+    paths.push(path.join(winDir, 'Fonts'));
+  } else if (process.platform === 'darwin') {
+    paths.push(path.join(homedir, 'Library', 'Fonts'));
+    paths.push('/Library/Fonts');
+    paths.push('/System/Library/Fonts');
+  } else {
+    paths.push(path.join(homedir, '.local', 'share', 'fonts'));
+    paths.push('/usr/share/fonts');
+    paths.push('/usr/local/share/fonts');
+  }
+
+  for (const dir of paths) {
+    const fontPath = await findNerdFont(dir);
+    if (fontPath) {
+      try {
+        registerFont(fontPath, { family: 'Nerd Font' });
+        return fontPath;
+      } catch {
+        // Continue if canvas fails to register it
+      }
+    }
+  }
+
+  return null;
+}
 
 export class HeadlessRenderer {
   public terminal: Terminal;
@@ -10,14 +67,6 @@ export class HeadlessRenderer {
   constructor(cols: number, rows: number) {
     this.cols = cols;
     this.rows = rows;
-
-    // Register Nerd Fonts in canvas before xterm initialization as required by LLD
-    try {
-      // Best effort font loading for accurate dimensions in headless canvas
-      registerFont('/usr/share/fonts/truetype/nerd-fonts/DroidSansMonoNerdFont-Regular.ttf', { family: 'Nerd Font' });
-    } catch {
-      // Ignored for environments without the font
-    }
 
     this.terminal = new Terminal({
       cols,
