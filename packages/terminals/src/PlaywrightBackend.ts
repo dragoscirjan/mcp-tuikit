@@ -67,7 +67,8 @@ export class PlaywrightBackend extends TerminalBackend {
     try {
       const { stdout } = await execAsync(`tmux capture-pane -t ${sessionId} -p -e`);
       if (stdout && this.page) {
-        const base64Data = Buffer.from(stdout, 'utf-8').toString('base64');
+        const normalised = '\x1b[H' + stdout.replace(/\r?\n/g, '\r\n');
+        const base64Data = Buffer.from(normalised, 'utf-8').toString('base64');
         await this.page.evaluate((b64) => {
           const decodedData = atob(b64);
           const bytes = new Uint8Array(decodedData.length);
