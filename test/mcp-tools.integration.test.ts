@@ -3,7 +3,7 @@
  *   create_session, close_session, send_keys, wait_for_text, list_sessions,
  *   create_snapshot
  *
- * These tests drive the TmuxBackend directly (the same object the MCP handlers
+ * These tests drive the TmuxSessionHandler directly (the same object the MCP handlers
  * delegate to), so they verify the real behaviour without needing a running
  * stdio MCP server.
  *
@@ -18,7 +18,7 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { TmuxBackend } from '@mcp-tuikit/tmux';
+import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 const execAsync = promisify(exec);
@@ -43,11 +43,11 @@ async function sessionAlive(sessionId: string): Promise<boolean> {
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
 describe('MCP tools integration', () => {
-  let backend: TmuxBackend;
+  let backend: TmuxSessionHandler;
   let sessionId: string;
 
   beforeEach(() => {
-    backend = new TmuxBackend();
+    backend = new TmuxSessionHandler();
   });
 
   afterEach(async () => {

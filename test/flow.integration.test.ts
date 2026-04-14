@@ -20,54 +20,13 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { Artifact } from '@mcp-tuikit/flow-engine';
 import { beforeAll } from 'vitest';
-import { runFlow, defineFlowSuite, flowPath } from './helpers/flowSuite.js';
+import { defineFlowSuite } from './helpers/flowSuite.js';
 
 const SNAPSHOTS = path.resolve(import.meta.dirname, '..', 'snapshots');
 
-// ── Artifact buckets populated by sequential beforeAll ────────────────────────
-let iTerm2NvimArtifacts: Artifact[] = [];
-let iTerm2BtopArtifacts: Artifact[] = [];
-// let alacrittyNvimArtifacts: Artifact[] = [];
-// let alacrittyBtopArtifacts: Artifact[] = [];
-// let weztermNvimArtifacts: Artifact[] = [];
-// let weztermBtopArtifacts: Artifact[] = [];
-// let ghosttyNvimArtifacts: Artifact[] = [];
-// let ghosttyBtopArtifacts: Artifact[] = [];
-let xtermjsNvimArtifacts: Artifact[] = [];
-let xtermjsBtopArtifacts: Artifact[] = [];
-
-// Total wall-clock budget:
-//   5 terminals × (nvim ~40s + btop ~20s) + per-terminal startup + margin
-//   = ~300s core + ~200s native terminal overhead → use 900s to be safe
 beforeAll(async () => {
   await fs.rm(SNAPSHOTS, { recursive: true, force: true });
-
-  // 1. xterm.js + nvim  (Playwright/xterm.js renderer — no native terminal required)
-  xtermjsNvimArtifacts = await runFlow(flowPath('nvim_lazy_log.yaml'), { terminal: 'xterm.js' });
-  // 2. xterm.js + btop
-  xtermjsBtopArtifacts = await runFlow(flowPath('btop.yaml'), { terminal: 'xterm.js' });
-
-  // 3. iTerm2 + nvim
-  iTerm2NvimArtifacts = await runFlow(flowPath('nvim_lazy_log.yaml'), { terminal: 'iterm2' });
-  // 4. iTerm2 + btop
-  iTerm2BtopArtifacts = await runFlow(flowPath('btop.yaml'), { terminal: 'iterm2' });
-
-  // 5. Alacritty + nvim
-  // alacrittyNvimArtifacts = await runFlow(flowPath('nvim_lazy_log.yaml'), { terminal: 'alacritty' });
-  // 6. Alacritty + btop
-  // alacrittyBtopArtifacts = await runFlow(flowPath('btop.yaml'), { terminal: 'alacritty' });
-
-  // 7. WezTerm + nvim
-  // weztermNvimArtifacts = await runFlow(flowPath('nvim_lazy_log.yaml'), { terminal: 'wezterm' });
-  // 8. WezTerm + btop
-  // weztermBtopArtifacts = await runFlow(flowPath('btop.yaml'), { terminal: 'wezterm' });
-
-  // 9. Ghostty + nvim
-  // ghosttyNvimArtifacts = await runFlow(flowPath('nvim_lazy_log.yaml'), { terminal: 'ghostty' });
-  // 10. Ghostty + btop
-  // ghosttyBtopArtifacts = await runFlow(flowPath('btop.yaml'), { terminal: 'ghostty' });
 }, 900_000);
 
 // ── Suites ────────────────────────────────────────────────────────────────────
@@ -75,41 +34,41 @@ beforeAll(async () => {
 defineFlowSuite({
   label: 'run_flow integration (xterm.js + nvim)',
   terminal: 'xterm.js',
-  artifacts: () => xtermjsNvimArtifacts,
+  yamlName: 'nvim_lazy_log.yaml',
 });
 
 defineFlowSuite({
   label: 'run_flow integration (xterm.js + btop)',
   terminal: 'xterm.js',
   txtMatchers: [/CPU/],
-  artifacts: () => xtermjsBtopArtifacts,
+  yamlName: 'btop.yaml',
 });
 
 defineFlowSuite({
   label: 'run_flow integration (iTerm2 + nvim)',
   terminal: 'iterm2',
-  artifacts: () => iTerm2NvimArtifacts,
+  yamlName: 'nvim_lazy_log.yaml',
 });
 
 defineFlowSuite({
   label: 'run_flow integration (iTerm2 + btop)',
   terminal: 'iterm2',
   txtMatchers: [/CPU/],
-  artifacts: () => iTerm2BtopArtifacts,
+  yamlName: 'btop.yaml',
 });
 
 /*
 defineFlowSuite({
   label: 'run_flow integration (Alacritty + nvim)',
   terminal: 'alacritty',
-  artifacts: () => alacrittyNvimArtifacts,
+  yamlName: 'nvim_lazy_log.yaml',
 });
 
 defineFlowSuite({
   label: 'run_flow integration (Alacritty + btop)',
   terminal: 'alacritty',
   txtMatchers: [/CPU/],
-  artifacts: () => alacrittyBtopArtifacts,
+  yamlName: 'btop.yaml',
 });
 */
 
@@ -117,26 +76,26 @@ defineFlowSuite({
 defineFlowSuite({
   label: 'run_flow integration (WezTerm + nvim)',
   terminal: 'wezterm',
-  artifacts: () => weztermNvimArtifacts,
+  yamlName: 'nvim_lazy_log.yaml',
 });
 
 defineFlowSuite({
   label: 'run_flow integration (WezTerm + btop)',
   terminal: 'wezterm',
   txtMatchers: [/CPU/],
-  artifacts: () => weztermBtopArtifacts,
+  yamlName: 'btop.yaml',
 });
 
 defineFlowSuite({
   label: 'run_flow integration (Ghostty + nvim)',
   terminal: 'ghostty',
-  artifacts: () => ghosttyNvimArtifacts,
+  yamlName: 'nvim_lazy_log.yaml',
 });
 
 defineFlowSuite({
   label: 'run_flow integration (Ghostty + btop)',
   terminal: 'ghostty',
   txtMatchers: [/CPU/],
-  artifacts: () => ghosttyBtopArtifacts,
+  yamlName: 'btop.yaml',
 });
 */
