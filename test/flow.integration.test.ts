@@ -57,11 +57,11 @@ defineFlowSuite({
   yamlName: 'btop.yaml',
 });
 
-/*
 defineFlowSuite({
   label: 'run_flow integration (Alacritty + nvim)',
   terminal: 'alacritty',
   yamlName: 'nvim_lazy_log.yaml',
+  run: 'skip',
 });
 
 defineFlowSuite({
@@ -69,10 +69,9 @@ defineFlowSuite({
   terminal: 'alacritty',
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
+  run: 'skip',
 });
-*/
 
-/*
 defineFlowSuite({
   label: 'run_flow integration (WezTerm + nvim)',
   terminal: 'wezterm',
@@ -84,6 +83,8 @@ defineFlowSuite({
   terminal: 'wezterm',
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
+  cols: 160,
+  rows: 60,
 });
 
 defineFlowSuite({
@@ -97,5 +98,6 @@ defineFlowSuite({
   terminal: 'ghostty',
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
+  cols: 160,
+  rows: 60,
 });
-*/
