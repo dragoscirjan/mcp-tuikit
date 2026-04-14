@@ -6,7 +6,7 @@ import { loadXtermAssets } from './playwright-utils.js';
 export class PlaywrightBackend extends TerminalBackend {
   private browser: Browser | null = null;
   private page: Page | null = null;
-  private disposeDataListener: (() => void) | null = null;
+  private pollInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(sessionHandler: SessionHandler, snapshotStrategy: SnapshotStrategy) {
     super(sessionHandler, snapshotStrategy);
@@ -58,32 +58,17 @@ export class PlaywrightBackend extends TerminalBackend {
 
     await this.page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
 
-    // 1. Initial ANSI dump from tmux (in case we missed early output)
-    try {
-      const { stdout } = await execa('tmux', ['capture-pane', '-t', sessionId, '-p', '-e']);
-      if (stdout) {
-        const base64Data = Buffer.from(stdout, 'utf-8').toString('base64');
-        await this.page.evaluate((b64) => {
-          const decodedData = atob(b64);
-          const bytes = new Uint8Array(decodedData.length);
-          for (let i = 0; i < decodedData.length; i++) {
-            bytes[i] = decodedData.charCodeAt(i);
-          }
-          // @ts-ignore
-          window.term.write(bytes);
-        }, base64Data);
-      }
-    } catch {
-      // Ignored
-    }
-
-    // 2. Real-time streaming from tmux pipe
-    if (this.sessionHandler.onData) {
-      const listener = this.sessionHandler.onData(sessionId, (data: string) => {
-        if (!this.page) return;
-        const base64Data = Buffer.from(data, 'utf-8').toString('base64');
-        this.page
-          .evaluate((b64) => {
+    // Real-time observation via polling tmux capture-pane.
+    // We normalize the newlines and reset the cursor position (\x1b[H) so each
+    // frame paints cleanly from the top-left over the existing xterm.js canvas.
+    this.pollInterval = setInterval(async () => {
+      if (!this.page) return;
+      try {
+        const { stdout: ansi } = await execa('tmux', ['capture-pane', '-t', sessionId, '-p', '-e']);
+        if (ansi) {
+          const normalised = '\\x1b[H' + ansi.replace(/\\r?\\n/g, '\\r\\n');
+          const base64Data = Buffer.from(normalised, 'utf-8').toString('base64');
+          await this.page.evaluate((b64) => {
             try {
               const decodedData = atob(b64);
               const bytes = new Uint8Array(decodedData.length);
@@ -95,14 +80,12 @@ export class PlaywrightBackend extends TerminalBackend {
             } catch {
               // ignore
             }
-          }, base64Data)
-          .catch(() => {});
-      });
-
-      if (listener) {
-        this.disposeDataListener = listener.dispose;
+          }, base64Data);
+        }
+      } catch {
+        // Ignored, session might be closing
       }
-    }
+    }, 200);
   }
 
   public async takeSnapshot(outputPath: string, format: 'png' | 'txt', cols: number, rows: number): Promise<void> {
@@ -121,9 +104,9 @@ export class PlaywrightBackend extends TerminalBackend {
   }
 
   async disconnect(): Promise<void> {
-    if (this.disposeDataListener) {
-      this.disposeDataListener();
-      this.disposeDataListener = null;
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
     }
     if (this.browser) {
       await this.browser.close().catch(() => {});
