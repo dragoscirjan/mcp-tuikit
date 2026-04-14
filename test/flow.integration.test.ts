@@ -21,6 +21,7 @@
  *   mise run test:integration
  */
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { beforeAll } from 'vitest';
 import { defineFlowSuite, FlowSuiteOptions } from './helpers/flowSuite.js';
@@ -28,11 +29,15 @@ import { defineFlowSuite, FlowSuiteOptions } from './helpers/flowSuite.js';
 const SNAPSHOTS = path.resolve(import.meta.dirname, '..', 'snapshots');
 
 function run(terminal: FlowSuiteOptions['terminal']): FlowSuiteOptions['run'] {
-  if (terminal === 'xterm.js') {
-    return process.env.TUIKIT_HEADLESS_TEST === 'xterm.js' ? 'only' : '';
+  const target = process.env.TUIKIT_TERMINAL_TEST;
+  switch (terminal) {
+    case 'xterm.js':
+      return target === 'xterm.js' ? 'only' : '';
+    case 'iterm2':
+      return os.type() !== 'Darwin' ? 'skip' : target === 'iterm2' ? 'only' : '';
+    default:
+      return 'skip';
   }
-
-  return 'skip';
 }
 
 beforeAll(async () => {
