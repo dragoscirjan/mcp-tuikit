@@ -52,6 +52,8 @@ export interface FlowSuiteOptions extends RunFlowOptions {
   txtMatchers?: RegExp[];
   /** Name of the yaml file in the flows directory. */
   yamlName: string;
+  /** How to handle this specific test */
+  run?: '' | 'skip' | 'only';
 }
 
 /**
@@ -59,9 +61,11 @@ export interface FlowSuiteOptions extends RunFlowOptions {
  * The flow is run in a beforeAll block before the tests.
  */
 export function defineFlowSuite(opts: FlowSuiteOptions): void {
-  const { label, txtMatchers = [], yamlName } = opts;
+  const { label, txtMatchers = [], yamlName, run = '' } = opts;
 
-  describe(label, () => {
+  const d = run === 'skip' ? describe.skip : run === 'only' ? describe.only : describe;
+
+  d(label, () => {
     let artifacts: Artifact[] = [];
 
     beforeAll(async () => {
