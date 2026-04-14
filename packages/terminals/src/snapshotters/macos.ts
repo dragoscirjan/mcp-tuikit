@@ -29,10 +29,12 @@ import Cocoa
 let target = "${appName}".lowercased()
 let opts = CGWindowListOption([.optionAll])
 let wins = CGWindowListCopyWindowInfo(opts, kCGNullWindowID) as? [[String: Any]] ?? []
+var foundIds = [Int]()
 for w in wins {
     let owner = (w[kCGWindowOwnerName as String] as? String ?? "").lowercased()
     guard owner.contains(target) else { continue }
     guard let wid = w[kCGWindowNumber as String] as? Int else { continue }
+    foundIds.append(wid)
     // Skip off-screen and zero-size windows — they cannot be captured by screencapture
     let onScreen = w[kCGWindowIsOnscreen as String] as? Bool ?? false
     guard onScreen else { continue }
@@ -43,11 +45,16 @@ for w in wins {
     print(wid)
     break
 }
+if foundIds.isEmpty {
+    fputs("No window matched owner: \\(target)\\n", stderr)
+} else {
+    fputs("Found IDs but none passed onscreen/size filters: \\(foundIds)\\n", stderr)
+}
 `;
-  const { stdout } = await execAsync(`swift - << 'SWIFTEOF'\n${script}\nSWIFTEOF`);
+  const { stdout, stderr } = await execAsync(`swift - << 'SWIFTEOF'\n${script}\nSWIFTEOF`);
   const windowId = stdout.trim();
   if (!windowId || isNaN(Number(windowId))) {
-    throw new Error(`No window found for app "${appName}" via CGWindowList`);
+    throw new Error(`No window found for app "${appName}" via CGWindowList. stderr: ${stderr}`);
   }
   return windowId;
 }
@@ -115,17 +122,37 @@ export async function captureMacOsWindow(
   outputPath: string,
   timeoutMs: number = 30_000,
   pollIntervalMs: number = 200,
+  spawnResult?: unknown,
 ): Promise<void> {
   let windowId: string | null = null;
-  const startTime = Date.now();
 
-  // Poll for the window ID until we find it or timeout
-  while (Date.now() - startTime < timeoutMs) {
-    try {
-      windowId = await getWindowId(appName);
-      break;
-    } catch {
-      await delay(pollIntervalMs);
+  if (
+    appName.toLowerCase() === 'iterm2' &&
+    spawnResult &&
+    typeof spawnResult === 'object' &&
+    'windowHandle' in spawnResult &&
+    spawnResult.windowHandle
+  ) {
+    windowId = String(spawnResult.windowHandle);
+  } else {
+    const startTime = Date.now();
+    let lastErr: Error | null = null;
+
+    // Poll for the window ID until we find it or timeout
+    while (Date.now() - startTime < timeoutMs) {
+      try {
+        windowId = await getWindowId(appName);
+        break;
+      } catch (err) {
+        lastErr = err as Error;
+        await delay(pollIntervalMs);
+      }
+    }
+
+    if (!windowId && lastErr) {
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Last getWindowId error:', lastErr);
+      }
     }
   }
 
@@ -170,8 +197,13 @@ export async function captureMacOsWindow(
 export class MacOsSnapshotStrategy implements SnapshotStrategy {
   constructor(private readonly appName: string) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async capture(outputPath: string, _cols: number, _rows: number, _tmuxSession: string): Promise<void> {
-    await captureMacOsWindow(this.appName, outputPath);
+  async capture(
+    outputPath: string,
+    _cols: number,
+    _rows: number,
+    _tmuxSession: string,
+    spawnResult?: unknown,
+  ): Promise<void> {
+    await captureMacOsWindow(this.appName, outputPath, 30_000, 200, spawnResult);
   }
 }

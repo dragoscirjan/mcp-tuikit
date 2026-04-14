@@ -31,10 +31,16 @@ const SNAPSHOTS = path.resolve(import.meta.dirname, '..', 'snapshots');
 function run(terminal: FlowSuiteOptions['terminal']): FlowSuiteOptions['run'] {
   const target = process.env.TUIKIT_TERMINAL_TEST;
   switch (terminal) {
+    case 'alacritty':
+      return target === 'alacritty' ? 'only' : '';
     case 'xterm.js':
       return target === 'xterm.js' ? 'only' : '';
+    case 'wezterm':
+      return target === 'wezterm' ? 'only' : '';
     case 'iterm2':
       return os.type() !== 'Darwin' ? 'skip' : target === 'iterm2' ? 'only' : '';
+    case 'ghostty':
+      return os.type() !== 'Windows' ? 'skip' : target === 'ghostty' ? 'only' : '';
     default:
       return 'skip';
   }

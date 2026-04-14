@@ -26,14 +26,6 @@ export class TmuxSessionHandler implements SessionHandler {
       throw new TmuxExecutionError(`Failed to create session: ${(err as Error).message}`);
     }
 
-    if (process.env.TUIKIT_HEADED === '1') {
-      try {
-        await execAsync(`open -a Terminal "tmux attach-session -t ${sessionId}"`);
-      } catch {
-        // Ignore failure
-      }
-    }
-
     return sessionId;
   }
 

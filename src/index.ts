@@ -7,7 +7,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { TerminalBackend } from '@mcp-tuikit/core';
 import { FlowRunner, Artifact, parseFlow, parseFlowFromString } from '@mcp-tuikit/flow-engine';
-import { BackendFactory, getBackendConfig, closeTerminal, SpawnResult } from '@mcp-tuikit/terminals';
+import { BackendFactory, getBackendConfig } from '@mcp-tuikit/terminals';
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { nanoid } from 'nanoid';
@@ -34,7 +34,8 @@ interface PersistedSession {
   cols: number;
   rows: number;
   tmuxSession: string;
-  spawnResult?: SpawnResult;
+  processId?: string | null;
+  windowId?: string | null;
 }
 
 const sessions = new Map<string, SessionEntry>();
@@ -46,8 +47,9 @@ async function persistSessions(): Promise<void> {
     command: s.command,
     cols: s.cols,
     rows: s.rows,
-    tmuxSession: s.backend.innerSessionName ?? '',
-    spawnResult: s.backend.spawnResult as SpawnResult | undefined,
+    tmuxSession: s.backend.sessionName ?? '',
+    processId: s.backend.processId,
+    windowId: s.backend.windowId,
   }));
   await fs.writeFile(STATE_FILE, JSON.stringify(entries, null, 2), 'utf8');
 }
@@ -72,10 +74,13 @@ async function killOrphanedSessions(): Promise<void> {
       } catch {
         /* already gone */
       }
-      if (entry.spawnResult) {
-        await closeTerminal(backendConfig, entry.spawnResult).catch(() => {
+      if (entry.processId) {
+        // Try to close orphaned terminal if pid is known
+        try {
+          process.kill(Number(entry.processId), 'SIGKILL');
+        } catch {
           /* ignore */
-        });
+        }
       }
     }
     await removeSessions();
@@ -118,14 +123,14 @@ server.registerTool(
   async ({ command, cols, rows }) => {
     const backend = BackendFactory.create(backendConfig);
     await backend.connect(command, cols, rows);
-    const sessionId = backend.sessionId!;
+    const sessionName = backend.sessionName!;
 
-    const entry: SessionEntry = { id: sessionId, command, cols, rows, backend };
-    sessions.set(sessionId, entry);
+    const entry: SessionEntry = { id: sessionName, command, cols, rows, backend };
+    sessions.set(sessionName, entry);
     await persistSessions();
 
     return {
-      content: [{ type: 'text', text: JSON.stringify({ sessionId, cols, rows }) }],
+      content: [{ type: 'text', text: JSON.stringify({ sessionName, cols, rows }) }],
     };
   },
 );
@@ -287,8 +292,8 @@ server.registerTool('list_sessions', { description: 'List all active terminal se
     Array.from(sessions.values()).map(async (s) => {
       let alive = false;
       try {
-        if (s.backend.innerSessionName) {
-          await execAsync(`tmux has-session -t ${s.backend.innerSessionName}`);
+        if (s.backend.sessionName) {
+          await execAsync(`tmux has-session -t ${s.backend.sessionName}`);
           alive = true;
         }
       } catch {
@@ -314,7 +319,7 @@ server.registerResource(
 
     const limit = limitRaw && limitRaw !== 'undefined' ? parseInt(limitRaw as string, 10) : 0;
     const text = await entry.backend.sessionHandler.getScreenPlaintext(
-      entry.backend.innerSessionName ?? entry.backend.sessionId!,
+      entry.backend.sessionName!,
       isNaN(limit) ? 0 : limit,
     );
 

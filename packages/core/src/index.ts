@@ -3,3 +3,7 @@ export * from './errors.js';
 export * from './utils.js';
 export * from './TerminalBackend.js';
 export * from './SnapshotStrategy.js';
+export * from './spawn/AppSpawner.js';
+export * from './spawn/macos/MacOsNativeSpawner.js';
+export * from './spawn/macos/MacOsOpenSpawner.js';
+export * from './spawn/SpawnerFactory.js';

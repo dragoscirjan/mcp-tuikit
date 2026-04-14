@@ -17,8 +17,7 @@ export class PlaywrightBackend extends TerminalBackend {
 
   async connect(cmd: string, cols: number, rows: number): Promise<void> {
     const sessionId = await this.sessionHandler.createSession(cmd, cols, rows);
-    this.sessionId = sessionId;
-    this.innerSessionName = sessionId;
+    this._sessionName = sessionId;
 
     const headless = process.env.TUIKIT_HEADLESS === '1';
     this.browser = await chromium.launch({ headless });
@@ -129,9 +128,9 @@ export class PlaywrightBackend extends TerminalBackend {
       this.browser = null;
       this.page = null;
     }
-    if (this.sessionId) {
-      await this.sessionHandler.closeSession(this.sessionId).catch(() => {});
-      this.sessionId = null;
+    if (this._sessionName) {
+      await this.sessionHandler.closeSession(this._sessionName).catch(() => {});
+      this._sessionName = null;
     }
   }
 }

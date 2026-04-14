@@ -26,9 +26,13 @@ vi.mock('node:util', async (importOriginal) => {
   };
 });
 
-vi.mock('node:child_process', () => ({
-  exec: (...args: unknown[]) => mockExecImpl(...args),
-}));
+vi.mock('node:child_process', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:child_process')>();
+  return {
+    ...actual,
+    exec: (...args: unknown[]) => mockExecImpl(...args),
+  };
+});
 
 const { TmuxSessionHandler } = await import('./TmuxSessionHandler.js');
 
