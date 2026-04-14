@@ -1,1 +1,1 @@
-export * from './TmuxBackend.js';
+export * from './TmuxSessionHandler.js';

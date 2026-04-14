@@ -1,27 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { TerminalBackend } from '@mcp-tuikit/core';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as config from './config.js';
 import { FlowRunner } from './runner.js';
 import { Flow } from './schema.js';
-import * as spawner from './spawner.js';
-
-vi.mock('./spawner.js', () => ({
-  spawnTerminal: vi.fn().mockResolvedValue(undefined),
-  closeTerminal: vi.fn().mockResolvedValue(undefined),
-}));
-
-vi.mock('./config.js', () => ({
-  getBackendConfig: vi.fn(),
-}));
-
-// Mock the snapshotter factory — the only abstraction point for PNG capture.
-// Individual snapshotter implementations are tested separately.
-const mockSnapshotterCapture = vi.fn().mockResolvedValue(undefined);
-vi.mock('./snapshotters/index.js', () => ({
-  resolveSnapshotter: vi.fn(() => ({ capture: mockSnapshotterCapture })),
-}));
 
 vi.mock('node:fs/promises', () => ({
   default: {
@@ -30,36 +12,14 @@ vi.mock('node:fs/promises', () => ({
   },
 }));
 
-vi.mock('node:util', async (orig) => {
-  const original = await orig<typeof import('node:util')>();
-  return {
-    ...original,
-    promisify: () => () => Promise.resolve({ stdout: 'screen content', stderr: '' }),
-  };
-});
-
 class MockBackend implements TerminalBackend {
-  async createSession(_command: string, _cols: number, _rows: number): Promise<string> {
-    return 'mock-session-id';
-  }
-  async closeSession(_sessionId: string): Promise<void> {}
-  async sendKeys(_sessionId: string, _keys: string): Promise<any> {
-    return {};
-  }
-  async waitForText(_sessionId: string, _pattern: string, _timeoutMs: number): Promise<any> {
-    return {};
-  }
-  async listSessions(): Promise<any[]> {
-    return [];
-  }
-  async getScreenPlaintext(_sessionId: string): Promise<string> {
-    return '';
-  }
-  async getScreenJson(_sessionId: string): Promise<any> {
-    return {};
-  }
-  async getSessionState(_sessionId: string): Promise<any> {
-    return {};
+  async connect(_command: string, _cols: number, _rows: number): Promise<void> {}
+  async disconnect(): Promise<void> {}
+  async sendKeys(_keys: string): Promise<void> {}
+  async waitForText(_pattern: string, _timeoutMs: number): Promise<void> {}
+  async takeSnapshot(_outputPath: string, _format: 'txt' | 'png', _cols: number, _rows: number): Promise<void> {}
+  onData(_callback: (data: string) => void): { dispose: () => void } | null {
+    return { dispose: vi.fn() };
   }
 }
 
@@ -68,12 +28,11 @@ describe('FlowRunner', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSnapshotterCapture.mockResolvedValue(undefined);
     backend = new MockBackend();
-    vi.spyOn(backend, 'createSession');
+    vi.spyOn(backend, 'connect');
     vi.spyOn(backend, 'sendKeys');
-    vi.spyOn(backend, 'closeSession');
-    vi.mocked(config.getBackendConfig).mockReturnValue('iterm2');
+    vi.spyOn(backend, 'disconnect');
+    vi.spyOn(backend, 'takeSnapshot');
   });
 
   it('uses cols/rows from constructor for session creation', async () => {
@@ -83,11 +42,7 @@ describe('FlowRunner', () => {
       steps: [{ action: 'spawn', cmd: 'echo "hello"' }],
     };
     await runner.run(flow);
-    expect(backend.createSession).toHaveBeenCalled();
-    const createCall = vi.mocked(backend.createSession).mock.calls[0];
-    expect(createCall[1]).toBe(120);
-    expect(createCall[2]).toBe(40);
-    expect(spawner.spawnTerminal).toHaveBeenCalledWith('iterm2', expect.any(String), 120, 40);
+    expect(backend.connect).toHaveBeenCalledWith('echo "hello"', 120, 40);
   });
 
   it('uses default 80x30 when no cols/rows provided', async () => {
@@ -97,21 +52,7 @@ describe('FlowRunner', () => {
       steps: [{ action: 'spawn', cmd: 'echo "hello"' }],
     };
     await runner.run(flow);
-    const createCall = vi.mocked(backend.createSession).mock.calls[0];
-    expect(createCall[1]).toBe(80);
-    expect(createCall[2]).toBe(30);
-  });
-
-  it('runs xterm.js backend without spawning a terminal', async () => {
-    vi.mocked(config.getBackendConfig).mockReturnValue('xterm.js');
-    const runner = new FlowRunner(backend, 120, 40);
-    const flow: Flow = {
-      version: '1.0',
-      steps: [{ action: 'spawn', cmd: 'echo "hello"' }],
-    };
-    await runner.run(flow);
-    expect(backend.createSession).toHaveBeenCalled();
-    expect(spawner.spawnTerminal).not.toHaveBeenCalled();
+    expect(backend.connect).toHaveBeenCalledWith('echo "hello"', 80, 30);
   });
 
   it('sends keys to the terminal', async () => {
@@ -124,7 +65,7 @@ describe('FlowRunner', () => {
       ],
     };
     await runner.run(flow);
-    expect(backend.sendKeys).toHaveBeenCalledWith(expect.stringMatching(/^tuikit_/), 'ls\n');
+    expect(backend.sendKeys).toHaveBeenCalledWith('ls\n');
   });
 
   it('cleans up session on close', async () => {
@@ -135,7 +76,7 @@ describe('FlowRunner', () => {
     };
     await runner.run(flow);
     await runner.cleanup();
-    expect(backend.closeSession).toHaveBeenCalledWith(expect.stringMatching(/^tuikit_/));
+    expect(backend.disconnect).toHaveBeenCalled();
   });
 
   it('returns artifacts with format and intent', async () => {
@@ -155,8 +96,7 @@ describe('FlowRunner', () => {
     expect(artifacts[0].path).toMatch(/out_.+\.txt/);
   });
 
-  it('captures a png snapshot via the resolved Snapshotter', async () => {
-    const { resolveSnapshotter } = await import('./snapshotters/index.js');
+  it('captures a png snapshot via the backend', async () => {
     const runner = new FlowRunner(backend, 80, 30);
     const flow: Flow = {
       version: '1.0',
@@ -166,13 +106,8 @@ describe('FlowRunner', () => {
       ],
     };
     await runner.run(flow);
-    expect(resolveSnapshotter).toHaveBeenCalledWith('iterm2');
-    expect(mockSnapshotterCapture).toHaveBeenCalledWith(
-      expect.stringMatching(/out_.+\.png/),
-      80,
-      30,
-      expect.stringMatching(/^tuikit_/),
-    );
+
+    expect(backend.takeSnapshot).toHaveBeenCalledWith(expect.stringMatching(/out_.+\.png/), 'png', 80, 30);
     const artifacts = runner.artifacts;
     expect(artifacts.length).toBe(1);
     expect(artifacts[0].format).toBe('png');
@@ -180,7 +115,6 @@ describe('FlowRunner', () => {
   });
 
   it('captures both txt and png snapshots in one flow', async () => {
-    const { resolveSnapshotter } = await import('./snapshotters/index.js');
     const runner = new FlowRunner(backend, 80, 30);
     const flow: Flow = {
       version: '1.0',
@@ -191,8 +125,8 @@ describe('FlowRunner', () => {
       ],
     };
     await runner.run(flow);
-    expect(resolveSnapshotter).toHaveBeenCalledOnce();
-    expect(mockSnapshotterCapture).toHaveBeenCalledOnce();
+
+    expect(backend.takeSnapshot).toHaveBeenCalledTimes(2);
     const artifacts = runner.artifacts;
     expect(artifacts.length).toBe(2);
     expect(artifacts.map((a) => a.format)).toEqual(['txt', 'png']);

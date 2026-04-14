@@ -30,12 +30,12 @@ vi.mock('node:child_process', () => ({
   exec: (...args: unknown[]) => mockExecImpl(...args),
 }));
 
-const { TmuxBackend } = await import('./TmuxBackend.js');
+const { TmuxSessionHandler } = await import('./TmuxSessionHandler.js');
 
 type ExecCallback = (error: Error | null, stdout: string, stderr: string) => void;
 
-describe('TmuxBackend', () => {
-  let backend: InstanceType<typeof TmuxBackend>;
+describe('TmuxSessionHandler', () => {
+  let backend: InstanceType<typeof TmuxSessionHandler>;
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -44,7 +44,7 @@ describe('TmuxBackend', () => {
       const cb = args[args.length - 1] as ExecCallback;
       cb(null, '', '');
     });
-    backend = new TmuxBackend();
+    backend = new TmuxSessionHandler();
   });
 
   it('createSession calls exec with the right tmux CLI arguments', async () => {

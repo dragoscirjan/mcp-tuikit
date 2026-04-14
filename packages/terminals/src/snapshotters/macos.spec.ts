@@ -32,7 +32,7 @@ vi.mock('node:child_process', () => ({
 }));
 
 // Import AFTER the mock is set up
-const { captureMacOsWindow, MacOsSnapshotter } = await import('./macos.js');
+const { captureMacOsWindow, MacOsSnapshotStrategy } = await import('./macos.js');
 
 type ExecFileCallback = (error: Error | null, stdout: string, stderr: string) => void;
 type ExecCallback = (error: Error | null, stdout: string, stderr: string) => void;
@@ -183,7 +183,7 @@ describe('captureMacOsWindow', () => {
   });
 });
 
-describe('MacOsSnapshotter', () => {
+describe('MacOsSnapshotStrategy', () => {
   it('delegates capture() to captureMacOsWindow with the configured app name', async () => {
     mockExecFileImpl.mockImplementation((...args: unknown[]) => {
       const file = args[0] as string;
@@ -197,7 +197,7 @@ describe('MacOsSnapshotter', () => {
       }
     });
 
-    const snapshotter = new MacOsSnapshotter('iTerm');
+    const snapshotter = new MacOsSnapshotStrategy('iTerm');
     await expect(snapshotter.capture('/tmp/snap.png', 80, 24, 'tuikit_abc')).resolves.toBeUndefined();
 
     // screencapture must have been invoked — confirming the delegation worked

@@ -1,6 +1,6 @@
 import { execFile, exec } from 'node:child_process';
 import { promisify } from 'node:util';
-import { Snapshotter } from '@mcp-tuikit/core';
+import { SnapshotStrategy } from '@mcp-tuikit/core';
 
 const execAsync = promisify(exec);
 
@@ -158,7 +158,7 @@ export async function captureMacOsWindow(
 }
 
 /**
- * macOS Snapshotter implementation.
+ * macOS SnapshotStrategy implementation.
  *
  * Wraps `captureMacOsWindow` — uses AppleScript + screencapture for iTerm2,
  * and CGWindowList + screencapture for Alacritty, WezTerm, and Ghostty.
@@ -166,7 +166,7 @@ export async function captureMacOsWindow(
  * @param appName  The terminal application name as returned by `getBackendConfig()`
  *                 (e.g. 'iterm2', 'wezterm', 'alacritty', 'ghostty').
  */
-export class MacOsSnapshotter implements Snapshotter {
+export class MacOsSnapshotStrategy implements SnapshotStrategy {
   constructor(private readonly appName: string) {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

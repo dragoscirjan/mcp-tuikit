@@ -1,12 +1,12 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
-import { Snapshotter } from '@mcp-tuikit/core';
-import { capturePlaywrightSnapshot } from '../backends/playwright.js';
+import { SnapshotStrategy } from '@mcp-tuikit/core';
+import { capturePlaywrightSnapshot } from '../playwright-utils.js';
 
 const execAsync = promisify(exec);
 
 /**
- * Snapshotter that works on every platform by reading the current ANSI screen
+ * SnapshotStrategy that works on every platform by reading the current ANSI screen
  * content from the tmux pane and rendering it through xterm.js in a Playwright
  * browser.  The resulting PNG is written to `outputPath`.
  *
@@ -15,7 +15,7 @@ const execAsync = promisify(exec);
  *  - Running in CI (`CI=1`)
  *  - No native window-capture backend is available for the current OS
  */
-export class PlaywrightSnapshotter implements Snapshotter {
+export class PlaywrightSnapshotStrategy implements SnapshotStrategy {
   async capture(outputPath: string, cols: number, rows: number, tmuxSession: string): Promise<void> {
     // -e preserves escape sequences so xterm.js renders colours correctly
     const { stdout: ansi } = await execAsync(`tmux capture-pane -p -e -t ${tmuxSession}`);

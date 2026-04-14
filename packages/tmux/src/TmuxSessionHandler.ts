@@ -1,11 +1,11 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
-import { TerminalBackend, TimeoutError, TmuxExecutionError } from '@mcp-tuikit/core';
+import { SessionHandler, TimeoutError, TmuxExecutionError } from '@mcp-tuikit/core';
 import { nanoid } from 'nanoid';
 
 const execAsync = promisify(exec);
 
-export class TmuxBackend implements TerminalBackend {
+export class TmuxSessionHandler implements SessionHandler {
   async createSession(cmd: string, cols: number, rows: number): Promise<string> {
     const sessionId = `mcp-${nanoid(8)}`;
     const tmuxCmd = `tmux new-session -d -s ${sessionId} -x ${cols} -y ${rows} "${cmd}"`;

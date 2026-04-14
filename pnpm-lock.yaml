@@ -14,6 +14,9 @@ importers:
       '@mcp-tuikit/flow-engine':
         specifier: workspace:*
         version: link:packages/flow-engine
+      '@mcp-tuikit/terminals':
+        specifier: workspace:*
+        version: link:packages/terminals
       '@mcp-tuikit/tmux':
         specifier: workspace:*
         version: link:packages/tmux
@@ -27,6 +30,9 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
+      '@playwright/test':
+        specifier: ^1.59.1
+        version: 1.59.1
       '@templ-project/commitlint':
         specifier: latest
         version: 1.0.0(@types/node@25.6.0)(typescript@6.0.2)
@@ -45,6 +51,9 @@ importers:
       '@types/node':
         specifier: ^25.6.0
         version: 25.6.0
+      eslint:
+        specifier: ^9.39.4
+        version: 9.39.4(jiti@2.6.1)
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -124,6 +133,31 @@ importers:
       vitest:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@22.19.17)
+
+  packages/terminals:
+    dependencies:
+      '@mcp-tuikit/core':
+        specifier: workspace:*
+        version: link:../core
+      '@mcp-tuikit/tmux':
+        specifier: workspace:*
+        version: link:../tmux
+      execa:
+        specifier: ^9.5.2
+        version: 9.6.1
+      nanoid:
+        specifier: ^5.1.2
+        version: 5.1.7
+      playwright:
+        specifier: ^1.50.1
+        version: 1.59.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.5
+        version: 22.19.17
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
 
   packages/tmux:
     dependencies:
@@ -713,6 +747,11 @@ packages:
   '@pkgr/core@0.2.9':
     resolution: {integrity: sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
+
+  '@playwright/test@1.59.1':
+    resolution: {integrity: sha512-PG6q63nQg5c9rIi4/Z5lR5IVF7yU5MqmKaPOe0HSc0O2cX1fPi96sUQu5j7eo4gKCkB2AnNGoWt7y4/Xx3Kcqg==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   '@rollup/rollup-android-arm-eabi@4.60.1':
     resolution: {integrity: sha512-d6FinEBLdIiK+1uACUttJKfgZREXrF0Qc2SmLII7W2AD8FfiZ9Wjd+rD/iRuf5s5dWrr1GgwXCvPqOuDquOowA==}
@@ -4165,6 +4204,10 @@ snapshots:
 
   '@pkgr/core@0.2.9': {}
 
+  '@playwright/test@1.59.1':
+    dependencies:
+      playwright: 1.59.1
+
   '@rollup/rollup-android-arm-eabi@4.60.1':
     optional: true
 
@@ -4416,7 +4459,7 @@ snapshots:
 
   '@types/conventional-commits-parser@5.0.2':
     dependencies:
-      '@types/node': 25.6.0
+      '@types/node': 22.19.17
 
   '@types/deep-eql@4.0.2': {}
 

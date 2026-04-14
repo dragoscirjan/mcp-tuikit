@@ -1,5 +1,5 @@
 /**
- * Unit tests for PlaywrightSnapshotter
+ * Unit tests for PlaywrightSnapshotStrategy
  *
  * Verifies:
  *   1. Calls `tmux capture-pane -p -e` on the correct session name
@@ -17,7 +17,7 @@ const { mockCapturePlaywrightSnapshot, mockExec } = vi.hoisted(() => {
   return { mockCapturePlaywrightSnapshot, mockExec };
 });
 
-vi.mock('../backends/playwright.js', () => ({
+vi.mock('../playwright-utils.js', () => ({
   capturePlaywrightSnapshot: mockCapturePlaywrightSnapshot,
 }));
 
@@ -39,11 +39,11 @@ vi.mock('node:util', async (orig) => {
   };
 });
 
-import { PlaywrightSnapshotter } from './playwright.js';
+import { PlaywrightSnapshotStrategy } from './playwright.js';
 
-describe('PlaywrightSnapshotter', () => {
+describe('PlaywrightSnapshotStrategy', () => {
   it('reads ANSI output from the tmux session with -e flag', async () => {
-    const snapshotter = new PlaywrightSnapshotter();
+    const snapshotter = new PlaywrightSnapshotStrategy();
     await snapshotter.capture('/tmp/out.png', 80, 24, 'tuikit_abc123');
 
     // capturePlaywrightSnapshot must have been called with the ansi output
@@ -53,7 +53,7 @@ describe('PlaywrightSnapshotter', () => {
   });
 
   it('prepends ESC[H and converts bare \\n to \\r\\n before rendering', async () => {
-    const snapshotter = new PlaywrightSnapshotter();
+    const snapshotter = new PlaywrightSnapshotStrategy();
     await snapshotter.capture('/tmp/out.png', 80, 24, 'tuikit_abc123');
 
     const [ansi] = mockCapturePlaywrightSnapshot.mock.calls[0];
@@ -65,7 +65,7 @@ describe('PlaywrightSnapshotter', () => {
   });
 
   it('forwards outputPath, cols, and rows to capturePlaywrightSnapshot', async () => {
-    const snapshotter = new PlaywrightSnapshotter();
+    const snapshotter = new PlaywrightSnapshotStrategy();
     await snapshotter.capture('/tmp/snap.png', 132, 50, 'tuikit_xyz');
 
     expect(mockCapturePlaywrightSnapshot).toHaveBeenCalledWith(expect.any(String), '/tmp/snap.png', 132, 50);
