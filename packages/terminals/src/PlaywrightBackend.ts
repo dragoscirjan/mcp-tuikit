@@ -1,12 +1,11 @@
 import { TerminalBackend, SessionHandler, SnapshotStrategy } from '@mcp-tuikit/core';
-import { execa } from 'execa';
 import { Browser, Page, chromium } from 'playwright';
 import { loadXtermAssets } from './playwright-utils.js';
 
 export class PlaywrightBackend extends TerminalBackend {
   private browser: Browser | null = null;
   private page: Page | null = null;
-  private pollInterval: ReturnType<typeof setInterval> | null = null;
+  private disposeDataListener: (() => void) | null = null;
 
   constructor(sessionHandler: SessionHandler, snapshotStrategy: SnapshotStrategy) {
     super(sessionHandler, snapshotStrategy);
@@ -58,17 +57,13 @@ export class PlaywrightBackend extends TerminalBackend {
 
     await this.page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
 
-    // Real-time observation via polling tmux capture-pane.
-    // We normalize the newlines and reset the cursor position (\x1b[H) so each
-    // frame paints cleanly from the top-left over the existing xterm.js canvas.
-    this.pollInterval = setInterval(async () => {
-      if (!this.page) return;
-      try {
-        const { stdout: ansi } = await execa('tmux', ['capture-pane', '-t', sessionId, '-p', '-e']);
-        if (ansi) {
-          const normalised = '\\x1b[H' + ansi.replace(/\\r?\\n/g, '\\r\\n');
-          const base64Data = Buffer.from(normalised, 'utf-8').toString('base64');
-          await this.page.evaluate((b64) => {
+    // Real-time streaming from tmux control mode pipe
+    if (this.sessionHandler.onData) {
+      const listener = this.sessionHandler.onData(sessionId, (data: string) => {
+        if (!this.page) return;
+        const base64Data = Buffer.from(data, 'utf-8').toString('base64');
+        this.page
+          .evaluate((b64) => {
             try {
               const decodedData = atob(b64);
               const bytes = new Uint8Array(decodedData.length);
@@ -76,16 +71,16 @@ export class PlaywrightBackend extends TerminalBackend {
                 bytes[i] = decodedData.charCodeAt(i);
               }
               // @ts-ignore
-              window.term.write(bytes);
+              if (window.term) window.term.write(bytes);
             } catch {
               // ignore
             }
-          }, base64Data);
-        }
-      } catch {
-        // Ignored, session might be closing
-      }
-    }, 200);
+          }, base64Data)
+          .catch(() => {});
+      });
+
+      this.disposeDataListener = listener.dispose;
+    }
   }
 
   public async takeSnapshot(outputPath: string, format: 'png' | 'txt', cols: number, rows: number): Promise<void> {
@@ -104,9 +99,9 @@ export class PlaywrightBackend extends TerminalBackend {
   }
 
   async disconnect(): Promise<void> {
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
-      this.pollInterval = null;
+    if (this.disposeDataListener) {
+      this.disposeDataListener();
+      this.disposeDataListener = null;
     }
     if (this.browser) {
       await this.browser.close().catch(() => {});

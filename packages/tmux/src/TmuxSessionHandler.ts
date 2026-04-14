@@ -1,4 +1,4 @@
-import { exec } from 'node:child_process';
+import { exec, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import { SessionHandler, TimeoutError, TmuxExecutionError } from '@mcp-tuikit/core';
 import { nanoid } from 'nanoid';
@@ -6,6 +6,8 @@ import { nanoid } from 'nanoid';
 const execAsync = promisify(exec);
 
 export class TmuxSessionHandler implements SessionHandler {
+  private activeStreams: Map<string, ReturnType<typeof spawn>> = new Map();
+
   async createSession(cmd: string, cols: number, rows: number): Promise<string> {
     const sessionId = `mcp-${nanoid(8)}`;
     const tmuxCmd = `tmux new-session -d -s ${sessionId} -x ${cols} -y ${rows} "${cmd}"`;
@@ -27,6 +29,11 @@ export class TmuxSessionHandler implements SessionHandler {
   }
 
   async closeSession(sessionId: string): Promise<void> {
+    const stream = this.activeStreams.get(sessionId);
+    if (stream) {
+      stream.kill();
+      this.activeStreams.delete(sessionId);
+    }
     try {
       await execAsync(`tmux kill-session -t ${sessionId}`);
     } catch (err) {
@@ -99,5 +106,48 @@ export class TmuxSessionHandler implements SessionHandler {
     }
 
     throw new TimeoutError(`Wait for text matched /${pattern}/ timed out after ${timeoutMs}ms.`);
+  }
+
+  onData(sessionId: string, listener: (data: string) => void): { dispose: () => void } {
+    let stream = this.activeStreams.get(sessionId);
+    if (!stream) {
+      // Use tmux control mode (-C) to attach to the session and receive live output.
+      stream = spawn('tmux', ['-C', 'attach', '-t', sessionId]);
+      this.activeStreams.set(sessionId, stream);
+    }
+
+    const dataHandler = (chunk: Buffer) => {
+      const text = chunk.toString('utf8');
+      // In control mode, pane output lines start with `%output %0 ...`
+      // We need to decode the \0xx octal escapes to get the raw ANSI.
+      const lines = text.split('\n');
+      let combinedOutput = '';
+      for (const line of lines) {
+        if (line.startsWith('%output')) {
+          const match = line.match(/^%output %\d+ (.*)$/);
+          if (match && match[1]) {
+            // Unescape the output (e.g. \033 for ESC)
+            let unescaped = match[1];
+            unescaped = unescaped.replace(/\\(\d{3})/g, (_, octal) => String.fromCharCode(parseInt(octal, 8)));
+            // Also handle standard backslash escapes if tmux produces them
+            unescaped = unescaped.replace(/\\\\/g, '\\');
+            unescaped = unescaped.replace(/\\n/g, '\n');
+            unescaped = unescaped.replace(/\\r/g, '\r');
+            combinedOutput += unescaped;
+          }
+        }
+      }
+      if (combinedOutput.length > 0) {
+        listener(combinedOutput);
+      }
+    };
+
+    stream.stdout?.on('data', dataHandler);
+
+    return {
+      dispose: () => {
+        stream?.stdout?.removeListener('data', dataHandler);
+      },
+    };
   }
 }
