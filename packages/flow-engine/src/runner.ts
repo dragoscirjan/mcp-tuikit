@@ -97,47 +97,6 @@ export class FlowRunner {
   }
 
   private async waitForPattern(pattern: string, timeoutMs: number): Promise<void> {
-    if (this.dataListener) {
-      return new Promise<void>((resolve, reject) => {
-        let isResolved = false;
-
-        const state: {
-          timer?: ReturnType<typeof setTimeout>;
-          listener?: { dispose: () => void } | null;
-        } = {};
-
-        const checkBuffer = () => {
-          if (this.rollingBuffer.includes(pattern) || new RegExp(pattern).test(this.rollingBuffer)) {
-            isResolved = true;
-            cleanup();
-            resolve();
-          }
-        };
-
-        const cleanup = () => {
-          if (state.timer) clearTimeout(state.timer);
-          if (state.listener) state.listener.dispose();
-        };
-
-        checkBuffer();
-        if (isResolved) return;
-
-        state.listener = this.backend.onData(() => {
-          if (!isResolved) {
-            checkBuffer();
-          }
-        });
-
-        state.timer = setTimeout(() => {
-          if (!isResolved) {
-            isResolved = true;
-            cleanup();
-            reject(new Error(`Wait for text matched /${pattern}/ timed out after ${timeoutMs}ms`));
-          }
-        }, timeoutMs);
-      });
-    } else {
-      await this.backend.waitForText(pattern, timeoutMs);
-    }
+    await this.backend.waitForText(pattern, timeoutMs);
   }
 }

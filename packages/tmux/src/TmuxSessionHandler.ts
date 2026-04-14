@@ -116,11 +116,15 @@ export class TmuxSessionHandler implements SessionHandler {
       this.activeStreams.set(sessionId, stream);
     }
 
+    let buffer = '';
+
     const dataHandler = (chunk: Buffer) => {
-      const text = chunk.toString('utf8');
-      // In control mode, pane output lines start with `%output %0 ...`
-      // We need to decode the \0xx octal escapes to get the raw ANSI.
-      const lines = text.split('\n');
+      buffer += chunk.toString('utf8');
+      const lines = buffer.split('\n');
+
+      // Keep the last partial line in the buffer
+      buffer = lines.pop() || '';
+
       let combinedOutput = '';
       for (const line of lines) {
         if (line.startsWith('%output')) {

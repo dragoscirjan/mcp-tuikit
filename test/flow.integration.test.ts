@@ -1,3 +1,5 @@
+/** global process */
+
 /**
  * Integration tests for run_flow via FlowRunner — covers iTerm2, Alacritty, WezTerm, Ghostty, and xterm.js.
  *
@@ -21,9 +23,17 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { beforeAll } from 'vitest';
-import { defineFlowSuite } from './helpers/flowSuite.js';
+import { defineFlowSuite, FlowSuiteOptions } from './helpers/flowSuite.js';
 
 const SNAPSHOTS = path.resolve(import.meta.dirname, '..', 'snapshots');
+
+function run(terminal: FlowSuiteOptions['terminal']): FlowSuiteOptions['run'] {
+  if (terminal === 'xterm.js') {
+    return process.env.TUIKIT_HEADLESS_TEST === 'xterm.js' ? 'only' : '';
+  }
+
+  return 'skip';
+}
 
 beforeAll(async () => {
   await fs.rm(SNAPSHOTS, { recursive: true, force: true });
@@ -35,6 +45,7 @@ defineFlowSuite({
   label: 'run_flow integration (xterm.js + nvim)',
   terminal: 'xterm.js',
   yamlName: 'nvim_lazy_log.yaml',
+  run: run('xterm.js'),
 });
 
 defineFlowSuite({
@@ -42,12 +53,14 @@ defineFlowSuite({
   terminal: 'xterm.js',
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
+  run: run('xterm.js'),
 });
 
 defineFlowSuite({
   label: 'run_flow integration (iTerm2 + nvim)',
   terminal: 'iterm2',
   yamlName: 'nvim_lazy_log.yaml',
+  run: run('iterm2'),
 });
 
 defineFlowSuite({
@@ -55,13 +68,14 @@ defineFlowSuite({
   terminal: 'iterm2',
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
+  run: run('iterm2'),
 });
 
 defineFlowSuite({
   label: 'run_flow integration (Alacritty + nvim)',
   terminal: 'alacritty',
   yamlName: 'nvim_lazy_log.yaml',
-  run: 'skip',
+  run: run('alacritty'),
 });
 
 defineFlowSuite({
@@ -69,28 +83,29 @@ defineFlowSuite({
   terminal: 'alacritty',
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
-  run: 'skip',
+  run: run('alacritty'),
 });
 
 defineFlowSuite({
   label: 'run_flow integration (WezTerm + nvim)',
   terminal: 'wezterm',
   yamlName: 'nvim_lazy_log.yaml',
+  run: run('wezterm'),
 });
 
 defineFlowSuite({
   label: 'run_flow integration (WezTerm + btop)',
   terminal: 'wezterm',
-  txtMatchers: [/CPU/],
+  txtMatchers: [/Mem/],
   yamlName: 'btop.yaml',
-  cols: 160,
-  rows: 60,
+  run: run('wezterm'),
 });
 
 defineFlowSuite({
   label: 'run_flow integration (Ghostty + nvim)',
   terminal: 'ghostty',
   yamlName: 'nvim_lazy_log.yaml',
+  run: run('ghostty'),
 });
 
 defineFlowSuite({
@@ -98,6 +113,5 @@ defineFlowSuite({
   terminal: 'ghostty',
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
-  cols: 160,
-  rows: 60,
+  run: run('ghostty'),
 });

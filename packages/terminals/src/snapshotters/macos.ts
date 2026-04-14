@@ -138,8 +138,9 @@ export async function captureMacOsWindow(
   await execAsync(`open -a "${appName}"`).catch(() => {
     // Best-effort — ignore if activation fails
   });
-  // Allow the window compositor to render a frame before capturing
-  await delay(500);
+  // Allow the window compositor to render a frame before capturing.
+  // iTerm2 needs extra time after tmux attach for the visual buffer to update.
+  await delay(1500);
 
   // Retry screencapture a few times in case the first attempt hits a blank frame.
   let lastError: Error | null = null;

@@ -72,9 +72,9 @@ FlowRunner accepts a TerminalBackend (from @mcp-tuikit/core) and optional cols/r
 
 All spawners return a SpawnResult containing either a windowHandle (for AppleScript-controlled terminals) or a pid (for directly-spawned processes), plus an optional tmpConfig path for temp file cleanup.
 
-**iTerm2:** Uses AppleScript to create a new window, set its bounds to pixel dimensions derived from cols/rows (cols times 10 plus 50 by rows times 20 plus 50), then writes an exec tmux attach command to the session. Returns the AppleScript window ID as windowHandle for later close-by-ID.
+**iTerm2:** Uses AppleScript to create a new window with the default profile, executing the `tmux attach -t session` command directly as part of the profile initialization (`create window with default profile command "tmux attach..."`). This avoids race conditions caused by shell initialization. Returns the AppleScript window ID as windowHandle for later close-by-ID.
 
-**WezTerm:** Calls the wezterm-gui binary directly via spawnDirectProcess with --config initial_cols and initial_rows flags. Attaches to the tmux session via the start subcommand. Binary path overridable via WEZTERM_BIN env var. Returns PID for cleanup.
+**WezTerm:** Calls the wezterm-gui binary directly via spawnDirectProcess with `start --always-new-process -- tmux attach -t session`. The `--always-new-process` flag ensures WezTerm does not delegate to an existing daemon (which would ignore dimension overrides). Binary path overridable via WEZTERM_BIN env var. Returns PID for cleanup.
 
 **Alacritty:** Writes a temporary TOML config file specifying window.dimensions (columns and lines) and terminal.shell (program tmux, args attach -t session). Launches the Alacritty binary with --config-file pointing to the temp file. Binary path overridable via ALACRITTY_BIN env var. Returns PID and tmpConfig path; closeTerminal removes the config after kill.
 

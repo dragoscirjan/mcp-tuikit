@@ -65,21 +65,10 @@ export async function spawnTerminal(
     case 'wezterm': {
       // `wezterm-gui start` opens a new window; `wezterm cli spawn` requires an
       // existing multiplexer and fails when WezTerm is not already running.
-      // Pass --config to set the initial window dimensions explicitly — WezTerm
-      // defaults to 80x24 which is too small for btop and similar TUI apps.
+      // Add --always-new-process so that it doesn't delegate to an existing WezTerm
+      // instance. And we pass the command directly as start arguments so WezTerm owns it.
       const bin = process.env.WEZTERM_BIN ?? '/Applications/WezTerm.app/Contents/MacOS/wezterm-gui';
-      return spawnDirectProcess(bin, [
-        '--config',
-        `initial_cols=${cols}`,
-        '--config',
-        `initial_rows=${rows}`,
-        'start',
-        '--',
-        'tmux',
-        'attach',
-        '-t',
-        tmuxSessionName,
-      ]);
+      return spawnDirectProcess(bin, ['start', '--always-new-process', '--', 'tmux', 'attach', '-t', tmuxSessionName]);
     }
 
     case 'alacritty': {
@@ -165,20 +154,23 @@ export async function spawnTerminal(
     }
 
     case 'iterm2': {
-      // Create window, size it, attach to tmux session, and return the window ID for later cleanup
+      // Create window with a profile that runs tmux attach directly.
+      // Using `create window with default profile command "..."` ensures the command
+      // runs immediately without waiting for shell initialization.
+      const tmuxCmd = `tmux attach -t ${tmuxSessionName}`;
       const script = [
         `tell application "iTerm"`,
-        `  set newWindow to (create window with default profile)`,
+        `  set newWindow to (create window with default profile command "${tmuxCmd}")`,
         `  tell newWindow`,
         `    set bounds to {0, 0, ${pixelWidth}, ${pixelHeight}}`,
-        `  end tell`,
-        `  tell current session of newWindow`,
-        `    write text "exec tmux attach -t ${tmuxSessionName}"`,
         `  end tell`,
         `  return id of newWindow`,
         `end tell`,
       ].join('\n');
       const { stdout } = await execAsync(`osascript -e '${script.replace(/'/g, "'\\''")}'`);
+      // Wait for iTerm2 to connect to tmux and render the output.
+      const startupDelayMs = 3000;
+      await new Promise((r) => setTimeout(r, startupDelayMs));
       return { windowHandle: stdout.trim() || null };
     }
 
