@@ -1,6 +1,10 @@
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
 import { TerminalBackend, SessionHandler, SnapshotStrategy } from '@mcp-tuikit/core';
 import { Browser, Page, chromium } from 'playwright';
 import { loadXtermAssets } from './playwright-utils.js';
+
+const execAsync = promisify(exec);
 
 export class PlaywrightBackend extends TerminalBackend {
   private browser: Browser | null = null;
@@ -48,7 +52,8 @@ export class PlaywrightBackend extends TerminalBackend {
         cols: ${cols},
         rows: ${rows},
         theme: { background: '#000000' },
-        allowProposedApi: true
+        allowProposedApi: true,
+        fontFamily: 'Menlo, Monaco, Consolas, "Courier New", monospace'
       });
       window.term.open(document.getElementById('terminal'));
     </script>
@@ -57,7 +62,28 @@ export class PlaywrightBackend extends TerminalBackend {
 
     await this.page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
 
-    // Real-time streaming from tmux control mode pipe
+    // 1. Initial ANSI dump — write current screen state immediately so the
+    //    browser shows content from the moment it opens.
+    try {
+      const { stdout } = await execAsync(`tmux capture-pane -t ${sessionId} -p -e`);
+      if (stdout && this.page) {
+        const base64Data = Buffer.from(stdout, 'utf-8').toString('base64');
+        await this.page.evaluate((b64) => {
+          const decodedData = atob(b64);
+          const bytes = new Uint8Array(decodedData.length);
+          for (let i = 0; i < decodedData.length; i++) {
+            bytes[i] = decodedData.charCodeAt(i);
+          }
+          // @ts-ignore
+          window.term.write(bytes);
+        }, base64Data);
+      }
+    } catch {
+      // Ignored — browser will update via live stream below
+    }
+
+    // 2. Live streaming — keeps the browser updating as the terminal changes.
+    //    Uses tmux pipe-pane (works without a PTY, unlike tmux -C attach).
     if (this.sessionHandler.onData) {
       const listener = this.sessionHandler.onData(sessionId, (data: string) => {
         if (!this.page) return;
@@ -84,18 +110,12 @@ export class PlaywrightBackend extends TerminalBackend {
   }
 
   public async takeSnapshot(outputPath: string, format: 'png' | 'txt', cols: number, rows: number): Promise<void> {
-    if (format === 'txt') {
-      await super.takeSnapshot(outputPath, format, cols, rows);
-      return;
-    }
-
-    if (!this.page) {
-      throw new Error('Playwright page is not initialized. Cannot take PNG snapshot.');
-    }
-
-    // Small delay to ensure xterm.js has painted the latest ANSI chunks
-    await new Promise((r) => setTimeout(r, 150));
-    await this.page.locator('#terminal').screenshot({ path: outputPath });
+    // Delegate both txt and png to the base implementation.
+    // For PNG, base calls snapshotStrategy.capture() which uses capturePlaywrightSnapshot()
+    // — a fresh browser render with a proper _xtermReady callback. This avoids the
+    // scrollback-shift bug where capture-pane line-feed output scrolls rows 0–11 off
+    // the top of the live xterm.js viewport.
+    await super.takeSnapshot(outputPath, format, cols, rows);
   }
 
   async disconnect(): Promise<void> {

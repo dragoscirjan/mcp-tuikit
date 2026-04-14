@@ -2,6 +2,10 @@
 node = "lts"
 pnpm = "latest"
 
+[tasks.install]
+description = "Install all dependencies across the monorepo (root + all workspace packages)"
+run = "pnpm install"
+
 [tasks.clean]
 description = "Remove all dist/ build artefacts across the monorepo"
 run = "find . -path ./node_modules -prune -o -name dist -type d -print | xargs rm -rf"

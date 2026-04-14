@@ -12,6 +12,7 @@
   "dependencies": {
     "@mcp-tuikit/core": "workspace:*",
     "@mcp-tuikit/tmux": "workspace:*",
+    "@xterm/xterm": "^5.5.0",
     "execa": "^9.5.2",
     "nanoid": "^5.1.2",
     "playwright": "^1.50.1"

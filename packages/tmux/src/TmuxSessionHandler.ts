@@ -1,12 +1,21 @@
-import { exec, spawn } from 'node:child_process';
+import { exec } from 'node:child_process';
+import { createReadStream } from 'node:fs';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { promisify } from 'node:util';
 import { SessionHandler, TimeoutError, TmuxExecutionError } from '@mcp-tuikit/core';
 import { nanoid } from 'nanoid';
 
 const execAsync = promisify(exec);
 
+interface PipeSession {
+  pipePath: string;
+  stream: ReturnType<typeof createReadStream>;
+}
+
 export class TmuxSessionHandler implements SessionHandler {
-  private activeStreams: Map<string, ReturnType<typeof spawn>> = new Map();
+  private activePipes: Map<string, PipeSession> = new Map();
 
   async createSession(cmd: string, cols: number, rows: number): Promise<string> {
     const sessionId = `mcp-${nanoid(8)}`;
@@ -29,10 +38,13 @@ export class TmuxSessionHandler implements SessionHandler {
   }
 
   async closeSession(sessionId: string): Promise<void> {
-    const stream = this.activeStreams.get(sessionId);
-    if (stream) {
-      stream.kill();
-      this.activeStreams.delete(sessionId);
+    const pipe = this.activePipes.get(sessionId);
+    if (pipe) {
+      pipe.stream.destroy();
+      this.activePipes.delete(sessionId);
+      // Stop pipe-pane and clean up the fifo
+      await execAsync(`tmux pipe-pane -t ${sessionId}`).catch(() => {});
+      await fs.rm(pipe.pipePath).catch(() => {});
     }
     try {
       await execAsync(`tmux kill-session -t ${sessionId}`);
@@ -109,48 +121,39 @@ export class TmuxSessionHandler implements SessionHandler {
   }
 
   onData(sessionId: string, listener: (data: string) => void): { dispose: () => void } {
-    let stream = this.activeStreams.get(sessionId);
-    if (!stream) {
-      // Use tmux control mode (-C) to attach to the session and receive live output.
-      stream = spawn('tmux', ['-C', 'attach', '-t', sessionId]);
-      this.activeStreams.set(sessionId, stream);
-    }
+    // tmux control mode (-C attach) exits immediately without a real PTY.
+    // Use pipe-pane to stream raw ANSI output through a named pipe (FIFO) instead.
+    const pipePath = path.join(os.tmpdir(), `tuikit-pipe-${nanoid(8)}`);
+    let disposed = false;
 
-    let buffer = '';
+    // Start the pipeline asynchronously — errors are swallowed so callers don't
+    // need to await the registration.
+    (async () => {
+      try {
+        await execAsync(`mkfifo ${pipePath}`);
+        await execAsync(`tmux pipe-pane -t ${sessionId} "cat >> ${pipePath}"`);
 
-    const dataHandler = (chunk: Buffer) => {
-      buffer += chunk.toString('utf8');
-      const lines = buffer.split('\n');
+        const readStream = createReadStream(pipePath, { encoding: 'utf8' });
+        this.activePipes.set(sessionId, { pipePath, stream: readStream });
 
-      // Keep the last partial line in the buffer
-      buffer = lines.pop() || '';
-
-      let combinedOutput = '';
-      for (const line of lines) {
-        if (line.startsWith('%output')) {
-          const match = line.match(/^%output %\d+ (.*)$/);
-          if (match && match[1]) {
-            // Unescape the output (e.g. \033 for ESC)
-            let unescaped = match[1];
-            unescaped = unescaped.replace(/\\(\d{3})/g, (_, octal) => String.fromCharCode(parseInt(octal, 8)));
-            // Also handle standard backslash escapes if tmux produces them
-            unescaped = unescaped.replace(/\\\\/g, '\\');
-            unescaped = unescaped.replace(/\\n/g, '\n');
-            unescaped = unescaped.replace(/\\r/g, '\r');
-            combinedOutput += unescaped;
-          }
-        }
+        readStream.on('data', (chunk: string) => {
+          if (!disposed) listener(chunk);
+        });
+      } catch {
+        // Session may not exist yet or pipe setup failed — nothing to stream.
       }
-      if (combinedOutput.length > 0) {
-        listener(combinedOutput);
-      }
-    };
-
-    stream.stdout?.on('data', dataHandler);
+    })();
 
     return {
       dispose: () => {
-        stream?.stdout?.removeListener('data', dataHandler);
+        disposed = true;
+        const pipe = this.activePipes.get(sessionId);
+        if (pipe) {
+          pipe.stream.destroy();
+          this.activePipes.delete(sessionId);
+          execAsync(`tmux pipe-pane -t ${sessionId}`).catch(() => {});
+          fs.rm(pipe.pipePath).catch(() => {});
+        }
       },
     };
   }

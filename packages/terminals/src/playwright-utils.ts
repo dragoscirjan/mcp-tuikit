@@ -79,7 +79,8 @@ export async function capturePlaywrightSnapshot(
         cols: ${cols},
         rows: ${rows},
         theme: { background: '#000000' },
-        allowProposedApi: true
+        allowProposedApi: true,
+        fontFamily: 'Menlo, Monaco, Consolas, "Courier New", monospace'
       });
       term.open(document.getElementById('terminal'));
 
@@ -91,7 +92,13 @@ export async function capturePlaywrightSnapshot(
 
       // Signal rendering complete via a DOM flag that Playwright can wait on
       window._xtermReady = false;
-      term.write(bytes, () => { window._xtermReady = true; });
+      term.write(bytes, () => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setTimeout(() => { window._xtermReady = true; }, 50);
+          });
+        });
+      });
     </script>
   </body>
 </html>`;
