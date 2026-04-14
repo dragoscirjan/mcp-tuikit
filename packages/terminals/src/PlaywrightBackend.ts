@@ -53,7 +53,7 @@ export class PlaywrightBackend extends TerminalBackend {
         rows: ${rows},
         theme: { background: '#000000' },
         allowProposedApi: true,
-        fontFamily: 'Menlo, Monaco, Consolas, "Courier New", monospace'
+        fontFamily: '"SauceCodePro Nerd Font", Menlo, Monaco, Consolas, "Courier New", monospace'
       });
       window.term.open(document.getElementById('terminal'));
     </script>

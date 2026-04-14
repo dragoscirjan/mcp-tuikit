@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
+import path from 'node:path';
 import { chromium } from 'playwright';
 
 const require = createRequire(import.meta.url);
@@ -13,8 +14,21 @@ const require = createRequire(import.meta.url);
 export async function loadXtermAssets(): Promise<{ css: string; js: string }> {
   const cssPath = require.resolve('@xterm/xterm/css/xterm.css');
   const jsPath = require.resolve('@xterm/xterm/lib/xterm.js');
-  const [css, js] = await Promise.all([fs.readFile(cssPath, 'utf8'), fs.readFile(jsPath, 'utf8')]);
-  return { css, js };
+  const fontPath = path.resolve(import.meta.dirname, '../assets/SauceCodeProNerdFont-Regular.ttf');
+  const [css, js, fontBuf] = await Promise.all([
+    fs.readFile(cssPath, 'utf8'),
+    fs.readFile(jsPath, 'utf8'),
+    fs.readFile(fontPath),
+  ]);
+
+  const fontFaceCss = `
+    @font-face {
+      font-family: 'SauceCodePro Nerd Font';
+      src: url(data:font/truetype;charset=utf-8;base64,${fontBuf.toString('base64')}) format('truetype');
+    }
+  `;
+
+  return { css: fontFaceCss + css, js };
 }
 
 /**
@@ -80,7 +94,7 @@ export async function capturePlaywrightSnapshot(
         rows: ${rows},
         theme: { background: '#000000' },
         allowProposedApi: true,
-        fontFamily: 'Menlo, Monaco, Consolas, "Courier New", monospace'
+        fontFamily: '"SauceCodePro Nerd Font", Menlo, Monaco, Consolas, "Courier New", monospace'
       });
       term.open(document.getElementById('terminal'));
 
