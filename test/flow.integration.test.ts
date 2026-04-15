@@ -21,30 +21,12 @@
  *   mise run test:integration
  */
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
+import { canRunTerminal } from '@mcp-tuikit/terminals/test/helpers/backendSuite.js';
 import { beforeAll } from 'vitest';
-import { defineFlowSuite, FlowSuiteOptions } from './helpers/flowSuite.js';
+import { defineFlowSuite } from './helpers/flowSuite.js';
 
 const SNAPSHOTS = path.resolve(import.meta.dirname, '..', 'snapshots');
-
-function run(terminal: FlowSuiteOptions['terminal']): FlowSuiteOptions['run'] {
-  const target = process.env.TUIKIT_TERMINAL_TEST;
-  switch (terminal) {
-    case 'alacritty':
-      return target === 'alacritty' ? 'only' : '';
-    case 'xterm.js':
-      return target === 'xterm.js' ? 'only' : '';
-    case 'wezterm':
-      return target === 'wezterm' ? 'only' : '';
-    case 'iterm2':
-      return os.type() !== 'Darwin' ? 'skip' : target === 'iterm2' ? 'only' : '';
-    case 'ghostty':
-      return os.type() !== 'Windows' ? 'skip' : target === 'ghostty' ? 'only' : '';
-    default:
-      return 'skip';
-  }
-}
 
 beforeAll(async () => {
   await fs.rm(SNAPSHOTS, { recursive: true, force: true });
@@ -56,7 +38,7 @@ defineFlowSuite({
   label: 'run_flow integration (xterm.js + nvim)',
   terminal: 'xterm.js',
   yamlName: 'nvim_lazy_log.yaml',
-  run: run('xterm.js'),
+  run: canRunTerminal('xterm.js'),
 });
 
 defineFlowSuite({
@@ -64,14 +46,14 @@ defineFlowSuite({
   terminal: 'xterm.js',
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
-  run: run('xterm.js'),
+  run: canRunTerminal('xterm.js'),
 });
 
 defineFlowSuite({
   label: 'run_flow integration (iTerm2 + nvim)',
   terminal: 'iterm2',
   yamlName: 'nvim_lazy_log.yaml',
-  run: run('iterm2'),
+  run: canRunTerminal('iterm2'),
 });
 
 defineFlowSuite({
@@ -79,14 +61,29 @@ defineFlowSuite({
   terminal: 'iterm2',
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
-  run: run('iterm2'),
+  run: canRunTerminal('iterm2'),
+});
+
+defineFlowSuite({
+  label: 'run_flow integration (Terminal + nvim)',
+  terminal: 'macos-terminal',
+  yamlName: 'nvim_lazy_log.yaml',
+  run: canRunTerminal('macos-terminal'),
+});
+
+defineFlowSuite({
+  label: 'run_flow integration (Terminal + btop)',
+  terminal: 'macos-terminal',
+  txtMatchers: [/cpu/i],
+  yamlName: 'btop.yaml',
+  run: canRunTerminal('macos-terminal'),
 });
 
 defineFlowSuite({
   label: 'run_flow integration (Alacritty + nvim)',
   terminal: 'alacritty',
   yamlName: 'nvim_lazy_log.yaml',
-  run: run('alacritty'),
+  run: canRunTerminal('alacritty'),
 });
 
 defineFlowSuite({
@@ -94,14 +91,14 @@ defineFlowSuite({
   terminal: 'alacritty',
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
-  run: run('alacritty'),
+  run: canRunTerminal('alacritty'),
 });
 
 defineFlowSuite({
   label: 'run_flow integration (WezTerm + nvim)',
   terminal: 'wezterm',
   yamlName: 'nvim_lazy_log.yaml',
-  run: run('wezterm'),
+  run: canRunTerminal('wezterm'),
 });
 
 defineFlowSuite({
@@ -109,14 +106,14 @@ defineFlowSuite({
   terminal: 'wezterm',
   txtMatchers: [/Mem/],
   yamlName: 'btop.yaml',
-  run: run('wezterm'),
+  run: canRunTerminal('wezterm'),
 });
 
 defineFlowSuite({
   label: 'run_flow integration (Ghostty + nvim)',
   terminal: 'ghostty',
   yamlName: 'nvim_lazy_log.yaml',
-  run: run('ghostty'),
+  run: canRunTerminal('ghostty'),
 });
 
 defineFlowSuite({
@@ -124,5 +121,5 @@ defineFlowSuite({
   terminal: 'ghostty',
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
-  run: run('ghostty'),
+  run: canRunTerminal('ghostty'),
 });

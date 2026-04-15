@@ -36,6 +36,7 @@ export class MacOsNativeSpawner implements AppSpawner {
     };
   }
 
+  // jscpd:ignore-start
   async kill(pid: number): Promise<void> {
     try {
       process.kill(pid, 'SIGTERM');
@@ -45,4 +46,5 @@ export class MacOsNativeSpawner implements AppSpawner {
       // Process likely already dead
     }
   }
+  // jscpd:ignore-end
 }

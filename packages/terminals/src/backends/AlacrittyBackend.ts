@@ -1,26 +1,13 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { TerminalBackend, SessionHandler, SnapshotStrategy, AppSpawner } from '@mcp-tuikit/core';
-import { execAsync } from '../utils/execAsync.js';
+import { SpawnOptions } from '@mcp-tuikit/core';
+import { BaseSpawnerBackend } from './BaseSpawnerBackend.js';
 
-export class AlacrittyBackend extends TerminalBackend {
+export class AlacrittyBackend extends BaseSpawnerBackend {
   private tmpConfig: string | null = null;
 
-  constructor(
-    sessionHandler: SessionHandler,
-    snapshotStrategy: SnapshotStrategy,
-    private readonly spawner: AppSpawner,
-  ) {
-    super(sessionHandler, snapshotStrategy);
-  }
-
-  public async spawn(): Promise<void> {
-    if (!this._sessionName) throw new Error('Cannot spawn Alacritty without an active session ID');
-
-    const { stdout: tmuxBin } = await execAsync('which tmux');
-    const tmuxAbsPath = tmuxBin.trim();
-
+  protected async getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions> {
     this.tmpConfig = path.join(os.tmpdir(), `alacritty-tuikit-${Date.now()}.toml`);
     const configContent = [
       `[window.dimensions]`,
@@ -29,25 +16,20 @@ export class AlacrittyBackend extends TerminalBackend {
       ``,
       `[terminal.shell]`,
       `program = "${tmuxAbsPath}"`,
-      `args = ["attach", "-t", "${this._sessionName}"]`,
+      `args = ["attach", "-t", "${sessionName}"]`,
     ].join('\n');
     await fs.writeFile(this.tmpConfig, configContent, 'utf8');
 
-    const result = await this.spawner.spawn({
+    return {
       appName: 'Alacritty',
       executable: process.platform === 'darwin' ? 'Alacritty' : 'alacritty',
       args: ['--config-file', this.tmpConfig],
       requireWindowId: true,
-    });
-
-    this._processId = result.pid?.toString() || null;
-    this._windowId = result.windowId;
+    };
   }
 
   public async close(): Promise<void> {
-    if (this._processId) {
-      await this.spawner.kill(Number(this._processId)).catch(() => {});
-    }
+    await super.close();
     if (this.tmpConfig) {
       await fs.unlink(this.tmpConfig).catch(() => {});
       this.tmpConfig = null;

@@ -7,6 +7,12 @@ defineBackendSuite({
 });
 
 defineBackendSuite({
+  label: 'run_flow integration (Terminal )',
+  terminal: 'macos-terminal',
+  run: canRunTerminal('macos-terminal'),
+});
+
+defineBackendSuite({
   label: 'run_flow integration (iTerm2)',
   terminal: 'iterm2',
   run: canRunTerminal('iterm2'),

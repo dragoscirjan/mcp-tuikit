@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { TerminalBackend } from '@mcp-tuikit/core';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { BackendFactory, TerminalBackend } from '../../src';
-
-export type Terminal = 'iterm2' | 'alacritty' | 'wezterm' | 'ghostty' | 'xterm.js';
+import { BackendFactory } from '../../src';
+import { Terminal } from '../../src';
 
 export interface RunBackendOptions {
   /** Label for the test suite */
@@ -30,6 +30,8 @@ export function canRunTerminal(terminal: RunBackendOptions['terminal']): RunBack
       return target === 'wezterm' ? 'only' : '';
     case 'iterm2':
       return os.type() !== 'Darwin' ? 'skip' : target === 'iterm2' ? 'only' : '';
+    case 'macos-terminal':
+      return os.type() !== 'Darwin' ? 'skip' : target === 'macos-terminal' ? 'only' : '';
     case 'ghostty':
       return os.type() === 'Windows' ? 'skip' : target === 'ghostty' ? 'only' : '';
     default:
@@ -77,7 +79,7 @@ export function defineBackendSuite(opts: RunBackendOptions): void {
       await backend.sendKeys('for i in {1..5}; do echo "LLM_TEST_OUTPUT_\\$i"; sleep 0.1; done\n');
 
       // Wait for output to complete
-      await backend.waitForText('LLM_TEST_OUTPUT_5', 20_000);
+      await backend.waitForText('LLM_TEST_OUTPUT_5', 10_000);
 
       // Delay slightly for render compositing
       await new Promise((r) => setTimeout(r, 1000));

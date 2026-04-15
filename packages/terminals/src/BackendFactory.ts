@@ -8,8 +8,10 @@ import { WezTermBackend } from './backends/WezTermBackend.js';
 import { PlaywrightBackend } from './PlaywrightBackend.js';
 import { resolveSnapshotStrategy } from './snapshotters/index.js';
 
+export type Terminal = 'macos-terminal' | 'iterm2' | 'alacritty' | 'wezterm' | 'ghostty' | 'xterm.js';
+
 export class BackendFactory {
-  static create(backendConfig: string): TerminalBackend {
+  static create(backendConfig: Terminal): TerminalBackend {
     const sessionHandler = new TmuxSessionHandler();
     const snapshotStrategy = resolveSnapshotStrategy(backendConfig);
 
@@ -23,7 +25,7 @@ export class BackendFactory {
       return new ITerm2Backend(sessionHandler, snapshotStrategy);
     }
 
-    if (configLower === 'terminal') {
+    if (configLower === 'macos-terminal') {
       return new MacTerminalAppBackend(sessionHandler, snapshotStrategy);
     }
 
@@ -33,6 +35,7 @@ export class BackendFactory {
 
     if (configLower === 'ghostty') {
       return new GhosttyBackend(sessionHandler, snapshotStrategy, SpawnerFactory.create('open'));
+      // return new GhosttyBackend(sessionHandler, snapshotStrategy, SpawnerFactory.create('native'));
     }
 
     if (configLower === 'wezterm') {

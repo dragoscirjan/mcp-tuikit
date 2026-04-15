@@ -1,12 +1,17 @@
+import { Terminal } from './BackendFactory.js';
+
 /**
  * Returns the terminal backend to use.
  *
  * Controlled by TUIKIT_TERMINAL env var.
- * Supported values: xterm.js | iterm2 | alacritty | wezterm | ghostty | konsole | gnome-terminal
+ * Supported values: xterm.js | iterm2 | macos-terminal | alacritty | wezterm | ghostty
  * Default: 'xterm.js'
  */
-export function getBackendConfig(): string {
-  return process.env.TUIKIT_TERMINAL ?? 'xterm.js';
+export function getBackendConfig(): Terminal {
+  if (process.env.TUIKIT_HEADLESS === '1') {
+    return 'xterm.js';
+  }
+  return (process.env.TUIKIT_TERMINAL as Terminal) ?? 'xterm.js';
 }
 
 /**

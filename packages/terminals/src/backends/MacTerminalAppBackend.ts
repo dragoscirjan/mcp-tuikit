@@ -1,50 +1,31 @@
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 import { TerminalBackend, SessionHandler, SnapshotStrategy } from '@mcp-tuikit/core';
+import { spawnAppleScriptTerminal, runAppleScriptClose } from './AppleScriptUtils.js';
 
-const execAsync = promisify(exec);
-
+// jscpd:ignore-start
 export class MacTerminalAppBackend extends TerminalBackend {
   constructor(sessionHandler: SessionHandler, snapshotStrategy: SnapshotStrategy) {
     super(sessionHandler, snapshotStrategy);
   }
 
   async spawn(): Promise<void> {
-    if (!this._sessionName) throw new Error('Cannot spawn Terminal without an active session ID');
-
-    const tmuxSessionName = this._sessionName;
-
-    const { stdout: tmuxBin } = await execAsync('which tmux');
-    const tmuxAbsPath = tmuxBin.trim();
-
+    // jscpd:ignore-end
     const [pixelWidth, pixelHeight] = this.sizeInPixels(this.cols, this.rows);
 
-    const tmuxCmd = `${tmuxAbsPath} attach -t ${tmuxSessionName}`;
-    const script = [
-      `tell application "Terminal"`,
-      `  set newTab to do script "${tmuxCmd}"`,
-      `  set newWindow to front window`,
-      `  set bounds of newWindow to {0, 0, ${pixelWidth}, ${pixelHeight}}`,
-      `  return id of newWindow`,
-      `end tell`,
-    ].join('\n');
+    this._windowId = await spawnAppleScriptTerminal(
+      this._sessionName,
+      pixelWidth,
+      pixelHeight,
+      'Terminal',
+      (tmuxCmd) => `set newTab to do script "${tmuxCmd}"`,
+      `set frontmost of targetWindow to true`,
+    );
 
-    const { stdout } = await execAsync(`osascript -e '${script.replace(/'/g, "'\\''")}'`);
-    const startupDelayMs = 3000;
-    await new Promise((r) => setTimeout(r, startupDelayMs));
-
-    this._windowId = stdout.trim() || null;
     this._spawnResult = { windowHandle: this._windowId };
   }
 
   async close(): Promise<void> {
     if (this._windowId) {
-      const script = [
-        `tell application "Terminal"`,
-        `  close (every window whose id is ${this._windowId})`,
-        `end tell`,
-      ].join('\n');
-      await execAsync(`osascript -e '${script.replace(/'/g, "'\\''")}'`).catch(() => {});
+      await runAppleScriptClose('Terminal', `close (every window whose id is ${this._windowId})`);
     }
   }
 }

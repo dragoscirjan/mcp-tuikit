@@ -73,6 +73,9 @@ function getAppleScriptForApp(appName: string): string | null {
   if (nameLower.includes('wezterm') || nameLower.includes('ghostty') || nameLower.includes('alacritty')) {
     return null;
   }
+  if (nameLower === 'macos-terminal') {
+    return `tell application "Terminal" to activate\ntell application "Terminal" to get id of window 1`;
+  }
 
   // Generic fallback — try AppleScript
   return `tell application "${appName}" to activate\ntell application "${appName}" to get id of window 1`;
@@ -126,13 +129,7 @@ export async function captureMacOsWindow(
 ): Promise<void> {
   let windowId: string | null = null;
 
-  if (
-    appName.toLowerCase() === 'iterm2' &&
-    spawnResult &&
-    typeof spawnResult === 'object' &&
-    'windowHandle' in spawnResult &&
-    spawnResult.windowHandle
-  ) {
+  if (spawnResult && typeof spawnResult === 'object' && 'windowHandle' in spawnResult && spawnResult.windowHandle) {
     windowId = String(spawnResult.windowHandle);
   } else {
     const startTime = Date.now();
@@ -162,7 +159,8 @@ export async function captureMacOsWindow(
 
   // Bring the target app to front so its window has a backing store and can be captured.
   // Alacritty has no AppleScript dictionary, so we use `open -a` to activate it.
-  await execAsync(`open -a "${appName}"`).catch(() => {
+  const actualAppName = appName === 'macos-terminal' ? 'Terminal' : appName;
+  await execAsync(`open -a "${actualAppName}"`).catch(() => {
     // Best-effort — ignore if activation fails
   });
   // Allow the window compositor to render a frame before capturing.

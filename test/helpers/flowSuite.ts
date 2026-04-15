@@ -8,9 +8,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { FlowRunner, Artifact, parseFlow } from '@mcp-tuikit/flow-engine';
 import { BackendFactory } from '@mcp-tuikit/terminals';
+import { Terminal } from '@mcp-tuikit/terminals/src';
 import { describe, it, expect, beforeAll } from 'vitest';
-
-export type Terminal = 'iterm2' | 'alacritty' | 'wezterm' | 'ghostty' | 'xterm.js';
 
 export interface RunFlowOptions {
   /** Terminal backend to use (sets TUIKIT_TERMINAL env var). */

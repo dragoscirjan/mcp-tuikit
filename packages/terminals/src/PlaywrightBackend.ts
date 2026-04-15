@@ -55,6 +55,16 @@ export class PlaywrightBackend extends TerminalBackend {
         fontFamily: '"SauceCodePro Nerd Font", Menlo, Monaco, Consolas, "Courier New", monospace'
       });
       window.term.open(document.getElementById('terminal'));
+      window.writeBase64ToTerm = function(b64) {
+        try {
+          const decodedData = atob(b64);
+          const bytes = new Uint8Array(decodedData.length);
+          for (let i = 0; i < decodedData.length; i++) {
+            bytes[i] = decodedData.charCodeAt(i);
+          }
+          if (window.term) window.term.write(bytes);
+        } catch (e) {}
+      };
     </script>
   </body>
 </html>`;
@@ -68,15 +78,8 @@ export class PlaywrightBackend extends TerminalBackend {
       if (stdout && this.page) {
         const normalised = '\x1b[H' + stdout.replace(/\r?\n/g, '\r\n');
         const base64Data = Buffer.from(normalised, 'utf-8').toString('base64');
-        await this.page.evaluate((b64) => {
-          const decodedData = atob(b64);
-          const bytes = new Uint8Array(decodedData.length);
-          for (let i = 0; i < decodedData.length; i++) {
-            bytes[i] = decodedData.charCodeAt(i);
-          }
-          // @ts-ignore
-          window.term.write(bytes);
-        }, base64Data);
+        // @ts-ignore
+        await this.page.evaluate((b64) => window.writeBase64ToTerm(b64), base64Data);
       }
     } catch {
       // Ignored — browser will update via live stream below
@@ -88,21 +91,8 @@ export class PlaywrightBackend extends TerminalBackend {
       const listener = this.sessionHandler.onData(sessionId, (data: string) => {
         if (!this.page) return;
         const base64Data = Buffer.from(data, 'utf-8').toString('base64');
-        this.page
-          .evaluate((b64) => {
-            try {
-              const decodedData = atob(b64);
-              const bytes = new Uint8Array(decodedData.length);
-              for (let i = 0; i < decodedData.length; i++) {
-                bytes[i] = decodedData.charCodeAt(i);
-              }
-              // @ts-ignore
-              if (window.term) window.term.write(bytes);
-            } catch {
-              // ignore
-            }
-          }, base64Data)
-          .catch(() => {});
+        // @ts-ignore
+        this.page.evaluate((b64) => window.writeBase64ToTerm(b64), base64Data).catch(() => {});
       });
 
       this.disposeDataListener = listener.dispose;
