@@ -13,6 +13,8 @@
   "dependencies": {
     "@mcp-tuikit/core": "workspace:*",
     "@mcp-tuikit/tmux": "workspace:*",
+    "@resvg/resvg-js": "^2.6.2",
+    "@xterm/headless": "^5.5.0",
     "@xterm/xterm": "^5.5.0",
     "dbus-next": "^0.10.2",
     "execa": "^9.5.2",

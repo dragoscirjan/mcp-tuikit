@@ -1,6 +1,22 @@
+import { isX11DisplayServer } from '@mcp-tuikit/core';
 import { execa } from 'execa';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { HeadlessSnapshotStrategy } from './headless.js';
 import { LinuxSnapshotStrategy } from './linux.js';
+
+vi.mock('./headless.js', () => {
+  return {
+    HeadlessSnapshotStrategy: vi.fn(),
+  };
+});
+
+vi.mock('@mcp-tuikit/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@mcp-tuikit/core')>();
+  return {
+    ...actual,
+    isX11DisplayServer: vi.fn(),
+  };
+});
 
 vi.mock('execa', () => ({
   execa: vi.fn(async (cmd) => {
@@ -32,16 +48,65 @@ vi.mock('fs', async (importOriginal) => {
 
 describe('LinuxSnapshotStrategy', () => {
   let strategy: LinuxSnapshotStrategy;
+  let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(() => {
-    strategy = new LinuxSnapshotStrategy();
+    originalEnv = process.env;
+    process.env = { ...originalEnv };
     vi.clearAllMocks();
   });
 
-  it('should try to capture using X11 tools when in X11 env', async () => {
-    process.env.DISPLAY = ':0';
-    delete process.env.WAYLAND_DISPLAY;
+  afterEach(() => {
+    process.env = originalEnv;
+  });
 
+  it('should use headless strategy by default (LINUX_SNAPSHOT_MODE unset)', async () => {
+    delete process.env.LINUX_SNAPSHOT_MODE;
+    const captureSpy = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(HeadlessSnapshotStrategy).mockImplementation(function () {
+      return { capture: captureSpy } as never;
+    } as never);
+
+    strategy = new LinuxSnapshotStrategy();
+
+    await strategy.capture('output.png', 80, 24, 'session', {
+      windowId: '1234',
+      fallbackIdentifier: 'Alacritty',
+    });
+
+    expect(captureSpy).toHaveBeenCalledWith('output.png', 80, 24, 'session', {
+      windowId: '1234',
+      fallbackIdentifier: 'Alacritty',
+    });
+    expect(execa).not.toHaveBeenCalledWith('import', expect.anything());
+    expect(execa).not.toHaveBeenCalledWith('grim', expect.anything());
+  });
+
+  it('should use headless strategy if LINUX_SNAPSHOT_MODE is headless', async () => {
+    process.env.LINUX_SNAPSHOT_MODE = 'headless';
+    const captureSpy = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(HeadlessSnapshotStrategy).mockImplementation(function () {
+      return { capture: captureSpy } as never;
+    } as never);
+
+    strategy = new LinuxSnapshotStrategy();
+
+    await strategy.capture('output.png', 80, 24, 'session', {
+      windowId: '1234',
+    });
+
+    expect(captureSpy).toHaveBeenCalled();
+  });
+
+  it('should try to capture using X11 tools when in X11 env and mode is native', async () => {
+    process.env.LINUX_SNAPSHOT_MODE = 'native';
+    vi.mocked(isX11DisplayServer).mockResolvedValue(true);
+
+    vi.mocked(HeadlessSnapshotStrategy).mockImplementation(function () {
+      return { capture: vi.fn() } as never;
+    } as never);
+
+    strategy = new LinuxSnapshotStrategy();
     await strategy.capture('output.png', 80, 24, 'session', {
       windowId: '1234',
       fallbackIdentifier: 'Alacritty',
@@ -50,10 +115,15 @@ describe('LinuxSnapshotStrategy', () => {
     expect(execa).toHaveBeenCalledWith('import', ['-window', '1234', 'output.png']);
   });
 
-  it('should capture using Wayland grim when in Wayland env', async () => {
-    process.env.WAYLAND_DISPLAY = 'wayland-0';
-    delete process.env.DISPLAY;
+  it('should capture using Wayland grim when in Wayland env and mode is native', async () => {
+    process.env.LINUX_SNAPSHOT_MODE = 'native';
+    vi.mocked(isX11DisplayServer).mockResolvedValue(false);
 
+    vi.mocked(HeadlessSnapshotStrategy).mockImplementation(function () {
+      return { capture: vi.fn() } as never;
+    } as never);
+
+    strategy = new LinuxSnapshotStrategy();
     await strategy.capture('output.png', 80, 24, 'session', {
       windowId: '1234',
       fallbackIdentifier: 'Alacritty',

@@ -12,6 +12,7 @@ describe('Linux Spawner & Snapshotter Integration', () => {
   let snapshotter: LinuxSnapshotStrategy;
   let spawnResult: NativeSpawnResult | undefined;
   const outPath = path.join(process.cwd(), 'test-artifact.png');
+  const outPathHeadless = path.join(process.cwd(), 'test-headless.png');
 
   beforeAll(() => {
     spawner = new LinuxNativeSpawner();
@@ -25,6 +26,9 @@ describe('Linux Spawner & Snapshotter Integration', () => {
     }
     if (fs.existsSync(outPath)) {
       // fs.unlinkSync(outPath); // keep for artifact review or remove?
+    }
+    if (fs.existsSync(outPathHeadless)) {
+      // fs.unlinkSync(outPathHeadless);
     }
   });
 
@@ -66,6 +70,7 @@ describe('Linux Spawner & Snapshotter Integration', () => {
     }
 
     try {
+      process.env.LINUX_SNAPSHOT_MODE = 'native';
       console.log('Spawning xterm...');
       spawnResult = await spawner.spawn({
         executable: 'xterm',
@@ -112,4 +117,47 @@ describe('Linux Spawner & Snapshotter Integration', () => {
       throw e;
     }
   }, 15000); // 15 second timeout to allow spawn + render + screenshot
+
+  it('captures in headless mode using tmux and xterm headless', async () => {
+    process.env.LINUX_SNAPSHOT_MODE = 'headless';
+
+    try {
+      execSync('which tmux', { stdio: 'ignore' });
+    } catch {
+      console.warn('tmux not found, skipping headless snapshot integration test.');
+      return;
+    }
+
+    try {
+      // Setup a dummy tmux session
+      execSync(`tmux new-session -d -s test-tmux-headless 'echo -e "\\x1b[31mHello Headless\\x1b[0m" && sleep 10'`);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      await snapshotter.capture(
+        outPathHeadless,
+        80, // cols
+        24, // rows
+        'test-tmux-headless', // tmuxSession
+      );
+
+      expect(fs.existsSync(outPathHeadless)).toBe(true);
+
+      const screenshotBuffer = fs.readFileSync(outPathHeadless);
+      expect(Buffer.isBuffer(screenshotBuffer)).toBe(true);
+      expect(screenshotBuffer.length).toBeGreaterThan(0);
+
+      // Verify PNG magic number
+      expect(screenshotBuffer[0]).toBe(0x89);
+      expect(screenshotBuffer[1]).toBe(0x50);
+      expect(screenshotBuffer[2]).toBe(0x4e);
+      expect(screenshotBuffer[3]).toBe(0x47);
+    } finally {
+      // Cleanup tmux session
+      try {
+        execSync(`tmux kill-session -t test-tmux-headless`, { stdio: 'ignore' });
+      } catch {
+        // ignore
+      }
+    }
+  });
 });

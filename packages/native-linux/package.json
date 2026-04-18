@@ -1,9 +1,7 @@
 {
   "name": "@mcp-tuikit/native-linux",
   "version": "0.1.0",
-  "os": [
-    "linux"
-  ],
+  "os": ["linux"],
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {

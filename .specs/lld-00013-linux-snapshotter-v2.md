@@ -7,6 +7,15 @@ status: deprecated
 opencode-agent: lead-engineer
 ---
 
+---
+id: "00013"
+type: lld
+title: "Linux Snapshotter"
+version: 2
+status: deprecated
+author: lead-engineer
+---
+
 # LLD: Linux Wayland D-Bus Snapshotter
 
 ## Objective

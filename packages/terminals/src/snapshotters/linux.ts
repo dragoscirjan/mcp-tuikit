@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import { SnapshotStrategy, isX11DisplayServer } from '@mcp-tuikit/core';
 import dbus from 'dbus-next';
 import { execa } from 'execa';
+import { HeadlessSnapshotStrategy } from './headless.js';
 
 async function waitForFile(path: string, timeoutMs: number = 3000): Promise<void> {
   const start = Date.now();
@@ -20,13 +21,19 @@ async function waitForFile(path: string, timeoutMs: number = 3000): Promise<void
 }
 
 export class LinuxSnapshotStrategy implements SnapshotStrategy {
+  private headlessStrategy = new HeadlessSnapshotStrategy();
+
   async capture(
     outputPath: string,
-    _cols: number,
-    _rows: number,
-    _tmuxSession: string,
+    cols: number,
+    rows: number,
+    tmuxSession: string,
     spawnResult?: unknown,
   ): Promise<void> {
+    if (process.env.LINUX_SNAPSHOT_MODE !== 'native') {
+      return this.headlessStrategy.capture(outputPath, cols, rows, tmuxSession, spawnResult);
+    }
+
     const windowId = (spawnResult as { windowId?: string })?.windowId;
     const isX11 = await isX11DisplayServer();
 
