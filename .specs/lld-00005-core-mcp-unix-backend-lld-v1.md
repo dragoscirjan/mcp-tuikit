@@ -3,7 +3,7 @@ id: "00005"
 type: lld
 title: "Core MCP & Unix Backend LLD"
 version: 1
-status: draft
+status: superseded
 parent: "00001"
 opencode-agent: lead-engineer
 ---

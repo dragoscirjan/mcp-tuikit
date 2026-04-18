@@ -6,8 +6,7 @@ export const ActionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('spawn'),
     cmd: z.string(),
-    cols: z.number().optional().default(80),
-    rows: z.number().optional().default(24),
+    // cols/rows are NOT part of the YAML — they are passed by the caller at runtime
   }),
   z.object({
     action: z.literal('wait_for'),
@@ -24,9 +23,15 @@ export const ActionSchema = z.discriminatedUnion('action', [
     key: z.string(),
   }),
   z.object({
+    action: z.literal('sleep'),
+    ms: z.number().describe('Milliseconds to wait'),
+  }),
+  z.object({
     action: z.literal('snapshot'),
-    format: z.enum(['png', 'txt', 'json']).optional().default('txt'),
+    format: z.enum(['png', 'txt']).optional().default('txt'),
     outputPath: z.string(),
+    /** Hint for the LLM: what to look for / verify in this snapshot. */
+    intent: z.string().optional().default(''),
   }),
 ]);
 
@@ -43,5 +48,10 @@ export type Flow = z.infer<typeof FlowSchema>;
 export async function parseFlow(yamlPath: string): Promise<Flow> {
   const content = await fs.readFile(yamlPath, 'utf8');
   const data = yaml.load(content);
+  return FlowSchema.parse(data);
+}
+
+export function parseFlowFromString(yamlContent: string): Flow {
+  const data = yaml.load(yamlContent);
   return FlowSchema.parse(data);
 }

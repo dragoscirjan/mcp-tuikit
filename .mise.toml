@@ -2,13 +2,28 @@
 node = "lts"
 pnpm = "latest"
 
+[tasks.install]
+description = "Install all dependencies across the monorepo (root + all workspace packages)"
+run = "pnpm install"
+
+[tasks.clean]
+description = "Remove all dist/ build artefacts across the monorepo"
+run = "find . -path ./node_modules -prune -o -name dist -type d -print | xargs rm -rf"
+
 [tasks.build]
 description = "Build the monorepo"
-run = "pnpm -r run build"
+depends = ["clean"]
+run = ["pnpm -r run build", "pnpm run build"]
 
 [tasks.test]
-description = "Run vitest tests"
-run = "pnpm vitest run"
+description = "Run vitest unit tests (*.spec.ts co-located with source)"
+depends = ["build"]
+run = "pnpm vitest run --reporter=verbose --project=unit"
+
+[tasks."test:integration"]
+description = "Run integration/e2e tests (requires macOS + iTerm2 + Alacritty + nvim + btop)"
+depends = ["build"]
+run = "pnpm vitest run --reporter=verbose --project=integration"
 
 [tasks.lint]
 description = "Run ESLint"

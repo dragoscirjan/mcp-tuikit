@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import { describe, it, expect, vi } from 'vitest';
-import { FlowSchema, parseFlow } from './schema.js';
+import { FlowSchema, parseFlow, parseFlowFromString } from './schema.js';
 
 vi.mock('node:fs/promises', () => {
   return {
@@ -35,6 +35,30 @@ steps:
     vi.mocked(fs.readFile).mockResolvedValue(yamlStr);
     const flow = await parseFlow('dummy.yaml');
     expect(flow.steps.length).toBe(1);
-    expect(flow.steps[0]).toEqual({ action: 'spawn', cmd: "echo 'hello'", cols: 80, rows: 24 });
+    expect(flow.steps[0]).toEqual({ action: 'spawn', cmd: "echo 'hello'" });
+  });
+
+  it('should parse flow from yaml string', () => {
+    const yamlStr = `
+version: "1.0"
+steps:
+  - action: "spawn"
+    cmd: "btop"
+  - action: snapshot
+    format: png
+    outputPath: snapshots/test_{hash}.png
+    intent: "verify panel borders"
+`;
+    const flow = parseFlowFromString(yamlStr);
+    expect(flow.steps.length).toBe(2);
+    expect(flow.steps[0]).toEqual({ action: 'spawn', cmd: 'btop' });
+    expect(flow.steps[1]).toMatchObject({ action: 'snapshot', format: 'png', intent: 'verify panel borders' });
+  });
+
+  it('should reject json as snapshot format', () => {
+    const data = {
+      steps: [{ action: 'snapshot', format: 'json', outputPath: 'out.json' }],
+    };
+    expect(() => FlowSchema.parse(data)).toThrow();
   });
 });

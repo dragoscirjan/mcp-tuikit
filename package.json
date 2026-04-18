@@ -8,22 +8,30 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "eslint --fix .",
+    "jscpd": "jscpd .",
     "prepare": "husky"
   },
   "dependencies": {
     "@mcp-tuikit/core": "workspace:*",
     "@mcp-tuikit/flow-engine": "workspace:*",
+    "@mcp-tuikit/terminals": "workspace:*",
     "@mcp-tuikit/tmux": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "nanoid": "^5.1.7",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@templ-project/commitlint": "latest",
     "@templ-project/eslint": "latest",
     "@templ-project/prettier": "latest",
     "@templ-project/tsconfig": "latest",
     "@templ-project/vitest": "latest",
     "@types/node": "^25.6.0",
+    "@xterm/headless": "^5.5.0",
+    "@xterm/xterm": "^5.5.0",
+    "eslint": "^9.39.4",
     "husky": "^9.1.7",
     "jscpd": "^4.0.9",
     "lint-staged": "^16.4.0",

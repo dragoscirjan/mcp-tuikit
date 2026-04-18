@@ -11,3 +11,11 @@ node_modules
 pnpm-lock.yaml
 .husky
 .jscpd
+*.ttf
+*.woff
+*.woff2
+*.png
+*.jpg
+*.jpeg
+assets/
+.env.*

@@ -1,12 +1,24 @@
 import { exec } from 'node:child_process';
+import { createReadStream } from 'node:fs';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { promisify } from 'node:util';
-import { TerminalBackend, TimeoutError, TmuxExecutionError } from '@mcp-tuikit/core';
+import { SessionHandler, TimeoutError, TmuxExecutionError } from '@mcp-tuikit/core';
+import { nanoid } from 'nanoid';
 
 const execAsync = promisify(exec);
 
-export class TmuxBackend implements TerminalBackend {
+interface PipeSession {
+  pipePath: string;
+  stream: ReturnType<typeof createReadStream>;
+}
+
+export class TmuxSessionHandler implements SessionHandler {
+  private activePipes: Map<string, PipeSession> = new Map();
+
   async createSession(cmd: string, cols: number, rows: number): Promise<string> {
-    const sessionId = `mcp-${Date.now()}`;
+    const sessionId = `mcp-${nanoid(8)}`;
     const tmuxCmd = `tmux new-session -d -s ${sessionId} -x ${cols} -y ${rows} "${cmd}"`;
     try {
       await execAsync(tmuxCmd);
@@ -14,18 +26,18 @@ export class TmuxBackend implements TerminalBackend {
       throw new TmuxExecutionError(`Failed to create session: ${(err as Error).message}`);
     }
 
-    if (process.env.TUIKIT_HEADED === '1') {
-      try {
-        await execAsync(`open -a Terminal "tmux attach-session -t ${sessionId}"`);
-      } catch {
-        // Ignore failure
-      }
-    }
-
     return sessionId;
   }
 
   async closeSession(sessionId: string): Promise<void> {
+    const pipe = this.activePipes.get(sessionId);
+    if (pipe) {
+      pipe.stream.destroy();
+      this.activePipes.delete(sessionId);
+      // Stop pipe-pane and clean up the fifo
+      await execAsync(`tmux pipe-pane -t ${sessionId}`).catch(() => {});
+      await fs.rm(pipe.pipePath).catch(() => {});
+    }
     try {
       await execAsync(`tmux kill-session -t ${sessionId}`);
     } catch (err) {
@@ -74,8 +86,9 @@ export class TmuxBackend implements TerminalBackend {
     try {
       const { stdout } = await execAsync(`tmux display-message -p -t ${sessionId} '#{session_id}'`);
       return stdout.trim();
-    } catch (err) {
-      throw new TmuxExecutionError(`Failed to get session state: ${(err as Error).message}`);
+    } catch {
+      // tmux exits non-zero when the session doesn't exist; treat as empty state
+      return '';
     }
   }
 
@@ -85,13 +98,55 @@ export class TmuxBackend implements TerminalBackend {
     const regex = new RegExp(pattern);
 
     while (Date.now() - start < timeoutMs) {
-      const text = await this.getScreenPlaintext(sessionId, 0);
-      if (regex.test(text)) {
-        return { success: true, matchedPattern: pattern };
+      try {
+        const text = await this.getScreenPlaintext(sessionId, 0);
+        if (regex.test(text)) {
+          return { success: true, matchedPattern: pattern };
+        }
+      } catch {
+        // Session may not be ready yet — keep polling
       }
       await new Promise((r) => setTimeout(r, intervalMs));
     }
 
     throw new TimeoutError(`Wait for text matched /${pattern}/ timed out after ${timeoutMs}ms.`);
+  }
+
+  onData(sessionId: string, listener: (data: string) => void): { dispose: () => void } {
+    // tmux control mode (-C attach) exits immediately without a real PTY.
+    // Use pipe-pane to stream raw ANSI output through a named pipe (FIFO) instead.
+    const pipePath = path.join(os.tmpdir(), `tuikit-pipe-${nanoid(8)}`);
+    let disposed = false;
+
+    // Start the pipeline asynchronously — errors are swallowed so callers don't
+    // need to await the registration.
+    (async () => {
+      try {
+        await execAsync(`mkfifo ${pipePath}`);
+        await execAsync(`tmux pipe-pane -t ${sessionId} "cat >> ${pipePath}"`);
+
+        const readStream = createReadStream(pipePath, { encoding: 'utf8' });
+        this.activePipes.set(sessionId, { pipePath, stream: readStream });
+
+        readStream.on('data', (chunk: string) => {
+          if (!disposed) listener(chunk);
+        });
+      } catch {
+        // Session may not exist yet or pipe setup failed — nothing to stream.
+      }
+    })();
+
+    return {
+      dispose: () => {
+        disposed = true;
+        const pipe = this.activePipes.get(sessionId);
+        if (pipe) {
+          pipe.stream.destroy();
+          this.activePipes.delete(sessionId);
+          execAsync(`tmux pipe-pane -t ${sessionId}`).catch(() => {});
+          fs.rm(pipe.pipePath).catch(() => {});
+        }
+      },
+    };
   }
 }

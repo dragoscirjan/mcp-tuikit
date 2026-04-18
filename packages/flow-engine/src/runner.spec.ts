@@ -1,71 +1,134 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { TerminalBackend } from '@mcp-tuikit/core';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FlowRunner } from './runner.js';
+import { Flow } from './schema.js';
+
+vi.mock('node:fs/promises', () => ({
+  default: {
+    mkdir: vi.fn().mockResolvedValue(undefined),
+    writeFile: vi.fn().mockResolvedValue(undefined),
+  },
+}));
+
+class MockBackend implements TerminalBackend {
+  async connect(_command: string, _cols: number, _rows: number): Promise<void> {}
+  async disconnect(): Promise<void> {}
+  async sendKeys(_keys: string): Promise<void> {}
+  async waitForText(_pattern: string, _timeoutMs: number): Promise<void> {}
+  async takeSnapshot(_outputPath: string, _format: 'txt' | 'png', _cols: number, _rows: number): Promise<void> {}
+  onData(_callback: (data: string) => void): { dispose: () => void } | null {
+    return { dispose: vi.fn() };
+  }
+}
 
 describe('FlowRunner', () => {
-  it('should run a sequence of actions', async () => {
-    const mockBackend: TerminalBackend = {
-      createSession: vi.fn().mockResolvedValue('session-1'),
-      closeSession: vi.fn().mockResolvedValue(undefined),
-      sendKeys: vi.fn().mockResolvedValue({}),
-      waitForText: vi.fn().mockResolvedValue({}),
-      getScreenPlaintext: vi.fn().mockResolvedValue('mock screen'),
-      getScreenJson: vi.fn().mockResolvedValue({}),
-      getSessionState: vi.fn().mockResolvedValue('active'),
-    };
+  let backend: MockBackend;
 
-    const runner = new FlowRunner(mockBackend);
-    await runner.run({
-      version: '1.0',
-      steps: [
-        { action: 'spawn', cmd: 'bash', cols: 80, rows: 24 },
-        { action: 'type', text: 'ls', submit: true },
-        { action: 'wait_for', pattern: 'file.txt', timeoutMs: 100 },
-      ],
-    });
-
-    expect(mockBackend.createSession).toHaveBeenCalledWith('bash', 80, 24);
-    expect(mockBackend.sendKeys).toHaveBeenCalledWith('session-1', 'ls\n');
-    expect(mockBackend.waitForText).toHaveBeenCalledWith('session-1', 'file.txt', 100);
+  beforeEach(() => {
+    vi.clearAllMocks();
+    backend = new MockBackend();
+    vi.spyOn(backend, 'connect');
+    vi.spyOn(backend, 'sendKeys');
+    vi.spyOn(backend, 'disconnect');
+    vi.spyOn(backend, 'takeSnapshot');
   });
 
-  it('should use onData rolling buffer if available', async () => {
-    let mockDataCallback: ((data: string) => void) | undefined;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mockBackend: TerminalBackend & { onData: any } = {
-      createSession: vi.fn().mockResolvedValue('session-1'),
-      closeSession: vi.fn().mockResolvedValue(undefined),
-      sendKeys: vi.fn().mockResolvedValue({}),
-      waitForText: vi.fn().mockResolvedValue({}),
-      getScreenPlaintext: vi.fn().mockResolvedValue('mock screen'),
-      getScreenJson: vi.fn().mockResolvedValue({}),
-      getSessionState: vi.fn().mockResolvedValue('active'),
-      onData: vi.fn().mockImplementation((_sessionId, cb) => {
-        mockDataCallback = cb;
-        return { dispose: vi.fn() };
-      }),
+  it('uses cols/rows from constructor for session creation', async () => {
+    const runner = new FlowRunner(backend, 120, 40);
+    const flow: Flow = {
+      version: '1.0',
+      steps: [{ action: 'spawn', cmd: 'echo "hello"' }],
     };
+    await runner.run(flow);
+    expect(backend.connect).toHaveBeenCalledWith('echo "hello"', 120, 40);
+  });
 
-    const runner = new FlowRunner(mockBackend);
+  it('uses default 80x30 when no cols/rows provided', async () => {
+    const runner = new FlowRunner(backend);
+    const flow: Flow = {
+      version: '1.0',
+      steps: [{ action: 'spawn', cmd: 'echo "hello"' }],
+    };
+    await runner.run(flow);
+    expect(backend.connect).toHaveBeenCalledWith('echo "hello"', 80, 30);
+  });
 
-    const runPromise = runner.run({
+  it('sends keys to the terminal', async () => {
+    const runner = new FlowRunner(backend);
+    const flow: Flow = {
       version: '1.0',
       steps: [
-        { action: 'spawn', cmd: 'bash', cols: 80, rows: 24 },
-        { action: 'wait_for', pattern: 'target-text', timeoutMs: 1000 },
+        { action: 'spawn', cmd: 'echo "hello"' },
+        { action: 'type', text: 'ls', submit: true },
       ],
-    });
+    };
+    await runner.run(flow);
+    expect(backend.sendKeys).toHaveBeenCalledWith('ls\n');
+  });
 
-    setTimeout(() => {
-      mockDataCallback?.('tar');
-    }, 10);
-    setTimeout(() => {
-      mockDataCallback?.('get-text');
-    }, 20);
+  it('cleans up session on close', async () => {
+    const runner = new FlowRunner(backend);
+    const flow: Flow = {
+      version: '1.0',
+      steps: [{ action: 'spawn', cmd: 'echo "hello"' }],
+    };
+    await runner.run(flow);
+    await runner.cleanup();
+    expect(backend.disconnect).toHaveBeenCalled();
+  });
 
-    await runPromise;
+  it('returns artifacts with format and intent', async () => {
+    const runner = new FlowRunner(backend, 80, 30);
+    const flow: Flow = {
+      version: '1.0',
+      steps: [
+        { action: 'spawn', cmd: 'btop' },
+        { action: 'snapshot', format: 'txt', outputPath: 'out_{hash}.txt', intent: 'verify borders' },
+      ],
+    };
+    await runner.run(flow);
+    const artifacts = runner.artifacts;
+    expect(artifacts.length).toBe(1);
+    expect(artifacts[0].format).toBe('txt');
+    expect(artifacts[0].intent).toBe('verify borders');
+    expect(artifacts[0].path).toMatch(/out_.+\.txt/);
+  });
 
-    expect(mockBackend.onData).toHaveBeenCalled();
-    expect(mockBackend.waitForText).not.toHaveBeenCalled();
+  it('captures a png snapshot via the backend', async () => {
+    const runner = new FlowRunner(backend, 80, 30);
+    const flow: Flow = {
+      version: '1.0',
+      steps: [
+        { action: 'spawn', cmd: 'btop' },
+        { action: 'snapshot', format: 'png', outputPath: 'out_{hash}.png', intent: 'visual check' },
+      ],
+    };
+    await runner.run(flow);
+
+    expect(backend.takeSnapshot).toHaveBeenCalledWith(expect.stringMatching(/out_.+\.png/), 'png', 80, 30);
+    const artifacts = runner.artifacts;
+    expect(artifacts.length).toBe(1);
+    expect(artifacts[0].format).toBe('png');
+    expect(artifacts[0].path).toMatch(/out_.+\.png/);
+  });
+
+  it('captures both txt and png snapshots in one flow', async () => {
+    const runner = new FlowRunner(backend, 80, 30);
+    const flow: Flow = {
+      version: '1.0',
+      steps: [
+        { action: 'spawn', cmd: 'btop' },
+        { action: 'snapshot', format: 'txt', outputPath: 'out_{hash}.txt', intent: 'text check' },
+        { action: 'snapshot', format: 'png', outputPath: 'out_{hash}.png', intent: 'visual check' },
+      ],
+    };
+    await runner.run(flow);
+
+    expect(backend.takeSnapshot).toHaveBeenCalledTimes(2);
+    const artifacts = runner.artifacts;
+    expect(artifacts.length).toBe(2);
+    expect(artifacts.map((a) => a.format)).toEqual(['txt', 'png']);
   });
 });

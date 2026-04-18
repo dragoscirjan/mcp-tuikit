@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TimeoutError, TmuxExecutionError } from '../src/errors.js';
+import { TimeoutError, TmuxExecutionError } from './errors.js';
 
 describe('Errors', () => {
   it('instantiates TimeoutError', () => {

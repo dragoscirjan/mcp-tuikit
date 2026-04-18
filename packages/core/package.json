@@ -18,5 +18,8 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     }
+  },
+  "dependencies": {
+    "execa": "^9.6.1"
   }
 }

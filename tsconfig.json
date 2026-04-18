@@ -1,6 +1,7 @@
 {
   "extends": "@templ-project/tsconfig/base.json",
   "include": ["src/**/*"],
+  "exclude": ["src/**/*.spec.ts"],
   "compilerOptions": {
     "outDir": "dist",
     "declaration": true

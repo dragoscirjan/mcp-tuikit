@@ -1,0 +1,36 @@
+version: '1.0'
+description: 'Open nvim, open the lazy.nvim plugin manager log view, take a snapshot'
+steps:
+  - action: spawn
+    cmd: nvim
+
+  # Wait for nvim to render (LazyVim dashboard or vanilla nvim)
+  - action: wait_for
+    pattern: 'Find File|VIM - Vi IMproved|~'
+    timeoutMs: 20000
+
+  # Open lazy.nvim UI log view
+  - action: type
+    text: ':Lazy log'
+    submit: true
+
+  # Wait for the Lazy UI to render (shows plugin list and changelogs)
+  - action: wait_for
+    pattern: 'Total:|loaded:|Breaking Changes|Log \(L\)'
+    timeoutMs: 20000
+
+  - action: sleep
+    ms: 1000
+
+  - action: snapshot
+    format: txt
+    outputPath: 'snapshots/nvim-lazy-{hash}.txt'
+    intent: 'nvim lazy.nvim plugin manager log view'
+
+  - action: snapshot
+    format: png
+    outputPath: 'snapshots/nvim-lazy-{hash}.png'
+    intent: 'nvim lazy.nvim plugin manager screenshot'
+
+  - action: sleep
+    ms: 2000
