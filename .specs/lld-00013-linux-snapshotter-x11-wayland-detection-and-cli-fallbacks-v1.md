@@ -1,60 +1,53 @@
 # LLD: Linux Snapshotter, X11/Wayland Detection, and CLI Fallbacks
 
 ## 1. Context and Objective
-This document outlines the design for Linux window spawning and snapshotting capabilities in `mcp-tuikit` (Issue #21). The objective is to reliably detect the active display server protocol (X11 vs Wayland), spawn processes, extract window identifiers, and capture screenshots using appropriate tools and fallbacks.
+
+This document outlines the revised design for Linux window spawning and snapshotting capabilities in `mcp-tuikit` (Issue #21). The previous plans involving `koffi` and `cmake-js` have been discarded. The new objective is to utilize a robust, pre-compiled Rust native module for distro-agnostic display server detection, while retaining CLI fallbacks for the initial phase of screenshot capture.
 
 ## 2. Architecture & Components
 
-### 2.1 Display Server Detection (Phased Approach)
-We require robust detection of the host's display server (X11, Wayland, or headless). To minimize compilation overhead during installation, we use a phased approach.
+### 2.1 Native Module Architecture (`packages/native-linux`)
 
-*   **Phase 1 (Primary - FFI):** Attempt to use **`koffi`** (a fast Node.js FFI library) in pure TypeScript.
-    *   **Approach**: Check environment variables (`$WAYLAND_DISPLAY`, `$DISPLAY`). If inconclusive, dynamically load `libwayland-client.so` (attempt `wl_display_connect`) and `libX11.so` (attempt `XOpenDisplay`) via `koffi`. This avoids any C++ native compilation step during `npm install`.
-*   **Phase 2 (Fallback - C++ with `cmake-js`):** If the FFI approach proves unviable or unstable during development, we will fallback to creating a `packages/native-linux` C++ module.
-    *   **Strict Constraint**: Must strictly use `cmake-js` instead of `node-gyp` for native compilation.
+We will build a **Rust** native module using **`napi-rs`**. 
 
-*   **Interface**: Exposes `getDisplayServerProtocol(): 'x11' | 'wayland' | 'unknown'`.
+*   **Mechanism**: `napi-rs` compiles Rust code into a native Node.js addon (`.node` file). In JavaScript or TypeScript, this addon acts exactly like a standard `require()` or `import` module, bridging the gap between Node.js and Rust effortlessly.
+*   **Pre-compiled Binaries (Zero Compilation for Users)**: A critical architectural decision is to use GitHub Actions to pre-compile these Rust binaries for all major Linux targets (e.g., glibc, musl/Alpine, ARM64, and x64). When an end-user runs `npm install`, the correct pre-compiled `.node` binary is simply downloaded. The user *never* needs to have a Rust compiler or build tools installed on their system.
 
-### 2.2 Window Spawner & Identification (`packages/core`)
-`LinuxNativeSpawner` implements the `ISpawner` interface. It leverages the FFI detection layer to choose the window ID extraction strategy.
-*   **X11 Strategy**: 
-    *   Spawns the target process.
-    *   Polls `xdotool search --pid <PID>` to retrieve the global Window ID.
-    *   Fallback: Use `xprop -root _NET_CLIENT_LIST` and filter by `_NET_WM_PID`.
-*   **Wayland Strategy**:
-    *   Wayland enforces strict isolation; global Window IDs do not exist for standard clients.
-    *   **Approach**: Identify the window by its application ID (`app_id`) and window title.
-    *   **Implementation**: Query compositor-specific IPC tools to find window geometry/identifier:
-        *   *Sway/i3*: `swaymsg -t get_tree` -> parse JSON for matching PID/app_id.
-        *   *Hyprland*: `hyprctl clients -j` -> parse JSON.
-        *   *GNOME*: Standard Wayland tools fail here without extensions; fallback to capturing the entire screen or using DBus (`org.gnome.Shell.Screenshot`).
+### 2.2 Distro-Agnostic Detection (Pure Rust)
 
-### 2.3 Snapshotting Fallbacks (`packages/terminals`)
-`LinuxSnapshotStrategy` implements `ISnapshotStrategy` and executes a chain of CLI tools depending on the display server.
+The Rust module is strictly responsible for bulletproof detection of the active display server protocol without relying on fragile dynamic libraries.
 
-*   **X11 Fallback Chain**:
-    1.  `scrot -w <windowId> <output_path>`
-    2.  `import -window <windowId> <output_path>` (ImageMagick)
-    3.  `maim -i <windowId> <output_path>`
-*   **Wayland Fallback Chain**:
-    1.  `grim -g "<x>,<y> <w>x<h>" <output_path>` (requires coordinates from the spawner).
-    2.  DBus calls to `org.freedesktop.portal.Screenshot` (Interactive, requires user permission, used as absolute last resort).
+*   **X11**: We will use pure-Rust protocol implementations like `x11rb`. This allows the module to communicate directly with the X11 Unix socket, completely eliminating any dependency on `libX11.so`.
+*   **Wayland**: We will use pure-Rust Wayland protocol implementations (e.g., `wayland-client` with a pure Rust backend) or fall back to querying environment variables. This avoids any linking to `libwayland-client.so`.
+*   **Interface**: The native module exposes a simple, synchronous JavaScript API:
+    *   `export function getDisplayServerProtocol(): 'x11' | 'wayland' | 'unknown'`
 
-### 2.4 Integration
-*   `SpawnerFactory.ts`: Update to conditionally instantiate `LinuxNativeSpawner` when `process.platform === 'linux'`.
-*   `snapshotters/index.ts`: Register `LinuxSnapshotStrategy` for Linux targets.
+### 2.3 Current Phase: Window Spawner & CLI Fallbacks (`packages/core` & `packages/terminals`)
 
-## 3. Far Future Architecture (Rust Rewrite)
-A long-term architectural goal involves rewriting the entire Linux window detection and screenshotting layer in **Rust**.
-*   **Tools**: Utilizing crates such as `ashpd` (for FreeDesktop portals), `zbus` (for direct DBus interaction), and `x11rb` (for native X11 interaction).
-*   **Benefit**: This would completely eliminate the need for users to manually install fragile CLI dependencies like `scrot`, `xdotool`, `grim`, or `slurp`, offering a seamless and self-contained native experience.
+For the *immediate* Phase 1 implementation, the actual screenshot capture and window identification will continue to rely on existing CLI fallbacks and Spawner extraction logic, driven by the Rust detection layer.
 
-## 4. Edge Cases & Risks
-*   **Missing CLI Tools**: The system must gracefully fail and emit a helpful error listing the missing dependencies (e.g., `xdotool`, `scrot`, `grim`).
-*   **Wayland Compositor Fragmentation**: `swaymsg` and `hyprctl` are specific. GNOME and KDE require DBus. The spawner must attempt to detect the compositor via `$XDG_CURRENT_DESKTOP` to run the correct coordinate-extraction logic.
-*   **Timing**: The application window might not appear immediately after the process is spawned. Both X11 and Wayland strategies require a retry/polling mechanism with a timeout (e.g., 5 seconds).
+*   **Window Identification**:
+    *   *X11*: Poll `xdotool` or `xprop` to retrieve the global Window ID based on PID.
+    *   *Wayland*: Identify windows by application ID and title using compositor-specific IPC tools (`swaymsg`, `hyprctl`, etc.).
+*   **Snapshotting**:
+    *   *X11*: Fallback chain using `scrot`, `import` (ImageMagick), or `maim`.
+    *   *Wayland*: Fallback chain using `grim` (requires coordinates from the spawner).
 
-## 5. Testing Strategy (TDD)
-*   Unit tests in Vitest for `LinuxSnapshotStrategy` mocking `child_process.exec`.
-*   Integration tests for the `koffi` FFI layer (`getDisplayServerProtocol`).
-*   Mock compositor outputs (JSON from `swaymsg` / `hyprctl`) to test Wayland geometry parsing.
+### 2.4 Future Extension (DBus & Portals)
+
+By establishing this Rust-based `napi-rs` foundation, we pave the way for completely replacing the fragmented CLI fallbacks in the future.
+
+*   **Roadmap**: We will eventually integrate `zbus` (a pure Rust DBus implementation) and `ashpd` (XDG Desktop Portals).
+*   **Benefit**: This will allow us to securely request screenshots directly through the Wayland portal ecosystem, completely bypassing distro fragmentation, compositor-specific CLI tools, and `libdbus.so`. The entire screenshot pipeline will become a self-contained, zero-dependency native experience.
+
+## 3. Edge Cases & Risks
+
+*   **Missing CLI Tools (Current Phase)**: Until the pure Rust portals are implemented, the system must gracefully handle missing CLI dependencies (e.g., `xdotool`, `scrot`, `grim`) by emitting clear, actionable errors.
+*   **Wayland Compositor Fragmentation**: `swaymsg` and `hyprctl` are highly specific. The spawner must correctly detect the compositor via `$XDG_CURRENT_DESKTOP` to route coordinate-extraction logic.
+*   **Binary Distribution**: Ensuring GitHub Actions correctly matrix-builds and publishes the `napi-rs` artifacts for musl vs glibc and ARM64 vs x64 to prevent `npm install` failures on edge-case Linux distributions.
+
+## 4. Testing Strategy (TDD)
+
+*   **Native Module**: Unit tests within the Rust crate to verify X11 socket connectivity and Wayland environment parsing.
+*   **TypeScript Layer**: Vitest tests mocking the `getDisplayServerProtocol` output to ensure correct routing between X11 and Wayland Spawner/Snapshotter strategies.
+*   **CLI Fallbacks**: Integration tests mocking `child_process.exec` outputs for `swaymsg`, `xdotool`, and `scrot` to validate parsing logic.
