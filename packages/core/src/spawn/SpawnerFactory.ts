@@ -1,4 +1,5 @@
 import { AppSpawner } from './AppSpawner.js';
+import { LinuxNativeSpawner } from './linux/LinuxNativeSpawner.js';
 import { MacOsNativeSpawner } from './macos/MacOsNativeSpawner.js';
 import { MacOsOpenSpawner } from './macos/MacOsOpenSpawner.js';
 
@@ -11,8 +12,7 @@ export class SpawnerFactory {
     }
 
     if (platform === 'linux') {
-      // Stub for future Linux support
-      throw new Error('Linux spawners not yet implemented');
+      return new LinuxNativeSpawner();
     }
 
     if (platform === 'win32') {

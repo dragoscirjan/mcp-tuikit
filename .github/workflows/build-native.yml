@@ -1,0 +1,66 @@
+name: Build Native Linux
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/native-linux/**'
+      - '.github/workflows/build-native.yml'
+  pull_request:
+    paths:
+      - 'packages/native-linux/**'
+      - '.github/workflows/build-native.yml'
+
+jobs:
+  build:
+    name: Build - ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
+
+      - name: Setup Rust toolchain
+        run: |
+          rustup update stable
+          rustup target add ${{ matrix.target }}
+
+      - name: Install cross-compilation tools
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
+
+      - name: Install workspace dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build napi addon
+        working-directory: packages/native-linux
+        run: npx napi build --platform --target ${{ matrix.target }} --release
+
+      - name: Upload .node artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-linux-${{ matrix.target }}
+          path: packages/native-linux/*.node
+          if-no-files-found: warn

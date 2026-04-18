@@ -17,7 +17,10 @@
     "**/tsconfig.*.json",
     "**/.husky/**",
     "**/.mise.toml",
-    "**/.specs/**"
+    "**/.specs/**",
+    "**/target/**",
+    "**/*.d.ts",
+    "**/index.js"
   ],
   "output": ".jscpd",
   "reporters": ["console", "html"],
