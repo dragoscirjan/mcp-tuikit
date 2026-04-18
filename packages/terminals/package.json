@@ -14,6 +14,7 @@
     "@mcp-tuikit/core": "workspace:*",
     "@mcp-tuikit/tmux": "workspace:*",
     "@xterm/xterm": "^5.5.0",
+    "dbus-next": "^0.10.2",
     "execa": "^9.5.2",
     "nanoid": "^5.1.2",
     "playwright": "^1.50.1"

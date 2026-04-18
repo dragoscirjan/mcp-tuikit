@@ -42,12 +42,27 @@ describe('Linux Spawner & Snapshotter Integration', () => {
     }
 
     // Check if the required screenshot tool exists
-    const tool = protocol === 'wayland' ? 'grim' : 'scrot';
-    try {
-      execSync(`which ${tool}`, { stdio: 'ignore' });
-    } catch {
-      console.warn(`Required screenshot tool '${tool}' is missing. Skipping snapshot capture test.`);
-      return; // Skip test gracefully if tool is missing
+    let tool = 'x11-tools';
+    if (protocol === 'wayland') {
+      try {
+        execSync(`which spectacle`, { stdio: 'ignore' });
+        tool = 'spectacle';
+      } catch {
+        try {
+          execSync(`which grim`, { stdio: 'ignore' });
+          tool = 'grim';
+        } catch {
+          // It might be GNOME DBus, we just let it try
+          tool = 'gnome-dbus-or-unknown';
+        }
+      }
+    } else {
+      try {
+        execSync(`which scrot`, { stdio: 'ignore' });
+      } catch {
+        console.warn(`Required screenshot tool 'scrot' is missing. Skipping snapshot capture test.`);
+        return; // Skip test gracefully if tool is missing
+      }
     }
 
     try {

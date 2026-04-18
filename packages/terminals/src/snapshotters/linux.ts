@@ -1,5 +1,23 @@
+import * as fs from 'node:fs';
 import { SnapshotStrategy, isX11DisplayServer } from '@mcp-tuikit/core';
+import dbus from 'dbus-next';
 import { execa } from 'execa';
+
+async function waitForFile(path: string, timeoutMs: number = 3000): Promise<void> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (fs.existsSync(path)) {
+      const stats = fs.statSync(path);
+      if (stats.size > 0) {
+        // Wait a tiny bit more to ensure it's fully written
+        await new Promise((r) => setTimeout(r, 100));
+        return;
+      }
+    }
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  throw new Error(`Timeout waiting for snapshot file: ${path}`);
+}
 
 export class LinuxSnapshotStrategy implements SnapshotStrategy {
   async capture(
@@ -46,11 +64,43 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
   }
 
   private async captureWayland(outputPath: string): Promise<void> {
+    // 1. GNOME: Pure Node.js D-Bus approach (bypasses CLI dependencies)
+    let bus: dbus.MessageBus | null = null;
+    try {
+      bus = dbus.sessionBus();
+      const obj = await bus.getProxyObject('org.gnome.Shell.Screenshot', '/org/gnome/Shell/Screenshot');
+      const iface = obj.getInterface('org.gnome.Shell.Screenshot');
+
+      // Screenshot(boolean include_cursor, boolean flash, string filename) -> (boolean success, string filename_used)
+      await iface.Screenshot(false, false, outputPath);
+      return;
+    } catch {
+      // Not GNOME, or DBus failed
+      // Fallback to KDE
+    } finally {
+      if (bus) {
+        bus.disconnect();
+      }
+    }
+
+    // 2. KDE: Spectacle CLI (Native KDE screenshot tool, bypasses KWin auth restrictions)
+    try {
+      await execa('spectacle', ['-b', '-n', '-o', outputPath]);
+      await waitForFile(outputPath);
+      return;
+    } catch {
+      // Continue to next fallback
+    }
+
+    // 3. Wlroots (Sway, Hyprland): grim CLI
     try {
       await execa('grim', [outputPath]);
+      await waitForFile(outputPath);
       return;
-    } catch (e) {
-      throw new Error(`Linux Wayland snapshotting failed: ${e instanceof Error ? e.message : String(e)}`);
+    } catch {
+      throw new Error(
+        'Linux Wayland snapshotting failed. No supported compositor API or fallback tools (GNOME DBus/Spectacle/grim) available.',
+      );
     }
   }
 }

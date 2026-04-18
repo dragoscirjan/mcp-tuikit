@@ -11,11 +11,30 @@ vi.mock('execa', () => ({
   }),
 }));
 
+vi.mock('dbus-next', () => {
+  return {
+    default: {
+      sessionBus: vi.fn(() => {
+        throw new Error('DBus not available in tests');
+      }),
+    },
+  };
+});
+
+vi.mock('fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('fs')>();
+  return {
+    ...actual,
+    existsSync: vi.fn(() => true),
+    statSync: vi.fn(() => ({ size: 100 })),
+  };
+});
+
 describe('LinuxSnapshotStrategy', () => {
   let strategy: LinuxSnapshotStrategy;
 
   beforeEach(() => {
-    strategy = new LinuxSnapshotStrategy('alacritty');
+    strategy = new LinuxSnapshotStrategy();
     vi.clearAllMocks();
   });
 
@@ -34,8 +53,6 @@ describe('LinuxSnapshotStrategy', () => {
   it('should capture using Wayland grim when in Wayland env', async () => {
     process.env.WAYLAND_DISPLAY = 'wayland-0';
     delete process.env.DISPLAY;
-
-    vi.mocked(execa).mockResolvedValueOnce({ stdout: '' } as never);
 
     await strategy.capture('output.png', 80, 24, 'session', {
       windowId: '1234',
