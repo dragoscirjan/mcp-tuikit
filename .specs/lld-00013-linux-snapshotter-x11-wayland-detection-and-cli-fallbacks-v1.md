@@ -1,20 +1,22 @@
 # LLD: Linux Snapshotter, X11/Wayland Detection, and CLI Fallbacks
 
 ## 1. Context and Objective
-This document outlines the design for Linux window spawning and snapshotting capabilities in `mcp-tuikit` (Issue #21). The objective is to reliably detect the active display server protocol (X11 vs Wayland), spawn processes, extract window identifiers, and capture screenshots using appropriate CLI fallbacks.
+This document outlines the design for Linux window spawning and snapshotting capabilities in `mcp-tuikit` (Issue #21). The objective is to reliably detect the active display server protocol (X11 vs Wayland), spawn processes, extract window identifiers, and capture screenshots using appropriate tools and fallbacks.
 
 ## 2. Architecture & Components
 
-### 2.1 Native Display Server Detection (`packages/native-linux`)
-A new native Node.js addon written in C++ using `node-addon-api` and compiled via `node-gyp`.
-*   **Purpose**: Definitively detect if the host is running under X11, Wayland, or headless.
-*   **Approach**:
-    1. Check environment variables (`$WAYLAND_DISPLAY`, `$DISPLAY`).
-    2. Fallback to programmatic probing: attempt `wl_display_connect(NULL)` (requires `libwayland-client`) and `XOpenDisplay(NULL)` (requires `libX11`).
-*   **Interface**: Exposes a single function `getDisplayServerProtocol(): 'x11' | 'wayland' | 'unknown'`.
+### 2.1 Display Server Detection (Phased Approach)
+We require robust detection of the host's display server (X11, Wayland, or headless). To minimize compilation overhead during installation, we use a phased approach.
+
+*   **Phase 1 (Primary - FFI):** Attempt to use **`koffi`** (a fast Node.js FFI library) in pure TypeScript.
+    *   **Approach**: Check environment variables (`$WAYLAND_DISPLAY`, `$DISPLAY`). If inconclusive, dynamically load `libwayland-client.so` (attempt `wl_display_connect`) and `libX11.so` (attempt `XOpenDisplay`) via `koffi`. This avoids any C++ native compilation step during `npm install`.
+*   **Phase 2 (Fallback - C++ with `cmake-js`):** If the FFI approach proves unviable or unstable during development, we will fallback to creating a `packages/native-linux` C++ module.
+    *   **Strict Constraint**: Must strictly use `cmake-js` instead of `node-gyp` for native compilation.
+
+*   **Interface**: Exposes `getDisplayServerProtocol(): 'x11' | 'wayland' | 'unknown'`.
 
 ### 2.2 Window Spawner & Identification (`packages/core`)
-`LinuxNativeSpawner` implements the `ISpawner` interface. It leverages the native detection module to choose the window ID extraction strategy.
+`LinuxNativeSpawner` implements the `ISpawner` interface. It leverages the FFI detection layer to choose the window ID extraction strategy.
 *   **X11 Strategy**: 
     *   Spawns the target process.
     *   Polls `xdotool search --pid <PID>` to retrieve the global Window ID.
@@ -42,12 +44,17 @@ A new native Node.js addon written in C++ using `node-addon-api` and compiled vi
 *   `SpawnerFactory.ts`: Update to conditionally instantiate `LinuxNativeSpawner` when `process.platform === 'linux'`.
 *   `snapshotters/index.ts`: Register `LinuxSnapshotStrategy` for Linux targets.
 
-## 3. Edge Cases & Risks
+## 3. Far Future Architecture (Rust Rewrite)
+A long-term architectural goal involves rewriting the entire Linux window detection and screenshotting layer in **Rust**.
+*   **Tools**: Utilizing crates such as `ashpd` (for FreeDesktop portals), `zbus` (for direct DBus interaction), and `x11rb` (for native X11 interaction).
+*   **Benefit**: This would completely eliminate the need for users to manually install fragile CLI dependencies like `scrot`, `xdotool`, `grim`, or `slurp`, offering a seamless and self-contained native experience.
+
+## 4. Edge Cases & Risks
 *   **Missing CLI Tools**: The system must gracefully fail and emit a helpful error listing the missing dependencies (e.g., `xdotool`, `scrot`, `grim`).
 *   **Wayland Compositor Fragmentation**: `swaymsg` and `hyprctl` are specific. GNOME and KDE require DBus. The spawner must attempt to detect the compositor via `$XDG_CURRENT_DESKTOP` to run the correct coordinate-extraction logic.
-*   **Timing**: The application window might not appear immediately after the process is spawned. Both X11 and Wayland strategies require a retry/polling mechanism with a timeout (e.g., 5 seconds) when querying for the window ID or geometry.
+*   **Timing**: The application window might not appear immediately after the process is spawned. Both X11 and Wayland strategies require a retry/polling mechanism with a timeout (e.g., 5 seconds).
 
-## 4. Testing Strategy (TDD)
+## 5. Testing Strategy (TDD)
 *   Unit tests in Vitest for `LinuxSnapshotStrategy` mocking `child_process.exec`.
-*   Integration tests for the C++ native addon (`getDisplayServerProtocol`).
+*   Integration tests for the `koffi` FFI layer (`getDisplayServerProtocol`).
 *   Mock compositor outputs (JSON from `swaymsg` / `hyprctl`) to test Wayland geometry parsing.
