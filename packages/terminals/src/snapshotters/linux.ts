@@ -20,6 +20,19 @@ async function waitForFile(path: string, timeoutMs: number = 3000): Promise<void
   throw new Error(`Timeout waiting for snapshot file: ${path}`);
 }
 
+function getDesktopEnvironment(): string {
+  const xdgDesktop = process.env.XDG_CURRENT_DESKTOP || '';
+  if (xdgDesktop.includes('KDE')) return 'KDE';
+  if (xdgDesktop.includes('GNOME')) return 'GNOME';
+  if (xdgDesktop.includes('MATE')) return 'MATE';
+  if (xdgDesktop.includes('XFCE')) return 'XFCE';
+  if (xdgDesktop.includes('CINNAMON')) return 'CINNAMON';
+  if (xdgDesktop.includes('Sway') || process.env.SWAYSOCK) return 'SWAY';
+  if (xdgDesktop.includes('Hyprland') || process.env.HYPRLAND_INSTANCE_SIGNATURE) return 'HYPRLAND';
+
+  return 'UNKNOWN';
+}
+
 export class LinuxSnapshotStrategy implements SnapshotStrategy {
   private headlessStrategy = new HeadlessSnapshotStrategy();
 
@@ -34,80 +47,106 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
       return this.headlessStrategy.capture(outputPath, cols, rows, tmuxSession, spawnResult);
     }
 
-    const windowId = (spawnResult as { windowId?: string })?.windowId;
     const isX11 = await isX11DisplayServer();
+    const windowId = (spawnResult as { windowId?: string })?.windowId;
+    const de = getDesktopEnvironment();
 
-    if (isX11) {
-      await this.captureX11(outputPath, windowId);
-    } else {
-      await this.captureWayland(outputPath);
+    try {
+      await this.captureActiveWindow(outputPath, de, isX11, windowId);
+    } catch (error) {
+      throw new Error(
+        `Linux native snapshot failed for DE=${de} (X11=${isX11}): ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
-  private async captureX11(outputPath: string, windowId?: string): Promise<void> {
-    if (windowId) {
+  private async captureActiveWindow(outputPath: string, de: string, isX11: boolean, windowId?: string): Promise<void> {
+    // 1. KDE Plasma (Wayland and X11)
+    if (de === 'KDE') {
+      try {
+        await execa('spectacle', ['-a', '-b', '-n', '-o', outputPath]);
+        await waitForFile(outputPath);
+        return;
+      } catch (e) {
+        throw new Error('spectacle capture failed: ' + String(e));
+      }
+    }
+
+    // 2. GNOME (Wayland and X11)
+    if (de === 'GNOME') {
+      try {
+        await execa('gnome-screenshot', ['-w', '-f', outputPath]);
+        await waitForFile(outputPath);
+        return;
+      } catch {
+        let bus: dbus.MessageBus | null = null;
+        try {
+          bus = dbus.sessionBus();
+          const obj = await bus.getProxyObject('org.gnome.Shell.Screenshot', '/org/gnome/Shell/Screenshot');
+          const iface = obj.getInterface('org.gnome.Shell.Screenshot');
+          await iface.Screenshot(false, false, outputPath);
+          return;
+        } finally {
+          if (bus) bus.disconnect();
+        }
+      }
+    }
+
+    // 3. MATE (X11)
+    if (de === 'MATE') {
+      try {
+        await execa('mate-screenshot', ['-w', '-f', outputPath]);
+        await waitForFile(outputPath);
+        return;
+      } catch (e) {
+        throw new Error('mate-screenshot capture failed: ' + String(e));
+      }
+    }
+
+    // 4. XFCE (X11)
+    if (de === 'XFCE') {
+      try {
+        await execa('xfce4-screenshooter', ['-w', '-s', outputPath]);
+        await waitForFile(outputPath);
+        return;
+      } catch (e) {
+        throw new Error('xfce4-screenshooter capture failed: ' + String(e));
+      }
+    }
+
+    // 5. Generic X11 Fallback
+    if (isX11 && windowId) {
       try {
         await execa('import', ['-window', windowId, outputPath]);
         return;
       } catch {
-        // Continue to next fallback
+        // ignore
       }
       try {
         await execa('scrot', ['-u', '-d', '0', '-z', outputPath]);
         return;
       } catch {
-        // Continue to next fallback
+        // ignore
       }
-
       try {
         await execa('maim', ['-i', windowId, outputPath]);
         return;
       } catch {
-        // Continue to next fallback
+        // ignore
       }
     }
 
-    throw new Error('Linux X11 snapshotting failed or no windowId provided');
-  }
-
-  private async captureWayland(outputPath: string): Promise<void> {
-    // 1. GNOME: Pure Node.js D-Bus approach (bypasses CLI dependencies)
-    let bus: dbus.MessageBus | null = null;
-    try {
-      bus = dbus.sessionBus();
-      const obj = await bus.getProxyObject('org.gnome.Shell.Screenshot', '/org/gnome/Shell/Screenshot');
-      const iface = obj.getInterface('org.gnome.Shell.Screenshot');
-
-      // Screenshot(boolean include_cursor, boolean flash, string filename) -> (boolean success, string filename_used)
-      await iface.Screenshot(false, false, outputPath);
-      return;
-    } catch {
-      // Not GNOME, or DBus failed
-      // Fallback to KDE
-    } finally {
-      if (bus) {
-        bus.disconnect();
+    // 6. Generic Wayland Fallback (full screen grim)
+    if (!isX11) {
+      try {
+        await execa('grim', [outputPath]);
+        await waitForFile(outputPath);
+        return;
+      } catch (e) {
+        throw new Error('grim fallback failed: ' + String(e));
       }
     }
 
-    // 2. KDE: Spectacle CLI (Native KDE screenshot tool, bypasses KWin auth restrictions)
-    try {
-      await execa('spectacle', ['-b', '-n', '-o', outputPath]);
-      await waitForFile(outputPath);
-      return;
-    } catch {
-      // Continue to next fallback
-    }
-
-    // 3. Wlroots (Sway, Hyprland): grim CLI
-    try {
-      await execa('grim', [outputPath]);
-      await waitForFile(outputPath);
-      return;
-    } catch {
-      throw new Error(
-        'Linux Wayland snapshotting failed. No supported compositor API or fallback tools (GNOME DBus/Spectacle/grim) available.',
-      );
-    }
+    throw new Error('No supported screenshot tool found for ' + de);
   }
 }

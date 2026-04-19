@@ -100,6 +100,7 @@ describe('LinuxSnapshotStrategy', () => {
 
   it('should try to capture using X11 tools when in X11 env and mode is native', async () => {
     process.env.LINUX_SNAPSHOT_MODE = 'native';
+    process.env.XDG_CURRENT_DESKTOP = 'UNKNOWN';
     vi.mocked(isX11DisplayServer).mockResolvedValue(true);
 
     vi.mocked(HeadlessSnapshotStrategy).mockImplementation(function () {
@@ -117,6 +118,7 @@ describe('LinuxSnapshotStrategy', () => {
 
   it('should capture using Wayland grim when in Wayland env and mode is native', async () => {
     process.env.LINUX_SNAPSHOT_MODE = 'native';
+    process.env.XDG_CURRENT_DESKTOP = 'UNKNOWN';
     vi.mocked(isX11DisplayServer).mockResolvedValue(false);
 
     vi.mocked(HeadlessSnapshotStrategy).mockImplementation(function () {
