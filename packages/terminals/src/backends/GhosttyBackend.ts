@@ -7,9 +7,10 @@ export class GhosttyBackend extends BaseSpawnerBackend {
       `--window-width=${this.cols}`,
       `--window-height=${this.rows}`,
       '-e',
-      '/bin/bash',
-      '-c',
-      `${tmuxAbsPath} attach -t ${sessionName}`,
+      tmuxAbsPath,
+      'attach',
+      '-t',
+      sessionName,
     ];
 
     return {
