@@ -104,6 +104,8 @@ defineFlowSuite({
 defineFlowSuite({
   label: 'run_flow integration (WezTerm + btop)',
   terminal: 'wezterm',
+  cols: 120,
+  rows: 40,
   txtMatchers: [/Mem/],
   yamlName: 'btop.yaml',
   run: canRunTerminal('wezterm'),
