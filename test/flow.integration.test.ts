@@ -125,3 +125,35 @@ defineFlowSuite({
   yamlName: 'btop.yaml',
   run: canRunTerminal('ghostty'),
 });
+
+defineFlowSuite({
+  label: 'run_flow integration (Kitty + nvim)',
+  terminal: 'kitty',
+  yamlName: 'nvim_lazy_log.yaml',
+  run: canRunTerminal('kitty'),
+});
+
+defineFlowSuite({
+  label: 'run_flow integration (Kitty + btop)',
+  terminal: 'kitty',
+  cols: 120,
+  rows: 40,
+  txtMatchers: [/CPU/],
+  yamlName: 'btop.yaml',
+  run: canRunTerminal('kitty'),
+});
+
+defineFlowSuite({
+  label: 'run_flow integration (kitty + nvim)',
+  terminal: 'kitty',
+  yamlName: 'nvim_lazy_log.yaml',
+  run: canRunTerminal('kitty'),
+});
+
+defineFlowSuite({
+  label: 'run_flow integration (kitty + btop)',
+  terminal: 'kitty',
+  txtMatchers: [/CPU/],
+  yamlName: 'btop.yaml',
+  run: canRunTerminal('kitty'),
+});

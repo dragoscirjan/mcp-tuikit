@@ -28,6 +28,8 @@ export function canRunTerminal(terminal: RunBackendOptions['terminal']): RunBack
       return target === 'xterm.js' ? 'only' : '';
     case 'wezterm':
       return target === 'wezterm' ? 'only' : '';
+    case 'kitty':
+      return target === 'kitty' ? 'only' : '';
     case 'iterm2':
       return os.type() !== 'Darwin' ? 'skip' : target === 'iterm2' ? 'only' : '';
     case 'macos-terminal':
