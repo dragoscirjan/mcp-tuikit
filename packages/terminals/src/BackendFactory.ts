@@ -2,14 +2,25 @@ import { TerminalBackend, SpawnerFactory } from '@mcp-tuikit/core';
 import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
 import { AlacrittyBackend } from './backends/AlacrittyBackend.js';
 import { GhosttyBackend } from './backends/GhosttyBackend.js';
+import { GnomeTerminalBackend } from './backends/GnomeTerminalBackend.js';
 import { ITerm2Backend } from './backends/ITerm2Backend.js';
 import { KittyBackend } from './backends/KittyBackend.js';
+import { KonsoleBackend } from './backends/KonsoleBackend.js';
 import { MacTerminalAppBackend } from './backends/MacTerminalAppBackend.js';
 import { WezTermBackend } from './backends/WezTermBackend.js';
 import { PlaywrightBackend } from './PlaywrightBackend.js';
 import { resolveSnapshotStrategy } from './snapshotters/index.js';
 
-export type Terminal = 'macos-terminal' | 'iterm2' | 'alacritty' | 'wezterm' | 'ghostty' | 'kitty' | 'xterm.js';
+export type Terminal =
+  | 'macos-terminal'
+  | 'iterm2'
+  | 'alacritty'
+  | 'wezterm'
+  | 'ghostty'
+  | 'kitty'
+  | 'konsole'
+  | 'gnome-terminal'
+  | 'xterm.js';
 
 export class BackendFactory {
   static create(backendConfig: Terminal): TerminalBackend {
@@ -44,6 +55,14 @@ export class BackendFactory {
 
     if (configLower === 'kitty') {
       return new KittyBackend(sessionHandler, snapshotStrategy, SpawnerFactory.create('native'));
+    }
+
+    if (configLower === 'konsole') {
+      return new KonsoleBackend(sessionHandler, snapshotStrategy, SpawnerFactory.create('native'));
+    }
+
+    if (configLower === 'gnome-terminal') {
+      return new GnomeTerminalBackend(sessionHandler, snapshotStrategy, SpawnerFactory.create('native'));
     }
 
     throw new Error(`Unknown terminal backend: ${backendConfig}`);

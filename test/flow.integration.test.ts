@@ -144,6 +144,40 @@ defineFlowSuite({
 });
 
 defineFlowSuite({
+  label: 'run_flow integration (Konsole + nvim)',
+  terminal: 'konsole',
+  yamlName: 'nvim_lazy_log.yaml',
+  run: canRunTerminal('konsole'),
+});
+
+defineFlowSuite({
+  label: 'run_flow integration (Konsole + btop)',
+  terminal: 'konsole',
+  cols: 120,
+  rows: 40,
+  txtMatchers: [/(CPU|Mem|Total)/],
+  yamlName: 'btop.yaml',
+  run: canRunTerminal('konsole'),
+});
+
+defineFlowSuite({
+  label: 'run_flow integration (GNOME Terminal + nvim)',
+  terminal: 'gnome-terminal',
+  yamlName: 'nvim_lazy_log.yaml',
+  run: canRunTerminal('gnome-terminal'),
+});
+
+defineFlowSuite({
+  label: 'run_flow integration (GNOME Terminal + btop)',
+  terminal: 'gnome-terminal',
+  cols: 120,
+  rows: 40,
+  txtMatchers: [/CPU/],
+  yamlName: 'btop.yaml',
+  run: canRunTerminal('gnome-terminal'),
+});
+
+defineFlowSuite({
   label: 'run_flow integration (kitty + nvim)',
   terminal: 'kitty',
   yamlName: 'nvim_lazy_log.yaml',

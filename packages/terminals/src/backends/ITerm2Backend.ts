@@ -1,14 +1,14 @@
 import { TerminalBackend, SessionHandler, SnapshotStrategy } from '@mcp-tuikit/core';
 import { spawnAppleScriptTerminal, runAppleScriptClose } from './AppleScriptUtils.js';
 
-// jscpd:ignore-start
+/* jscpd:ignore-start */
 export class ITerm2Backend extends TerminalBackend {
   constructor(sessionHandler: SessionHandler, snapshotStrategy: SnapshotStrategy) {
     super(sessionHandler, snapshotStrategy);
   }
 
   async spawn(): Promise<void> {
-    // jscpd:ignore-end
+    /* jscpd:ignore-end */
     const [pixelWidth, pixelHeight] = this.sizeInPixels(this.cols, this.rows);
 
     this._windowId = await spawnAppleScriptTerminal(

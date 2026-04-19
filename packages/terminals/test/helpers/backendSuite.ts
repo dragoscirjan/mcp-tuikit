@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -16,26 +17,57 @@ export interface RunBackendOptions {
   /** Number of rows for the spawned terminal. Defaults to 40. */
   rows?: number;
   /** How to handle this specific test */
-  run?: '' | 'skip' | 'only';
+  run?: '' | 'skip' | 'only' | 'missing-binary' | 'wrong-os';
+}
+
+function hasBinary(bin: string): boolean {
+  try {
+    execSync(`which ${bin}`, { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function canRunTerminal(terminal: RunBackendOptions['terminal']): RunBackendOptions['run'] {
   const target = process.env.TUIKIT_TERMINAL_TEST;
   switch (terminal) {
     case 'alacritty':
-      return target === 'alacritty' ? 'only' : '';
+      return target === 'alacritty' ? 'only' : hasBinary('alacritty') ? '' : 'missing-binary';
     case 'xterm.js':
       return target === 'xterm.js' ? 'only' : '';
     case 'wezterm':
-      return target === 'wezterm' ? 'only' : '';
+      return target === 'wezterm' ? 'only' : hasBinary('wezterm') ? '' : 'missing-binary';
     case 'kitty':
-      return target === 'kitty' ? 'only' : '';
+      return target === 'kitty' ? 'only' : hasBinary('kitty') ? '' : 'missing-binary';
+    case 'konsole':
+      return process.platform !== 'linux'
+        ? 'wrong-os'
+        : !hasBinary('konsole')
+          ? 'missing-binary'
+          : target === 'konsole'
+            ? 'only'
+            : '';
+    case 'gnome-terminal':
+      return process.platform !== 'linux'
+        ? 'wrong-os'
+        : !hasBinary('gnome-terminal')
+          ? 'missing-binary'
+          : target === 'gnome-terminal'
+            ? 'only'
+            : '';
     case 'iterm2':
-      return os.type() !== 'Darwin' ? 'skip' : target === 'iterm2' ? 'only' : '';
+      return process.platform !== 'darwin' ? 'wrong-os' : target === 'iterm2' ? 'only' : '';
     case 'macos-terminal':
-      return os.type() !== 'Darwin' ? 'skip' : target === 'macos-terminal' ? 'only' : '';
+      return process.platform !== 'darwin' ? 'wrong-os' : target === 'macos-terminal' ? 'only' : '';
     case 'ghostty':
-      return os.type() === 'Windows' ? 'skip' : target === 'ghostty' ? 'only' : '';
+      return process.platform === 'win32'
+        ? 'wrong-os'
+        : !hasBinary('ghostty')
+          ? 'missing-binary'
+          : target === 'ghostty'
+            ? 'only'
+            : '';
     default:
       return 'skip';
   }
@@ -47,9 +79,23 @@ export function canRunTerminal(terminal: RunBackendOptions['terminal']): RunBack
  */
 export function defineBackendSuite(opts: RunBackendOptions): void {
   const { label, terminal, cols = 80, rows = 24, run = '' } = opts;
-  const d = run === 'skip' ? describe.skip : run === 'only' ? describe.only : describe;
 
-  d(label || `Terminal Backends Integration (${terminal})`, () => {
+  let d = describe;
+  let finalLabel = label || `Terminal Backends Integration (${terminal})`;
+
+  if (run === 'skip') {
+    d = describe.skip;
+  } else if (run === 'only') {
+    d = describe.only;
+  } else if (run === 'missing-binary') {
+    d = describe.skip;
+    finalLabel += ' [UNAVAILABLE: binary missing]';
+  } else if (run === 'wrong-os') {
+    d = describe.skip;
+    finalLabel += ' [SKIPPED: wrong OS]';
+  }
+
+  d(finalLabel, () => {
     let backend: TerminalBackend;
     let tempDir: string;
 

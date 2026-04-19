@@ -20,9 +20,7 @@
     }
   },
   "dependencies": {
-    "execa": "^9.6.1"
-  },
-  "optionalDependencies": {
-    "@mcp-tuikit/native-linux": "workspace:*"
+    "execa": "^9.6.1",
+    "koffi": "^2.16.1"
   }
 }

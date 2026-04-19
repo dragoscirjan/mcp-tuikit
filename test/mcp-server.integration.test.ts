@@ -38,6 +38,7 @@ describe('MCP Server Integration', () => {
       name: 'create_session',
       arguments: { command: 'bash', cols: 80, rows: 24 },
     });
+    if (createRes.isError) console.error(createRes);
     expect(createRes.isError).toBeFalsy();
     const createResContent = createRes.content as unknown as ToolResponseContent[];
     const sessionData = JSON.parse(createResContent[0].text);

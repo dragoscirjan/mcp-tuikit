@@ -1,10 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LinuxNativeSpawner } from './LinuxNativeSpawner.js';
 
-vi.mock('@mcp-tuikit/native-linux', () => ({
-  getDisplayServerProtocol: vi.fn(() => 'x11'),
-}));
-
 vi.mock('node:child_process', () => ({
   spawn: vi.fn(() => ({
     unref: vi.fn(),
@@ -32,6 +28,7 @@ describe('LinuxNativeSpawner', () => {
   it('should spawn process and return pid with windowId', async () => {
     process.env.DISPLAY = ':0';
     delete process.env.WAYLAND_DISPLAY;
+    delete process.env.XDG_SESSION_TYPE;
 
     const result = await spawner.spawn({
       executable: 'alacritty',
