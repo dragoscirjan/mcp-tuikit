@@ -39,7 +39,13 @@ export function canRunTerminal(terminal: RunBackendOptions['terminal']): RunBack
     case 'wezterm':
       return target === 'wezterm' ? 'only' : hasBinary('wezterm') ? '' : 'missing-binary';
     case 'kitty':
-      return target === 'kitty' ? 'only' : hasBinary('kitty') ? '' : 'missing-binary';
+      return process.platform === 'win32'
+        ? 'wrong-os'
+        : !hasBinary('kitty')
+          ? 'missing-binary'
+          : target === 'kitty'
+            ? 'only'
+            : '';
     case 'konsole':
       return process.platform !== 'linux'
         ? 'wrong-os'

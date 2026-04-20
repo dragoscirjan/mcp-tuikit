@@ -24,6 +24,7 @@ export abstract class BaseSpawnerBackend extends TerminalBackend {
 
     this._processId = result.pid?.toString() || null;
     this._windowId = result.windowId;
+    this._spawnResult = { windowHandle: this._windowId };
   }
 
   public async close(): Promise<void> {

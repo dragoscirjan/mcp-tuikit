@@ -17,7 +17,9 @@ vi.mock('execa', () => ({
   }),
 }));
 
-describe('LinuxNativeSpawner', () => {
+const d = process.platform != 'linux' ? describe.skip : describe;
+
+d('LinuxNativeSpawner', () => {
   let spawner: LinuxNativeSpawner;
 
   beforeEach(() => {

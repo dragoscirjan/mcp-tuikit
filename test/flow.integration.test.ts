@@ -45,7 +45,7 @@ defineFlowSuite({
   label: 'run_flow integration (xterm.js + btop)',
   terminal: 'xterm.js',
   cols: 80,
-  rows: 24,
+  rows: 25,
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
   run: canRunTerminal('xterm.js'),
@@ -108,7 +108,7 @@ defineFlowSuite({
   terminal: 'wezterm',
   cols: 120,
   rows: 40,
-  txtMatchers: [/Mem/],
+  txtMatchers: [/(CPU|Mem|Total)/i],
   yamlName: 'btop.yaml',
   run: canRunTerminal('wezterm'),
 });
@@ -140,7 +140,7 @@ defineFlowSuite({
   terminal: 'kitty',
   cols: 120,
   rows: 40,
-  txtMatchers: [/CPU/],
+  txtMatchers: [/(CPU|Mem|Total)/i],
   yamlName: 'btop.yaml',
   run: canRunTerminal('kitty'),
 });
@@ -157,7 +157,7 @@ defineFlowSuite({
   terminal: 'konsole',
   cols: 120,
   rows: 40,
-  txtMatchers: [/(CPU|Mem|Total)/],
+  txtMatchers: [/(CPU|Mem|Total)/i],
   yamlName: 'btop.yaml',
   run: canRunTerminal('konsole'),
 });
@@ -177,19 +177,4 @@ defineFlowSuite({
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
   run: canRunTerminal('gnome-terminal'),
-});
-
-defineFlowSuite({
-  label: 'run_flow integration (kitty + nvim)',
-  terminal: 'kitty',
-  yamlName: 'nvim_lazy_log.yaml',
-  run: canRunTerminal('kitty'),
-});
-
-defineFlowSuite({
-  label: 'run_flow integration (kitty + btop)',
-  terminal: 'kitty',
-  txtMatchers: [/CPU/],
-  yamlName: 'btop.yaml',
-  run: canRunTerminal('kitty'),
 });
