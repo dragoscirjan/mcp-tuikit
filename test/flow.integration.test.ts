@@ -44,6 +44,8 @@ defineFlowSuite({
 defineFlowSuite({
   label: 'run_flow integration (xterm.js + btop)',
   terminal: 'xterm.js',
+  cols: 80,
+  rows: 24,
   txtMatchers: [/CPU/],
   yamlName: 'btop.yaml',
   run: canRunTerminal('xterm.js'),

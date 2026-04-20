@@ -103,6 +103,9 @@ export class TmuxSessionHandler implements SessionHandler {
         if (regex.test(text)) {
           return { success: true, matchedPattern: pattern };
         }
+        if (Date.now() - start >= timeoutMs - intervalMs * 2) {
+          import('node:fs').then((fs) => fs.writeFileSync('/tmp/btop-timeout.txt', text));
+        }
       } catch {
         // Session may not be ready yet — keep polling
       }

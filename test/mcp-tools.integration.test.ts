@@ -233,11 +233,16 @@ describe('MCP tools integration', () => {
     });
 
     it('txt snapshot respects session width (160 cols)', async () => {
-      sessionId = await backend.createSession('bash -c \'printf "%0.s─" {1..160}; sleep 10\'', 160, 30);
+      sessionId = await backend.createSession('bash -c \'printf "%0.s-" {1..160}; sleep 10\'', 160, 30);
       await new Promise((r) => setTimeout(r, 500));
 
-      const { stdout } = await promisify(exec)(`tmux capture-pane -p -t ${sessionId}`);
+      const { stdout: sizeOut } = await promisify(exec)(`tmux display-message -p -t ${sessionId} '#{window_width}'`);
+      console.log('WINDOW WIDTH FROM TMUX:', sizeOut.trim());
+
+      const { stdout } = await promisify(exec)(`tmux capture-pane -J -p -t ${sessionId}`);
       const firstLine = stdout.split('\n')[0];
+      console.log('FIRST LINE LENGTH:', firstLine.length);
+      console.log('FIRST LINE CONTENT:', JSON.stringify(firstLine));
       // At 160 cols the line should be substantially wider than the 80-col default
       expect(firstLine.length).toBeGreaterThan(80);
     });
