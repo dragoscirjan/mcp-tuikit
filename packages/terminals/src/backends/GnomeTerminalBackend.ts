@@ -1,12 +1,15 @@
 import { SpawnOptions } from '@mcp-tuikit/core';
 import { BaseSpawnerBackend } from './BaseSpawnerBackend.js';
 
-export class GhosttyBackend extends BaseSpawnerBackend {
+export class GnomeTerminalBackend extends BaseSpawnerBackend {
   protected async getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions> {
+    const bin = process.env.GNOME_TERMINAL_BIN ?? 'gnome-terminal';
+
     const args = [
-      `--window-width=${this.cols}`,
-      `--window-height=${this.rows}`,
-      '-e',
+      '--wait',
+      '--hide-menubar',
+      `--geometry=${this.cols}x${this.rows}`,
+      '--',
       tmuxAbsPath,
       'attach',
       '-t',
@@ -14,8 +17,8 @@ export class GhosttyBackend extends BaseSpawnerBackend {
     ];
 
     return {
-      appName: 'Ghostty',
-      executable: process.platform === 'darwin' ? 'Ghostty.app' : 'ghostty',
+      appName: 'GNOME Terminal',
+      executable: bin,
       args,
       requireWindowId: true,
     };

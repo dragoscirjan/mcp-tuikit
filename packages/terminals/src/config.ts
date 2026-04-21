@@ -4,7 +4,7 @@ import { Terminal } from './BackendFactory.js';
  * Returns the terminal backend to use.
  *
  * Controlled by TUIKIT_TERMINAL env var.
- * Supported values: xterm.js | iterm2 | macos-terminal | alacritty | wezterm | ghostty
+ * Supported values: xterm.js | iterm2 | macos-terminal | alacritty | wezterm | ghostty | kitty | konsole | gnome-terminal
  * Default: 'xterm.js'
  */
 export function getBackendConfig(): Terminal {

@@ -20,6 +20,7 @@
     }
   },
   "dependencies": {
-    "execa": "^9.6.1"
+    "execa": "^9.6.1",
+    "koffi": "^2.16.1"
   }
 }

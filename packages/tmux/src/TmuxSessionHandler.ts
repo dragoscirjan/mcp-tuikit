@@ -96,10 +96,12 @@ export class TmuxSessionHandler implements SessionHandler {
     const start = Date.now();
     const intervalMs = 500;
     const regex = new RegExp(pattern);
+    let lastText = '';
 
     while (Date.now() - start < timeoutMs) {
       try {
         const text = await this.getScreenPlaintext(sessionId, 0);
+        lastText = text;
         if (regex.test(text)) {
           return { success: true, matchedPattern: pattern };
         }
@@ -109,7 +111,9 @@ export class TmuxSessionHandler implements SessionHandler {
       await new Promise((r) => setTimeout(r, intervalMs));
     }
 
-    throw new TimeoutError(`Wait for text matched /${pattern}/ timed out after ${timeoutMs}ms.`);
+    throw new TimeoutError(
+      `Wait for text matched /${pattern}/ timed out after ${timeoutMs}ms.\nLast screen content:\n${lastText}`,
+    );
   }
 
   onData(sessionId: string, listener: (data: string) => void): { dispose: () => void } {

@@ -2,7 +2,7 @@ import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { TerminalBackend, SessionHandler, SnapshotStrategy } from '@mcp-tuikit/core';
 import { Browser, Page, chromium } from 'playwright';
-import { loadXtermAssets } from './playwright-utils.js';
+import { loadXtermAssets, getPlaywrightLaunchOptions } from './playwright-utils.js';
 
 const execAsync = promisify(exec);
 
@@ -20,7 +20,9 @@ export class PlaywrightBackend extends TerminalBackend {
     this._sessionName = sessionId;
 
     const headless = process.env.TUIKIT_HEADLESS === '1';
-    this.browser = await chromium.launch({ headless });
+    const launchOptions = await getPlaywrightLaunchOptions(headless);
+
+    this.browser = await chromium.launch(launchOptions);
     const context = await this.browser.newContext({ viewport: null });
     this.page = await context.newPage();
 

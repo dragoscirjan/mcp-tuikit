@@ -39,11 +39,17 @@ export class MacOsNativeSpawner implements AppSpawner {
   // jscpd:ignore-start
   async kill(pid: number): Promise<void> {
     try {
-      process.kill(pid, 'SIGTERM');
+      process.kill(-pid, 'SIGTERM');
       await new Promise((resolve) => setTimeout(resolve, 500));
-      process.kill(pid, 'SIGKILL');
+      process.kill(-pid, 'SIGKILL');
     } catch {
-      // Process likely already dead
+      try {
+        process.kill(pid, 'SIGTERM');
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        process.kill(pid, 'SIGKILL');
+      } catch {
+        // Process likely already dead
+      }
     }
   }
   // jscpd:ignore-end

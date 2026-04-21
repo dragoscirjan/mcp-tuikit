@@ -1,9 +1,31 @@
+import { exec } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { chromium } from 'playwright';
+import { promisify } from 'node:util';
+import { chromium, LaunchOptions } from 'playwright';
 
 const require = createRequire(import.meta.url);
+const execAsync = promisify(exec);
+
+export async function getPlaywrightLaunchOptions(headless: boolean): Promise<LaunchOptions> {
+  const launchOptions: LaunchOptions = { headless };
+
+  if (process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH) {
+    launchOptions.executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+  } else if (process.platform === 'linux') {
+    try {
+      const { stdout } = await execAsync('which chromium || which google-chrome || which chrome');
+      if (stdout.trim()) {
+        launchOptions.executablePath = stdout.trim();
+      }
+    } catch {
+      // Ignore and fallback to Playwright's bundled binary
+    }
+  }
+
+  return launchOptions;
+}
 
 /**
  * Resolve and inline the @xterm/xterm browser assets (CSS + JS) from the local
@@ -53,7 +75,8 @@ export async function capturePlaywrightSnapshot(
   const { css, js } = await loadXtermAssets();
 
   const headless = process.env.TUIKIT_HEADLESS === '1';
-  const browser = await chromium.launch({ headless });
+  const launchOptions = await getPlaywrightLaunchOptions(headless);
+  const browser = await chromium.launch(launchOptions);
 
   try {
     // viewport: null disables Playwright's viewport clipping entirely.

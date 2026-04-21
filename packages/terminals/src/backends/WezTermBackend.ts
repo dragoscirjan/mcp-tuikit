@@ -7,7 +7,23 @@ export class WezTermBackend extends BaseSpawnerBackend {
       process.env.WEZTERM_BIN ??
       (process.platform === 'darwin' ? '/Applications/WezTerm.app/Contents/MacOS/wezterm-gui' : 'wezterm');
 
-    const args = ['start', '--always-new-process', '--', tmuxAbsPath, 'attach', '-t', sessionName];
+    const cols = this.cols.toString();
+    const rows = this.rows.toString();
+
+    // --config must go before the subcommand
+    const args = [
+      '--config',
+      `initial_cols=${cols}`,
+      '--config',
+      `initial_rows=${rows}`,
+      'start',
+      '--always-new-process',
+      '--',
+      tmuxAbsPath,
+      'attach',
+      '-t',
+      sessionName,
+    ];
 
     return {
       appName: 'WezTerm',

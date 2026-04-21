@@ -52,7 +52,7 @@ export interface FlowSuiteOptions extends RunFlowOptions {
   /** Name of the yaml file in the flows directory. */
   yamlName: string;
   /** How to handle this specific test */
-  run?: '' | 'skip' | 'only';
+  run?: '' | 'skip' | 'only' | 'missing-binary' | 'wrong-os';
 }
 
 /**
@@ -62,9 +62,24 @@ export interface FlowSuiteOptions extends RunFlowOptions {
 export function defineFlowSuite(opts: FlowSuiteOptions): void {
   const { label, txtMatchers = [], yamlName, run = '' } = opts;
 
-  const d = run === 'skip' ? describe.skip : run === 'only' ? describe.only : describe;
+  let d = describe;
+  let finalLabel = label;
 
-  d(label, () => {
+  /* jscpd:ignore-start */
+  if (run === 'skip') {
+    d = describe.skip;
+  } else if (run === 'only') {
+    d = describe.only;
+  } else if (run === 'missing-binary') {
+    d = describe.skip;
+    finalLabel += ' [UNAVAILABLE: binary missing]';
+  } else if (run === 'wrong-os') {
+    d = describe.skip;
+    finalLabel += ' [SKIPPED: wrong OS]';
+  }
+  /* jscpd:ignore-end */
+
+  d(finalLabel, () => {
     let artifacts: Artifact[] = [];
 
     beforeAll(async () => {
