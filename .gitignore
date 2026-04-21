@@ -63,3 +63,7 @@ src/build/
 
 # snapshots
 snapshots/
+
+# mkdocs
+site/
+.venv

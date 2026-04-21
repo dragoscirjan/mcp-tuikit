@@ -1,0 +1,67 @@
+site_name: mcp-tuikit
+site_description: Bridging LLMs and TUI Applications
+site_url: https://dragoscirjan.github.io/mcp-tuikit/
+repo_url: https://github.com/dragoscirjan/mcp-tuikit
+repo_name: dragoscirjan/mcp-tuikit
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Guide:
+      - Overview: guide/index.md
+      - Setup & Configuration: guide/setup.md
+      - Using with LLMs: guide/llm-integration.md
+      - YAML Flow Syntax: guide/yaml-flows.md
+      - Troubleshooting: possible-problems.md
+  - Reference:
+      - MCP Tools: reference/tools.md
+      - Native Backends: reference/backends.md
+  - Project:
+      - Contributing: project/contributing.md
+      - Changelog: project/changelog.md
