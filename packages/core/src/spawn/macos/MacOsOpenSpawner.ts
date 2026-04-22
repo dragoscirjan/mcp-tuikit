@@ -17,7 +17,7 @@ export class MacOsOpenSpawner implements AppSpawner {
     // Get PIDs before spawn
     let pidsBefore = new Set<number>();
     try {
-      const { stdout } = await execa('pgrep', ['-x', appName]);
+      const { stdout } = await execa('pgrep', ['-i', '-x', appName]);
       pidsBefore = new Set(
         stdout
           .trim()
@@ -38,7 +38,7 @@ export class MacOsOpenSpawner implements AppSpawner {
     // Get PIDs after spawn
     let newPid: number | null = null;
     try {
-      const { stdout } = await execa('pgrep', ['-x', appName]);
+      const { stdout } = await execa('pgrep', ['-i', '-x', appName]);
       const pidsAfter = stdout
         .trim()
         .split('\n')

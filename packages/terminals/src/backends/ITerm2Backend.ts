@@ -1,7 +1,7 @@
 import { TerminalBackend, SessionHandler, SnapshotStrategy } from '@mcp-tuikit/core';
 import { spawnAppleScriptTerminal, runAppleScriptClose } from './AppleScriptUtils.js';
 
-/* jscpd:ignore-start */
+// jscpd:ignore-start
 export class ITerm2Backend extends TerminalBackend {
   constructor(sessionHandler: SessionHandler, snapshotStrategy: SnapshotStrategy) {
     super(sessionHandler, snapshotStrategy);
@@ -29,3 +29,4 @@ export class ITerm2Backend extends TerminalBackend {
     }
   }
 }
+// jscpd:ignore-end

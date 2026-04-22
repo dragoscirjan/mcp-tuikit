@@ -15,9 +15,10 @@ We utilize a **pnpm workspaces** monorepo structure to keep the core server and 
 To ensure consistency across different development environments, we enforce strict toolchain management:
 
 1. **Mise**: We use [`mise`](https://mise.jdx.dev/) for managing all programming languages and toolchains (Node.js, Python, C++, Rust, etc.). You must use the provided `.mise.toml` template to guarantee environment parity. Please ensure `mise` is installed and run `mise install` upon cloning the repository.
-2. **Task Runner**: Since the project leverages `pnpm workspaces` (which can have unfamiliar syntax), we abstract all common development tasks via `.mise.toml`. Use `mise run` for all operations (e.g., `mise run build`, `mise run test`, `mise run lint`). Do not run raw `pnpm` commands manually unless necessary.
-3. **Strict Linting & Formatting**: Any new language introduced must have a strict linter and formatter configured (e.g., ESLint/Prettier for TS/JS, `clang-format` for C++, `ruff` for Python). We enforce these via pre-commit hooks (`husky` + `lint-staged`) and continuous integration (CI) pipelines.
-4. **Duplicate Code**: We use `jscpd` to detect and prevent copy-pasted code. Keep the codebase DRY. Like formatting, this is enforced via pre-commit hooks and CI.
+2. **tmux (Windows)**: The `mcp-tuikit` core relies heavily on `tmux` for headless session management. On Windows, you **must** install `tmux` natively via `winget install arndawg.tmux-windows` (version 3.6a+).
+3. **Task Runner**: Since the project leverages `pnpm workspaces` (which can have unfamiliar syntax), we abstract all common development tasks via `.mise.toml`. Use `mise run` for all operations (e.g., `mise run build`, `mise run test`, `mise run lint`). Do not run raw `pnpm` commands manually unless necessary.
+4. **Strict Linting & Formatting**: Any new language introduced must have a strict linter and formatter configured (e.g., ESLint/Prettier for TS/JS, `clang-format` for C++, `ruff` for Python). We enforce these via pre-commit hooks (`husky` + `lint-staged`) and continuous integration (CI) pipelines.
+5. **Duplicate Code**: We use `jscpd` to detect and prevent copy-pasted code. Keep the codebase DRY. Like formatting, this is enforced via pre-commit hooks and CI.
 
 ## 🧪 Development Workflow
 
