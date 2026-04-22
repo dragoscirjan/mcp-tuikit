@@ -1,4 +1,5 @@
-import { defineBackendSuite, canRunTerminal } from './helpers/backendSuite';
+import { defineBackendSuite } from './helpers/backendSuite';
+import { canRunTerminal } from '../../core/test/helpers/canRunTerminal';
 
 defineBackendSuite({
   label: 'run_flow integration (xterm.js)',
@@ -35,3 +36,27 @@ defineBackendSuite({
   terminal: 'ghostty',
   run: canRunTerminal('ghostty'),
 });
+
+defineBackendSuite({
+  label: 'run_flow integration (Windows Terminal)',
+  terminal: 'windows-terminal',
+  run: canRunTerminal('windows-terminal'),
+});
+
+defineBackendSuite({
+  label: 'run_flow integration (PowerShell)',
+  terminal: 'powershell',
+  run: canRunTerminal('powershell'),
+});
+
+// defineBackendSuite({
+//   label: 'run_flow integration (pwsh)',
+//   terminal: 'pwsh',
+//   run: canRunTerminal('pwsh'),
+// });
+//
+// defineBackendSuite({
+//   label: 'run_flow integration (CMD)',
+//   terminal: 'cmd',
+//   run: canRunTerminal('cmd'),
+// });

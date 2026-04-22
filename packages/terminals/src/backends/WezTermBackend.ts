@@ -5,7 +5,11 @@ export class WezTermBackend extends BaseSpawnerBackend {
   protected async getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions> {
     const bin =
       process.env.WEZTERM_BIN ??
-      (process.platform === 'darwin' ? '/Applications/WezTerm.app/Contents/MacOS/wezterm-gui' : 'wezterm');
+      (process.platform === 'darwin'
+        ? '/Applications/WezTerm.app/Contents/MacOS/wezterm-gui'
+        : process.platform === 'win32'
+          ? 'wezterm-gui.exe'
+          : 'wezterm');
 
     const cols = this.cols.toString();
     const rows = this.rows.toString();

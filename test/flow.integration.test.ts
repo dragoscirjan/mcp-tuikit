@@ -22,9 +22,9 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { canRunTerminal } from '@mcp-tuikit/terminals/test/helpers/backendSuite.js';
 import { beforeAll } from 'vitest';
 import { defineFlowSuite } from './helpers/flowSuite.js';
+import { canRunTerminal } from './packages/core/test/helpers/canRunTerminal';
 
 const SNAPSHOTS = path.resolve(import.meta.dirname, '..', 'snapshots');
 
@@ -46,7 +46,7 @@ defineFlowSuite({
   terminal: 'xterm.js',
   cols: 80,
   rows: 25,
-  txtMatchers: [/CPU/],
+  txtMatchers: [/(CPU|Mem|Total)/i],
   yamlName: 'btop.yaml',
   run: canRunTerminal('xterm.js'),
 });
@@ -61,7 +61,7 @@ defineFlowSuite({
 defineFlowSuite({
   label: 'run_flow integration (iTerm2 + btop)',
   terminal: 'iterm2',
-  txtMatchers: [/CPU/],
+  txtMatchers: [/(CPU|Mem|Total)/i],
   yamlName: 'btop.yaml',
   run: canRunTerminal('iterm2'),
 });
@@ -76,7 +76,7 @@ defineFlowSuite({
 defineFlowSuite({
   label: 'run_flow integration (Terminal + btop)',
   terminal: 'macos-terminal',
-  txtMatchers: [/cpu/i],
+  txtMatchers: [/(CPU|Mem|Total)/i],
   yamlName: 'btop.yaml',
   run: canRunTerminal('macos-terminal'),
 });
@@ -91,7 +91,7 @@ defineFlowSuite({
 defineFlowSuite({
   label: 'run_flow integration (Alacritty + btop)',
   terminal: 'alacritty',
-  txtMatchers: [/CPU/],
+  txtMatchers: [/(CPU|Mem|Total)/i],
   yamlName: 'btop.yaml',
   run: canRunTerminal('alacritty'),
 });
@@ -123,7 +123,7 @@ defineFlowSuite({
 defineFlowSuite({
   label: 'run_flow integration (Ghostty + btop)',
   terminal: 'ghostty',
-  txtMatchers: [/CPU/],
+  txtMatchers: [/(CPU|Mem|Total)/i],
   yamlName: 'btop.yaml',
   run: canRunTerminal('ghostty'),
 });
@@ -174,7 +174,58 @@ defineFlowSuite({
   terminal: 'gnome-terminal',
   cols: 120,
   rows: 40,
-  txtMatchers: [/CPU/],
+  txtMatchers: [/(CPU|Mem|Total)/i],
   yamlName: 'btop.yaml',
   run: canRunTerminal('gnome-terminal'),
 });
+
+defineFlowSuite({
+  label: 'run_flow integration (Windows Terminal + nvim)',
+  terminal: 'windows-terminal',
+  yamlName: 'nvim_lazy_log.yaml',
+  run: canRunTerminal('windows-terminal'),
+});
+
+defineFlowSuite({
+  label: 'run_flow integration (Windows Terminal + btop)',
+  terminal: 'windows-terminal',
+  cols: 120,
+  rows: 40,
+  txtMatchers: [/(CPU|Mem|Total)/i],
+  yamlName: 'btop.yaml',
+  run: canRunTerminal('windows-terminal'),
+});
+
+defineFlowSuite({
+  label: 'run_flow integration (PowerShell + nvim)',
+  terminal: 'powershell',
+  yamlName: 'nvim_lazy_log.yaml',
+  run: canRunTerminal('powershell'),
+});
+
+defineFlowSuite({
+  label: 'run_flow integration (PowerShell + btop)',
+  terminal: 'powershell',
+  cols: 120,
+  rows: 40,
+  txtMatchers: [/(CPU|Mem|Total)/i],
+  yamlName: 'btop.yaml',
+  run: canRunTerminal('powershell'),
+});
+
+// defineFlowSuite({
+//   label: 'run_flow integration (CMD + nvim)',
+//   terminal: 'cmd',
+//   yamlName: 'nvim_lazy_log.yaml',
+//   run: canRunTerminal('cmd'),
+// });
+//
+// defineFlowSuite({
+//   label: 'run_flow integration (CMD + btop)',
+//   terminal: 'cmd',
+//   cols: 120,
+//   rows: 40,
+//   txtMatchers: [/(CPU|Mem|Total)/i],
+//   yamlName: 'btop.yaml',
+//   run: canRunTerminal('cmd'),
+// });

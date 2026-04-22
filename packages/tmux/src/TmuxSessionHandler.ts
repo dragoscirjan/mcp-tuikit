@@ -1,4 +1,4 @@
-import { exec } from 'node:child_process';
+import { exec, execFile } from 'node:child_process';
 import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -8,6 +8,7 @@ import { SessionHandler, TimeoutError, TmuxExecutionError } from '@mcp-tuikit/co
 import { nanoid } from 'nanoid';
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 interface PipeSession {
   pipePath: string;
@@ -23,6 +24,11 @@ export class TmuxSessionHandler implements SessionHandler {
     try {
       await execAsync(tmuxCmd);
     } catch (err) {
+      if (err instanceof Error && err.message.includes("'tmux' is not recognized")) {
+        throw new TmuxExecutionError(
+          `tmux is not installed or not in PATH. On Windows, you can install it via: winget install arndawg.tmux-windows`,
+        );
+      }
       throw new TmuxExecutionError(`Failed to create session: ${(err as Error).message}`);
     }
 
@@ -47,7 +53,26 @@ export class TmuxSessionHandler implements SessionHandler {
 
   async sendKeys(sessionId: string, keys: string): Promise<object> {
     try {
-      await execAsync(`tmux send-keys -t ${sessionId} "${keys}"`);
+      // Break keys by LF (allowing for CRLF if present).
+      const parts = keys.split('\n');
+
+      for (let i = 0; i < parts.length; i++) {
+        // Strip trailing \r if it exists (from \r\n combos)
+        const textPart = parts[i].replace(/\r$/, '');
+
+        if (textPart.length > 0) {
+          // -l sends the text literally.
+          // We invoke execFile separately for literal text and key-names (like Enter)
+          // because tmux send-keys -l treats ALL subsequent arguments as literal text!
+          await execFileAsync('tmux', ['send-keys', '-t', sessionId, '-l', textPart]);
+        }
+
+        // For every newline that was in the original string, send an explicit tmux 'Enter' command
+        if (i < parts.length - 1) {
+          await execFileAsync('tmux', ['send-keys', '-t', sessionId, 'Enter']);
+        }
+      }
+
       return { success: true };
     } catch (err) {
       throw new TmuxExecutionError(`Failed to send keys: ${(err as Error).message}`);
@@ -85,7 +110,8 @@ export class TmuxSessionHandler implements SessionHandler {
   async getSessionState(sessionId: string): Promise<string> {
     try {
       const { stdout } = await execAsync(`tmux display-message -p -t ${sessionId} '#{session_id}'`);
-      return stdout.trim();
+      const cleaned = stdout.trim().replace(/^['"]|['"]$/g, '');
+      return cleaned;
     } catch {
       // tmux exits non-zero when the session doesn't exist; treat as empty state
       return '';

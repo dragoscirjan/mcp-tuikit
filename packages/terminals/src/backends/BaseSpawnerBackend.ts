@@ -16,8 +16,9 @@ export abstract class BaseSpawnerBackend extends TerminalBackend {
     const sessionName = this._sessionName;
     if (!sessionName) throw new Error('Cannot spawn backend without an active session ID');
 
-    const { stdout: tmuxBin } = await execAsync('which tmux');
-    const tmuxAbsPath = tmuxBin.trim();
+    const cmd = process.platform === 'win32' ? 'where.exe tmux' : 'which tmux';
+    const { stdout: tmuxBin } = await execAsync(cmd);
+    const tmuxAbsPath = tmuxBin.split('\n')[0].trim();
 
     const spawnOptions = await this.getSpawnOptions(tmuxAbsPath, sessionName);
     const result = await this.spawner.spawn(spawnOptions);

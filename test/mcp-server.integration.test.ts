@@ -34,9 +34,12 @@ describe('MCP Server Integration', () => {
 
   it('runs echo loop and captures output via MCP tools', async () => {
     // 1. Create Session
+    const isWin = process.platform === 'win32';
+    const shellCmd = isWin ? 'powershell.exe' : 'bash';
+
     const createRes = await client.callTool({
       name: 'create_session',
-      arguments: { command: 'bash', cols: 80, rows: 24 },
+      arguments: { command: shellCmd, cols: 80, rows: 24 },
     });
     if (createRes.isError) console.error(createRes);
     expect(createRes.isError).toBeFalsy();
@@ -46,12 +49,16 @@ describe('MCP Server Integration', () => {
     expect(sessionId).toBeDefined();
 
     // 2. Send keys (echo loop)
+    const loopCmd = isWin
+      ? '1..5 | ForEach-Object { Write-Output LLM-TEST-OUTPUT-$_ ; Start-Sleep -Milliseconds 100 }\n'
+      : 'for i in {1..5}; do echo LLM-TEST-OUTPUT-$i; sleep 0.1; done\n';
+
     const keysRes = await client.callTool({
       name: 'send_keys',
       arguments: {
         session_id: sessionId,
-        keys: 'for i in {1..5}; do echo LLM_TEST_OUTPUT_\\$i; sleep 0.1; done',
-        submit: true,
+        keys: loopCmd,
+        submit: false, // Since we explicitly provide the trailing newline, don't append another
       },
     });
     expect(keysRes.isError).toBeFalsy();
@@ -61,7 +68,7 @@ describe('MCP Server Integration', () => {
       name: 'wait_for_text',
       arguments: {
         session_id: sessionId,
-        pattern: 'LLM_TEST_OUTPUT_5',
+        pattern: 'LLM-TEST-OUTPUT-5',
         timeout_ms: 10000,
       },
     });
@@ -89,7 +96,7 @@ describe('MCP Server Integration', () => {
     expect(pngArtifact).toBeDefined();
 
     const txtContent = await fs.readFile(txtArtifact!.path, 'utf-8');
-    expect(txtContent).toContain('LLM_TEST_OUTPUT_5');
+    expect(txtContent).toContain('LLM-TEST-OUTPUT-5');
 
     const pngStat = await fs.stat(pngArtifact!.path);
     expect(pngStat.size).toBeGreaterThan(0);

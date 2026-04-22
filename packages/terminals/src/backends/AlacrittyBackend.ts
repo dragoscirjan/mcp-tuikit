@@ -15,14 +15,15 @@ export class AlacrittyBackend extends BaseSpawnerBackend {
       `lines = ${this.rows}`,
       ``,
       `[terminal.shell]`,
-      `program = "${tmuxAbsPath}"`,
+      `program = '${tmuxAbsPath}'`,
       `args = ["attach", "-t", "${sessionName}"]`,
     ].join('\n');
     await fs.writeFile(this.tmpConfig, configContent, 'utf8');
 
     return {
       appName: 'Alacritty',
-      executable: process.platform === 'darwin' ? 'Alacritty' : 'alacritty',
+      executable:
+        process.platform === 'darwin' ? 'Alacritty' : process.platform === 'win32' ? 'alacritty.exe' : 'alacritty',
       args: ['--config-file', this.tmpConfig],
       requireWindowId: true,
     };

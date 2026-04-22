@@ -2,6 +2,7 @@ import { AppSpawner } from './AppSpawner.js';
 import { LinuxNativeSpawner } from './linux/LinuxNativeSpawner.js';
 import { MacOsNativeSpawner } from './macos/MacOsNativeSpawner.js';
 import { MacOsOpenSpawner } from './macos/MacOsOpenSpawner.js';
+import { WindowsNativeSpawner } from './windows/WindowsNativeSpawner.js';
 
 export class SpawnerFactory {
   static create(strategy: 'native' | 'open'): AppSpawner {
@@ -16,8 +17,7 @@ export class SpawnerFactory {
     }
 
     if (platform === 'win32') {
-      // Stub for future Windows support
-      throw new Error('Windows spawners not yet implemented');
+      return new WindowsNativeSpawner();
     }
 
     throw new Error(`Unsupported platform for spawner: ${platform}`);
