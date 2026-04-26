@@ -1,10 +1,7 @@
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 import { TerminalBackend, SessionHandler, SnapshotStrategy } from '@mcp-tuikit/core';
+import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
 import { Browser, Page, chromium } from 'playwright';
 import { loadXtermAssets, getPlaywrightLaunchOptions } from './playwright-utils.js';
-
-const execAsync = promisify(exec);
 
 export class PlaywrightBackend extends TerminalBackend {
   private browser: Browser | null = null;
@@ -76,9 +73,9 @@ export class PlaywrightBackend extends TerminalBackend {
     // 1. Initial ANSI dump — write current screen state immediately so the
     //    browser shows content from the moment it opens.
     try {
-      const { stdout } = await execAsync(`tmux capture-pane -t ${sessionId} -p -e`);
-      if (stdout && this.page) {
-        const normalised = '\x1b[H' + stdout.replace(/\r?\n/g, '\r\n');
+      const ansi = await new TmuxSessionHandler().getScreenAnsi(sessionId);
+      if (ansi && this.page) {
+        const normalised = '\x1b[H' + ansi.replace(/\r?\n/g, '\r\n');
         const base64Data = Buffer.from(normalised, 'utf-8').toString('base64');
         // @ts-ignore
         await this.page.evaluate((b64) => window.writeBase64ToTerm(b64), base64Data);

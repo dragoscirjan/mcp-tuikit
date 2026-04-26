@@ -1,19 +1,16 @@
 #!/usr/bin/env node
 
-import { exec } from 'node:child_process';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { promisify } from 'node:util';
 import { TerminalBackend } from '@mcp-tuikit/core';
 import { FlowRunner, Artifact, parseFlow, parseFlowFromString } from '@mcp-tuikit/flow-engine';
 import { BackendFactory, getBackendConfig } from '@mcp-tuikit/terminals';
+import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
-
-const execAsync = promisify(exec);
 
 const DEFAULT_COLS = 80;
 const DEFAULT_ROWS = 30;
@@ -61,6 +58,7 @@ async function removeSessions(): Promise<void> {
 }
 
 const backendConfig = getBackendConfig();
+const tmuxHandler = new TmuxSessionHandler();
 
 async function killOrphanedSessions(): Promise<void> {
   try {
@@ -69,7 +67,7 @@ async function killOrphanedSessions(): Promise<void> {
     for (const entry of entries) {
       try {
         if (entry.tmuxSession) {
-          await execAsync(`tmux kill-session -t ${entry.tmuxSession}`);
+          await tmuxHandler.closeSession(entry.tmuxSession);
         }
       } catch {
         /* already gone */
@@ -293,8 +291,7 @@ server.registerTool('list_sessions', { description: 'List all active terminal se
       let alive = false;
       try {
         if (s.backend.sessionName) {
-          await execAsync(`tmux has-session -t ${s.backend.sessionName}`);
-          alive = true;
+          alive = await tmuxHandler.hasSession(s.backend.sessionName);
         }
       } catch {
         /* session is gone */

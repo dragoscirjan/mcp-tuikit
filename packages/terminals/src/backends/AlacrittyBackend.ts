@@ -1,10 +1,9 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { SpawnOptions } from '@mcp-tuikit/core';
-import { BaseSpawnerBackend } from './BaseSpawnerBackend.js';
+import { ShellSpawnedBackend, SpawnOptions } from '@mcp-tuikit/core';
 
-export class AlacrittyBackend extends BaseSpawnerBackend {
+export class AlacrittyBackend extends ShellSpawnedBackend {
   private tmpConfig: string | null = null;
 
   protected async getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions> {

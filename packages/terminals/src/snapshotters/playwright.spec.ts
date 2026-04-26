@@ -21,9 +21,13 @@ vi.mock('../playwright-utils.js', () => ({
   capturePlaywrightSnapshot: mockCapturePlaywrightSnapshot,
 }));
 
-vi.mock('node:child_process', () => ({
-  exec: mockExec,
-}));
+vi.mock('node:child_process', async (orig) => {
+  const actual = await orig<typeof import('node:child_process')>();
+  return {
+    ...actual,
+    exec: mockExec,
+  };
+});
 
 vi.mock('node:util', async (orig) => {
   const original = await orig<typeof import('node:util')>();

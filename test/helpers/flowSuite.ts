@@ -5,11 +5,12 @@
  * - `defineFlowSuite`: declare a describe block whose artifacts are pre-run externally.
  */
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { FlowRunner, Artifact, parseFlow } from '@mcp-tuikit/flow-engine';
 import { BackendFactory } from '@mcp-tuikit/terminals';
 import { Terminal } from '@mcp-tuikit/terminals/src';
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 
 export interface RunFlowOptions {
   /** Terminal backend to use (sets TUIKIT_TERMINAL env var). */
@@ -18,6 +19,10 @@ export interface RunFlowOptions {
   cols?: number;
   /** Number of rows for the spawned terminal. Defaults to 40. */
   rows?: number;
+  /** Run headlessly? */
+  headless?: boolean;
+  /** If headless, which display server to use? */
+  displayServer?: 'xvfb' | 'sway' | 'kwin';
 }
 
 /**
@@ -60,10 +65,20 @@ export interface FlowSuiteOptions extends RunFlowOptions {
  * The flow is run in a beforeAll block before the tests.
  */
 export function defineFlowSuite(opts: FlowSuiteOptions): void {
-  const { label, txtMatchers = [], yamlName, run = '' } = opts;
+  const { label, txtMatchers = [], yamlName, run = '', terminal, headless, displayServer } = opts;
+
+  let finalLabel = label;
+  if (headless) {
+    if (terminal === 'xterm.js') {
+      finalLabel += ' (headless via Playwright)';
+    } else {
+      finalLabel += ` (headless via ${displayServer || 'default'})`;
+    }
+  } else {
+    finalLabel += ' (headed)';
+  }
 
   let d = describe;
-  let finalLabel = label;
 
   /* jscpd:ignore-start */
   if (run === 'skip') {
@@ -81,14 +96,52 @@ export function defineFlowSuite(opts: FlowSuiteOptions): void {
 
   d(finalLabel, () => {
     let artifacts: Artifact[] = [];
+    const originalEnv = { ...process.env };
+    let hasCommandSpy: ReturnType<typeof vi.spyOn> | undefined;
+    let tempDir: string | undefined;
 
     beforeAll(async () => {
+      if (headless) {
+        process.env.TUIKIT_HEADLESS = '1';
+
+        // Isolate XDG_RUNTIME_DIR to prevent terminals like Ghostty from connecting
+        // to the user's running daemon on Wayland/DBus.
+        tempDir = await fs.mkdtemp(path.join(os.tmpdir(), `mcp-tuikit-test-${terminal}-`));
+        process.env.XDG_RUNTIME_DIR = tempDir;
+      } else {
+        process.env.TUIKIT_HEADLESS = '0';
+      }
+
+      // Mock VirtualSessionManager if we want a specific display server
+      if (headless && displayServer) {
+        const { VirtualSessionManager } = await import('../../packages/core/src/spawn/linux/VirtualSessionManager.js');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation(async (cmd: string) => {
+          if (displayServer === 'xvfb' && cmd === 'Xvfb') return true;
+          if (displayServer === 'sway' && cmd === 'sway') return true;
+          if (displayServer === 'kwin' && cmd === 'kwin_wayland') return true;
+          return false;
+        });
+      }
+
       artifacts = await runFlow(flowPath(yamlName), {
         terminal: opts.terminal,
         cols: opts.cols,
         rows: opts.rows,
+        headless: opts.headless,
+        displayServer: opts.displayServer,
       });
     }, 120_000);
+
+    afterAll(async () => {
+      process.env = originalEnv;
+      if (hasCommandSpy) {
+        hasCommandSpy.mockRestore();
+      }
+      if (tempDir) {
+        await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+      }
+    });
 
     it('returns two artifacts (txt + png)', () => {
       expect(artifacts).toHaveLength(2);
