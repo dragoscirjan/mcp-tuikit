@@ -1,8 +1,8 @@
 import { SpawnOptions, SnapshotStrategy, SessionHandler } from '@mcp-tuikit/core';
 import { AppSpawner } from '@mcp-tuikit/core';
-import { BaseSpawnerBackend } from './BaseSpawnerBackend.js';
+import { ShellSpawnedBackend } from '@mcp-tuikit/core';
 
-export class PowershellBackend extends BaseSpawnerBackend {
+export class PowershellBackend extends ShellSpawnedBackend {
   private executable: string;
 
   constructor(

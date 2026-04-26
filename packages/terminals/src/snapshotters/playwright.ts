@@ -1,9 +1,6 @@
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 import { SnapshotStrategy } from '@mcp-tuikit/core';
+import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
 import { capturePlaywrightSnapshot } from '../playwright-utils.js';
-
-const execAsync = promisify(exec);
 
 /**
  * SnapshotStrategy that works on every platform by reading the current ANSI screen
@@ -18,7 +15,7 @@ const execAsync = promisify(exec);
 export class PlaywrightSnapshotStrategy implements SnapshotStrategy {
   async capture(outputPath: string, cols: number, rows: number, tmuxSession: string): Promise<void> {
     // -e preserves escape sequences so xterm.js renders colours correctly
-    const { stdout: ansi } = await execAsync(`tmux capture-pane -p -e -t ${tmuxSession}`);
+    const ansi = await new TmuxSessionHandler().getScreenAnsi(tmuxSession);
 
     // tmux capture-pane emits bare \n (LF only). xterm.js treats \n as "move
     // cursor down" without returning to column 0, so every line after the first

@@ -1,62 +1,79 @@
 import { defineBackendSuite } from './helpers/backendSuite';
 import { canRunTerminal } from '../../core/test/helpers/canRunTerminal';
+import { hasBinary } from '../../core/test/helpers/hasBinary';
 
-defineBackendSuite({
-  label: 'run_flow integration (xterm.js)',
-  terminal: 'xterm.js',
-  run: canRunTerminal('xterm.js'),
-});
+// Helper to define all display variants for a given terminal
+function defineTerminalSuites(terminal: Parameters<typeof canRunTerminal>[0], label: string) {
+  const baseRun = canRunTerminal(terminal);
 
-defineBackendSuite({
-  label: 'run_flow integration (Terminal )',
-  terminal: 'macos-terminal',
-  run: canRunTerminal('macos-terminal'),
-});
+  if (terminal === 'xterm.js') {
+    // xterm.js runs in Playwright: we can do headed and headless without Linux graphic servers
+    defineBackendSuite({
+      label,
+      terminal,
+      run: baseRun,
+      headless: false,
+    });
+    defineBackendSuite({
+      label,
+      terminal,
+      run: baseRun,
+      headless: true,
+    });
+    return;
+  }
 
-defineBackendSuite({
-  label: 'run_flow integration (iTerm2)',
-  terminal: 'iterm2',
-  run: canRunTerminal('iterm2'),
-});
+  // All other native terminals:
+  // 1. Headed run (default)
+  defineBackendSuite({
+    label,
+    terminal,
+    run: baseRun,
+    headless: false,
+  });
 
-defineBackendSuite({
-  label: 'run_flow integration (Alacritty)',
-  terminal: 'alacritty',
-  run: canRunTerminal('alacritty'),
-});
+  // 2. Headless run variants (Linux only)
+  if (process.platform === 'linux') {
+    // Xvfb
+    defineBackendSuite({
+      label,
+      terminal,
+      run: baseRun === 'only' ? 'only' : hasBinary('Xvfb') ? baseRun : 'missing-binary',
+      headless: true,
+      displayServer: 'xvfb',
+    });
 
-defineBackendSuite({
-  label: 'run_flow integration (WezTerm)',
-  terminal: 'wezterm',
-  run: canRunTerminal('wezterm'),
-});
+    // Sway
+    defineBackendSuite({
+      label,
+      terminal,
+      run: baseRun === 'only' ? 'only' : hasBinary('sway') ? baseRun : 'missing-binary',
+      headless: true,
+      displayServer: 'sway',
+    });
 
-defineBackendSuite({
-  label: 'run_flow integration (Ghostty)',
-  terminal: 'ghostty',
-  run: canRunTerminal('ghostty'),
-});
+    // Kwin
+    defineBackendSuite({
+      label,
+      terminal,
+      run: baseRun === 'only' ? 'only' : hasBinary('kwin_wayland') ? baseRun : 'missing-binary',
+      headless: true,
+      displayServer: 'kwin',
+    });
+  }
+}
 
-defineBackendSuite({
-  label: 'run_flow integration (Windows Terminal)',
-  terminal: 'windows-terminal',
-  run: canRunTerminal('windows-terminal'),
-});
+defineTerminalSuites('xterm.js', 'run_flow integration (xterm.js)');
+defineTerminalSuites('macos-terminal', 'run_flow integration (Terminal )');
+defineTerminalSuites('iterm2', 'run_flow integration (iTerm2)');
+defineTerminalSuites('alacritty', 'run_flow integration (Alacritty)');
+defineTerminalSuites('wezterm', 'run_flow integration (WezTerm)');
+defineTerminalSuites('ghostty', 'run_flow integration (Ghostty)');
+defineTerminalSuites('konsole', 'run_flow integration (Konsole)');
+defineTerminalSuites('kitty', 'run_flow integration (Kitty)');
+defineTerminalSuites('gnome-terminal', 'run_flow integration (GNOME Terminal)');
+defineTerminalSuites('windows-terminal', 'run_flow integration (Windows Terminal)');
+defineTerminalSuites('powershell', 'run_flow integration (PowerShell)');
 
-defineBackendSuite({
-  label: 'run_flow integration (PowerShell)',
-  terminal: 'powershell',
-  run: canRunTerminal('powershell'),
-});
-
-// defineBackendSuite({
-//   label: 'run_flow integration (pwsh)',
-//   terminal: 'pwsh',
-//   run: canRunTerminal('pwsh'),
-// });
-//
-// defineBackendSuite({
-//   label: 'run_flow integration (CMD)',
-//   terminal: 'cmd',
-//   run: canRunTerminal('cmd'),
-// });
+// defineTerminalSuites('pwsh', 'run_flow integration (pwsh)');
+// defineTerminalSuites('cmd', 'run_flow integration (CMD)');

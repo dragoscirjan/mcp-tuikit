@@ -1,7 +1,7 @@
 import { SpawnOptions } from '@mcp-tuikit/core';
-import { BaseSpawnerBackend } from './BaseSpawnerBackend.js';
+import { ShellSpawnedBackend } from '@mcp-tuikit/core';
 
-export class WindowsTerminalBackend extends BaseSpawnerBackend {
+export class WindowsTerminalBackend extends ShellSpawnedBackend {
   protected async getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions> {
     // We launch Windows Terminal with a new tab, optionally specifying size, and running tmux attach.
     // The columns and rows can be passed to wt via `--size <cols>,<rows>`.

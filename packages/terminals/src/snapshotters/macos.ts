@@ -110,7 +110,7 @@ async function getWindowId(appName: string): Promise<string> {
 /**
  * Delays execution for a specified number of milliseconds.
  */
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, process.env.NODE_ENV === 'test' ? 1 : ms));
 
 /**
  * Captures the frontmost window of a macOS application and saves it to a file.

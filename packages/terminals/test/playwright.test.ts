@@ -124,7 +124,7 @@ async function analyzePixels(pngPath: string): Promise<PixelStats> {
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe.skip('capturePlaywrightSnapshot — xterm.js rendering verification', () => {
+describe('capturePlaywrightSnapshot — xterm.js rendering verification', () => {
   it('produces green pixels when ANSI green text is written', async () => {
     const out = snapshotPng('green-text');
     // \x1b[32m = ANSI green foreground

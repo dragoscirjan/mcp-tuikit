@@ -1,23 +1,84 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { TerminalBackend } from '@mcp-tuikit/core';
-import { it, expect, beforeAll, afterAll } from 'vitest';
+import { it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { getTerminalTestSuite, RunBackendOptions } from '../../../core/test/helpers/canRunTerminal';
 import { BackendFactory } from '../../src';
 
-export function defineBackendSuite(opts: RunBackendOptions): void {
-  const { label, terminal, cols = 80, rows = 24 } = opts;
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../');
+const snapshotsDir = path.join(repoRoot, 'snapshots');
 
-  const finalLabel = label || `Terminal Backends Integration (${terminal})`;
+export interface ExtendedRunBackendOptions extends RunBackendOptions {
+  headless?: boolean;
+  displayServer?: 'xvfb' | 'sway' | 'kwin';
+}
+
+export function defineBackendSuite(opts: ExtendedRunBackendOptions): void {
+  const { label, terminal, cols = 80, rows = 24, headless, displayServer } = opts;
+
+  let finalLabel = label || `Terminal Backends Integration (${terminal})`;
+  if (headless) {
+    if (terminal === 'xterm.js') {
+      finalLabel += ' (headless via Playwright)';
+    } else {
+      finalLabel += ` (headless via ${displayServer || 'default'})`;
+    }
+  } else {
+    finalLabel += ' (headed)';
+  }
+
   const suite = getTerminalTestSuite(terminal, finalLabel);
 
-  suite.d(suite.label, () => {
+  // If the run type specifies skipping, apply it to the describe block
+  let d = suite.d;
+  if (opts.run === 'skip') {
+    d = d.skip;
+  }
+
+  d(suite.label, () => {
     let backend: TerminalBackend;
-    let tempDir: string;
+    const originalEnv = { ...process.env };
+    let hasCommandSpy: ReturnType<typeof vi.spyOn> | undefined;
+    let tempDir: string | undefined;
+
+    let snapshotName = `integration-${terminal}`;
+    if (headless) {
+      snapshotName += displayServer ? `-headless-${displayServer}` : '-headless';
+    } else {
+      snapshotName += '-headed';
+    }
+
+    const txtPath = path.join(snapshotsDir, `${snapshotName}.txt`);
+    const pngPath = path.join(snapshotsDir, `${snapshotName}.png`);
 
     beforeAll(async () => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `mcp-tuikit-test-${terminal}-`));
+      fs.mkdirSync(snapshotsDir, { recursive: true });
+
+      if (headless) {
+        process.env.TUIKIT_HEADLESS = '1';
+
+        // Isolate XDG_RUNTIME_DIR to prevent terminals like Ghostty from connecting
+        // to the user's running daemon on Wayland/DBus.
+        tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `mcp-tuikit-test-${terminal}-`));
+        process.env.XDG_RUNTIME_DIR = tempDir;
+      } else {
+        process.env.TUIKIT_HEADLESS = '0';
+      }
+
+      // Mock VirtualSessionManager if we want a specific display server
+      if (headless && displayServer) {
+        const { VirtualSessionManager } = await import('../../../core/src/spawn/linux/VirtualSessionManager');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation(async (cmd: string) => {
+          if (displayServer === 'xvfb' && cmd === 'Xvfb') return true;
+          if (displayServer === 'sway' && cmd === 'sway') return true;
+          if (displayServer === 'kwin' && cmd === 'kwin_wayland') return true;
+          return false;
+        });
+      }
+
       backend = BackendFactory.create(terminal);
 
       let shellCmd = process.env.SHELL || 'zsh';
@@ -34,19 +95,29 @@ export function defineBackendSuite(opts: RunBackendOptions): void {
       if (backend) {
         await backend.disconnect();
       }
+      process.env = originalEnv;
+      if (hasCommandSpy) {
+        hasCommandSpy.mockRestore();
+      }
       if (tempDir) {
         fs.rmSync(tempDir, { recursive: true, force: true });
       }
     });
 
-    it(`should assign processId and windowId for non-xterm backends (${terminal})`, () => {
+    const variantSuffix = headless
+      ? terminal === 'xterm.js'
+        ? 'headless via Playwright'
+        : `headless via ${displayServer || 'default'}`
+      : 'headed';
+
+    it(`should assign processId and windowId for non-xterm backends (${terminal} - ${variantSuffix})`, () => {
       if (terminal !== 'xterm.js') {
         expect(backend.processId).toBeDefined();
         expect(backend.windowId).toBeDefined();
       }
     });
 
-    it(`should execute shell loop and capture output (${terminal})`, async () => {
+    it(`should execute shell loop and capture output (${terminal} - ${variantSuffix})`, async () => {
       // Send OS/shell appropriate loop syntax
       if (process.platform === 'win32') {
         if (terminal === 'cmd') {
@@ -67,9 +138,6 @@ export function defineBackendSuite(opts: RunBackendOptions): void {
 
       // Delay slightly for render compositing (increased for WezTerm transparency initialization)
       await new Promise((r) => setTimeout(r, 3000));
-
-      const txtPath = path.join(tempDir, 'snapshot.txt');
-      const pngPath = path.join(tempDir, 'snapshot.png');
 
       await backend.takeSnapshot(txtPath, 'txt', cols, rows);
       await backend.takeSnapshot(pngPath, 'png', cols, rows);

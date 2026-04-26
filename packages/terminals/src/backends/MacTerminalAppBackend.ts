@@ -1,31 +1,24 @@
-import { TerminalBackend, SessionHandler, SnapshotStrategy } from '@mcp-tuikit/core';
-import { spawnAppleScriptTerminal, runAppleScriptClose } from './AppleScriptUtils.js';
+import { OsascriptSpawnedBackend, SessionHandler, SnapshotStrategy, IdType } from '@mcp-tuikit/core';
 
 /* jscpd:ignore-start */
-export class MacTerminalAppBackend extends TerminalBackend {
+export class MacTerminalAppBackend extends OsascriptSpawnedBackend {
+  protected get appName(): string {
+    return 'Terminal';
+  }
+
+  protected get generateFocusCmd(): string {
+    return `set frontmost of targetWindow to true`;
+  }
+
   constructor(sessionHandler: SessionHandler, snapshotStrategy: SnapshotStrategy) {
     super(sessionHandler, snapshotStrategy);
   }
 
-  async spawn(): Promise<void> {
-    /* jscpd:ignore-end */
-    const [pixelWidth, pixelHeight] = this.sizeInPixels(this.cols, this.rows);
-
-    this._windowId = await spawnAppleScriptTerminal(
-      this._sessionName,
-      pixelWidth,
-      pixelHeight,
-      'Terminal',
-      (tmuxCmd) => `set newTab to do script "${tmuxCmd}"`,
-      `set frontmost of targetWindow to true`,
-    );
-
-    this._spawnResult = { windowHandle: this._windowId };
+  protected generateSpawnCmd(tmuxCmd: string): string {
+    return `set newTab to do script "${tmuxCmd}"`;
   }
 
-  async close(): Promise<void> {
-    if (this._windowId) {
-      await runAppleScriptClose('Terminal', `close (every window whose id is ${this._windowId})`);
-    }
+  protected generateCloseCmd(windowId: IdType): string {
+    return `close (every window whose id is ${windowId})`;
   }
 }

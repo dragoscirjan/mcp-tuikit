@@ -36,13 +36,7 @@ jspm_packages/
 
 # dotenv environment variables file
 .env
-.env.test
-.env.production
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.ai
+.env.*
 
 # Mac OS files
 .DS_Store
@@ -57,6 +51,7 @@ src/build/
 
 # AI workspace
 .ai.tmp
+.gitnexus
 
 # jscpd
 .jscpd/

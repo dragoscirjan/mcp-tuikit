@@ -1,7 +1,7 @@
 import { SpawnOptions } from '@mcp-tuikit/core';
-import { BaseSpawnerBackend } from './BaseSpawnerBackend.js';
+import { ShellSpawnedBackend } from '@mcp-tuikit/core';
 
-export class GnomeTerminalBackend extends BaseSpawnerBackend {
+export class GnomeTerminalBackend extends ShellSpawnedBackend {
   protected async getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions> {
     const bin = process.env.GNOME_TERMINAL_BIN ?? 'gnome-terminal';
 

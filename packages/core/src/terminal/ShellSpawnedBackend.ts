@@ -1,7 +1,10 @@
-import { TerminalBackend, SessionHandler, SnapshotStrategy, AppSpawner, SpawnOptions } from '@mcp-tuikit/core';
-import { execAsync } from '../utils/execAsync.js';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+import { TerminalBackend, SessionHandler, SnapshotStrategy, AppSpawner, SpawnOptions } from '../index.js';
 
-export abstract class BaseSpawnerBackend extends TerminalBackend {
+const execAsync = promisify(exec);
+
+export abstract class ShellSpawnedBackend extends TerminalBackend {
   constructor(
     sessionHandler: SessionHandler,
     snapshotStrategy: SnapshotStrategy,
@@ -10,6 +13,14 @@ export abstract class BaseSpawnerBackend extends TerminalBackend {
     super(sessionHandler, snapshotStrategy);
   }
 
+  /**
+   * Generates the necessary options to spawn the target terminal application, ensuring
+   * it connects to the active tmux session.
+   *
+   * @param tmuxAbsPath The absolute path to the tmux executable.
+   * @param sessionName The active tmux session name to attach to.
+   * @returns SpawnOptions defining the executable, arguments, and environment overrides.
+   */
   protected abstract getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions>;
 
   public async spawn(): Promise<void> {
@@ -25,7 +36,9 @@ export abstract class BaseSpawnerBackend extends TerminalBackend {
 
     this._processId = result.pid?.toString() || null;
     this._windowId = result.windowId;
-    this._spawnResult = { windowHandle: this._windowId };
+
+    // Pass the full result but ensure windowHandle mapping is preserved for older snapshotters
+    this._spawnResult = { ...result, windowHandle: this._windowId };
   }
 
   public async close(): Promise<void> {

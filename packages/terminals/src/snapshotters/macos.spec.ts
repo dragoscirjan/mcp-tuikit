@@ -104,7 +104,7 @@ describe('captureMacOsWindow', () => {
       }
     });
 
-    await expect(captureMacOsWindow('iTerm', '/tmp/output.png')).rejects.toThrow(/Failed to capture window/);
+    await expect(captureMacOsWindow('iTerm', '/tmp/output.png', 50, 10)).rejects.toThrow(/Failed to capture window/);
   });
 
   it('times out when the window never appears', async () => {

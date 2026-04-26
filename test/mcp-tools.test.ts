@@ -29,17 +29,12 @@ const shellCmd = process.platform === 'win32' ? 'powershell.exe' : 'bash';
 
 /** Kill a tmux session if it exists, ignoring errors (best-effort cleanup). */
 async function killSession(sessionId: string): Promise<void> {
-  await execAsync(`tmux kill-session -t ${sessionId}`).catch(() => {});
+  await new TmuxSessionHandler().closeSession(sessionId).catch(() => {});
 }
 
 /** Return true if a tmux session with the given name is alive. */
 async function sessionAlive(sessionId: string): Promise<boolean> {
-  try {
-    await execAsync(`tmux has-session -t ${sessionId}`);
-    return true;
-  } catch {
-    return false;
-  }
+  return new TmuxSessionHandler().hasSession(sessionId);
 }
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
@@ -81,11 +76,9 @@ describe('MCP tools integration', () => {
       // the requested dimensions to match the controlling terminal's size.
       // We therefore only assert that tmux returned parseable positive integers,
       // not that they exactly match the requested values.
-      const { stdout } = await execAsync(`tmux display-message -p -t ${sessionId} '#{window_width}x#{window_height}'`);
-      const cleaned = stdout.trim().replace(/['"]/g, '');
-      const [w, h] = cleaned.split('x').map(Number);
-      expect(w).toBeGreaterThan(0);
-      expect(h).toBeGreaterThan(0);
+      const dimensions = await backend.getDimensions(sessionId);
+      expect(dimensions.cols).toBeGreaterThan(0);
+      expect(dimensions.rows).toBeGreaterThan(0);
     });
   });
 
@@ -229,8 +222,8 @@ describe('MCP tools integration', () => {
       const txtPath = path.join(outDir, `snapshot_${randomUUID().slice(0, 8)}.txt`);
       createdFiles.push(txtPath);
 
-      const { stdout } = await promisify(exec)(`tmux capture-pane -p -t ${sessionId}`);
-      await fs.writeFile(txtPath, stdout);
+      const plaintext = await backend.getScreenPlaintext(sessionId);
+      await fs.writeFile(txtPath, plaintext);
 
       const content = await fs.readFile(txtPath, 'utf8');
       expect(content.length).toBeGreaterThan(0);
@@ -248,10 +241,10 @@ describe('MCP tools integration', () => {
       await backend.waitForText(sessionId, '----------------', 5000);
       await new Promise((r) => setTimeout(r, 500));
 
-      const { stdout: sizeOut } = await promisify(exec)(`tmux display-message -p -t ${sessionId} '#{window_width}'`);
-      console.log('WINDOW WIDTH FROM TMUX:', sizeOut.trim());
+      const { cols: sizeOut } = await backend.getDimensions(sessionId);
+      console.log('WINDOW WIDTH FROM TMUX:', sizeOut);
 
-      const { stdout } = await promisify(exec)(`tmux capture-pane -J -p -t ${sessionId}`);
+      const stdout = await backend.getScreenPlaintext(sessionId, 0, true);
       const lines = stdout.split('\n');
 
       // Find the line that actually contains the dashes
@@ -272,8 +265,8 @@ describe('MCP tools integration', () => {
       const txtPath = path.join(outDir, `snapshot_${randomUUID().slice(0, 8)}.txt`);
       createdFiles.push(txtPath);
 
-      const { stdout } = await promisify(exec)(`tmux capture-pane -p -t ${sessionId}`);
-      await fs.writeFile(txtPath, stdout);
+      const plaintext = await backend.getScreenPlaintext(sessionId);
+      await fs.writeFile(txtPath, plaintext);
 
       const stat = await fs.stat(txtPath);
       expect(stat.size).toBeGreaterThan(0);
