@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-assets.js",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "test": "vitest run"
   },
@@ -20,11 +20,9 @@
     "playwright": "^1.50.1"
   },
   "devDependencies": {
+    "@mcp-tuikit/core": "workspace:*",
     "@types/node": "^22.13.5",
     "typescript": "^5.7.3",
     "vitest": "^4.1.4"
-  },
-  "optionalDependencies": {
-    "@mcp-tuikit/native-linux": "workspace:*"
   }
 }

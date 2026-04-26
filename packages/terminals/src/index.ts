@@ -5,5 +5,8 @@ export * from './backends/MacTerminalAppBackend.js';
 export * from './backends/AlacrittyBackend.js';
 export * from './backends/GhosttyBackend.js';
 export * from './backends/WezTermBackend.js';
+export * from './backends/WindowsTerminalBackend.js';
+export * from './backends/PowershellBackend.js';
+export * from './backends/CmdBackend.js';
 export * from './config.js';
 export * from './snapshotters/index.js';

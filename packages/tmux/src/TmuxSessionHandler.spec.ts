@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Module-level stubs
 const mockExecImpl = vi.fn();
+const mockExecFileImpl = vi.fn();
 
 // We need execAsync (promisify(exec)) to resolve {stdout, stderr}.
 // Standard promisify only captures the first extra arg, not an object.
@@ -21,6 +22,15 @@ vi.mock('node:util', async (importOriginal) => {
             });
           });
       }
+      if (fn === mockExecFileImpl || (fn as { name?: string }).name === 'execFile') {
+        return (...args: unknown[]) =>
+          new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+            mockExecFileImpl(...args, (err: Error | null, stdout: string, stderr: string) => {
+              if (err) reject(err);
+              else resolve({ stdout, stderr });
+            });
+          });
+      }
       return original.promisify(fn as Parameters<typeof original.promisify>[0]);
     },
   };
@@ -31,6 +41,7 @@ vi.mock('node:child_process', async (importOriginal) => {
   return {
     ...actual,
     exec: (...args: unknown[]) => mockExecImpl(...args),
+    execFile: (...args: unknown[]) => mockExecFileImpl(...args),
   };
 });
 
@@ -48,6 +59,10 @@ describe('TmuxSessionHandler', () => {
       const cb = args[args.length - 1] as ExecCallback;
       cb(null, '', '');
     });
+    mockExecFileImpl.mockImplementation((...args: unknown[]) => {
+      const cb = args[args.length - 1] as ExecCallback;
+      cb(null, '', '');
+    });
     backend = new TmuxSessionHandler();
   });
 
@@ -62,12 +77,12 @@ describe('TmuxSessionHandler', () => {
     expect(sessionId).toMatch(/^mcp-[A-Za-z0-9_-]{8}$/);
   });
 
-  it('sendKeys calls exec with the right tmux CLI arguments', async () => {
+  it('sendKeys calls execFile with the right tmux CLI arguments', async () => {
     await backend.sendKeys('my-session', 'ls -la');
 
-    expect(mockExecImpl).toHaveBeenCalledTimes(1);
-    const cmdArg = mockExecImpl.mock.calls[0][0] as string;
-    expect(cmdArg).toBe('tmux send-keys -t my-session "ls -la"');
+    expect(mockExecFileImpl).toHaveBeenCalledTimes(1);
+    expect(mockExecFileImpl.mock.calls[0][0]).toBe('tmux');
+    expect(mockExecFileImpl.mock.calls[0][1]).toEqual(['send-keys', '-t', 'my-session', '-l', 'ls -la']);
   });
 
   it('getScreenPlaintext calls exec with the right tmux CLI arguments', async () => {

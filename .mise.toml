@@ -10,6 +10,7 @@ run = "pnpm install"
 [tasks.clean]
 description = "Remove all dist/ build artefacts across the monorepo"
 run = "find . -path ./node_modules -prune -o -name dist -type d -print | xargs rm -rf"
+run_windows = "powershell.exe -NoProfile -Command \"Get-ChildItem -Path . -Filter 'dist' -Recurse -Directory | Where-Object { $_.FullName -notmatch 'node_modules' } | Remove-Item -Recurse -Force\""
 
 [tasks.build]
 description = "Build the monorepo"

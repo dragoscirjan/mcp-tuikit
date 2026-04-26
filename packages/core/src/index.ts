@@ -2,6 +2,7 @@ export * from './SessionHandler.js';
 export * from './errors.js';
 export * from './utils.js';
 export * from './TerminalBackend.js';
+export * from './Terminal.js';
 export * from './SnapshotStrategy.js';
 export * from './spawn/AppSpawner.js';
 export * from './spawn/macos/MacOsNativeSpawner.js';
