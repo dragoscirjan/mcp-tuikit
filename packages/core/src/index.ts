@@ -9,3 +9,5 @@ export * from './spawn/macos/MacOsNativeSpawner.js';
 export * from './spawn/macos/MacOsOpenSpawner.js';
 export * from './spawn/SpawnerFactory.js';
 export * from './utils/linuxDisplay.js';
+export * from './terminal/ShellSpawnedBackend.js';
+export * from './terminal/OsascriptSpawnedBackend.js';

@@ -1,7 +1,7 @@
 import { SpawnOptions } from '@mcp-tuikit/core';
-import { BaseSpawnerBackend } from './BaseSpawnerBackend.js';
+import { ShellSpawnedBackend } from '@mcp-tuikit/core';
 
-export class KonsoleBackend extends BaseSpawnerBackend {
+export class KonsoleBackend extends ShellSpawnedBackend {
   protected async getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions> {
     const bin = process.env.KONSOLE_BIN ?? 'konsole';
 

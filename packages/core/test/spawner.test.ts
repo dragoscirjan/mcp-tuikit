@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { getTerminalTestSuite } from './helpers/canRunTerminal.js';
+import { hasBinary } from './helpers/hasBinary.js';
 import { SpawnOptions } from '../src/spawn/AppSpawner.js';
 import { SpawnerFactory } from '../src/spawn/SpawnerFactory.js';
 import { Terminal } from '../src/Terminal.js';
@@ -130,26 +131,92 @@ describe('Spawner Integration Tests', () => {
     const suite = getTerminalTestSuite(config.terminal, config.terminal);
 
     suite.d(suite.label, () => {
-      it(`should capture window ID for ${config.terminal}`, async () => {
-        const spawner = SpawnerFactory.create(config.strategy);
-        const result = await spawner.spawn(config.options);
-
-        expect(result).toBeDefined();
-
-        if (config.strategy === 'native') {
-          // eslint-disable-next-line vitest/no-conditional-expect
-          expect(result.pid).toBeDefined();
-          // eslint-disable-next-line vitest/no-conditional-expect
-          expect(result.pid).not.toBeNull();
+      async function runSpawnTest(expectedVirtualSessionType: 'xvfb' | 'sway' | 'kwin' | null) {
+        const originalEnv = { ...process.env };
+        if (expectedVirtualSessionType === null) {
+          process.env.TUIKIT_HEADLESS = '0';
+        } else {
+          process.env.TUIKIT_HEADLESS = '1';
         }
 
-        expect(result.windowId).toBeDefined();
-        expect(result.windowId).not.toBeNull();
+        let hasCommandSpy: ReturnType<typeof vi.spyOn> | undefined;
+        if (expectedVirtualSessionType) {
+          const { VirtualSessionManager } = await import('../src/spawn/linux/VirtualSessionManager.js');
 
-        if (result.pid) {
-          await spawner.kill(result.pid);
+          hasCommandSpy = vi
+            .spyOn(VirtualSessionManager as any, 'hasCommand')
+            .mockImplementation(async (cmd: string) => {
+              if (expectedVirtualSessionType === 'xvfb' && cmd === 'Xvfb') return true;
+              if (expectedVirtualSessionType === 'sway' && cmd === 'sway') return true;
+              if (expectedVirtualSessionType === 'kwin' && cmd === 'kwin_wayland') return true;
+              return false;
+            });
         }
+
+        try {
+          const spawner = SpawnerFactory.create(config.strategy);
+          const result = await spawner.spawn(config.options);
+
+          expect(result).toBeDefined();
+
+          if (config.strategy === 'native') {
+            expect(result.pid).toBeDefined();
+
+            expect(result.pid).not.toBeNull();
+          }
+
+          let shouldHaveWindowId = true;
+          const isLinuxHeadless = process.platform === 'linux' && process.env.TUIKIT_HEADLESS !== '0';
+          if (isLinuxHeadless) {
+            shouldHaveWindowId = false;
+          } else if (process.platform === 'linux') {
+            const { isX11DisplayServer } = await import('../src/utils/linuxDisplay.js');
+            const isX11 = await isX11DisplayServer();
+            if (!isX11) {
+              shouldHaveWindowId = false;
+            }
+          }
+
+          if (shouldHaveWindowId) {
+            expect(result.windowId).toBeDefined();
+
+            expect(result.windowId).not.toBeNull();
+          }
+
+          if (result.pid) {
+            await spawner.kill(result.pid);
+          }
+        } finally {
+          process.env = originalEnv;
+          if (hasCommandSpy) {
+            hasCommandSpy.mockRestore();
+          }
+        }
+      }
+
+      it(`should spawn natively (or display server default)`, async () => {
+        await runSpawnTest(null);
       });
+
+      if (process.platform === 'linux') {
+        const xvfbAvail = hasBinary('Xvfb');
+        const itXvfb = xvfbAvail ? it : it.skip;
+        itXvfb(`should spawn in Xvfb headless${xvfbAvail ? '' : ' [UNAVAILABLE: Xvfb missing]'}`, async () => {
+          await runSpawnTest('xvfb');
+        });
+
+        const swayAvail = hasBinary('sway');
+        const itSway = swayAvail ? it : it.skip;
+        itSway(`should spawn in sway headless${swayAvail ? '' : ' [UNAVAILABLE: sway missing]'}`, async () => {
+          await runSpawnTest('sway');
+        });
+
+        const kwinAvail = hasBinary('kwin_wayland');
+        const itKwin = kwinAvail ? it : it.skip;
+        itKwin(`should spawn in kwin headless${kwinAvail ? '' : ' [UNAVAILABLE: kwin missing]'}`, async () => {
+          await runSpawnTest('kwin');
+        });
+      }
     });
   }
 });

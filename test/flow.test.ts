@@ -23,25 +23,64 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { beforeAll } from 'vitest';
-import { defineFlowSuite } from './helpers/flowSuite.js';
+import { defineFlowSuite, FlowSuiteOptions } from './helpers/flowSuite.js';
 import { canRunTerminal } from './packages/core/test/helpers/canRunTerminal';
+import { hasBinary } from './packages/core/test/helpers/hasBinary';
 
 const SNAPSHOTS = path.resolve(import.meta.dirname, '..', 'snapshots');
 
 beforeAll(async () => {
-  await fs.rm(SNAPSHOTS, { recursive: true, force: true });
+  await fs.rm(SNAPSHOTS, { recursive: true, force: true }).catch(() => {});
 }, 900_000);
 
 // ── Suites ────────────────────────────────────────────────────────────────────
 
-defineFlowSuite({
+function defineTerminalFlowSuites(opts: Omit<FlowSuiteOptions, 'headless' | 'displayServer'>) {
+  const { terminal, label } = opts;
+  const baseRun = opts.run || canRunTerminal(terminal);
+
+  if (terminal === 'xterm.js') {
+    defineFlowSuite({ ...opts, run: baseRun, headless: false });
+    defineFlowSuite({ ...opts, run: baseRun, headless: true });
+    return;
+  }
+
+  // 1. Headed run (default)
+  defineFlowSuite({ ...opts, run: baseRun, headless: false });
+
+  // 2. Headless run variants (Linux only)
+  if (process.platform === 'linux') {
+    defineFlowSuite({
+      ...opts,
+      run: baseRun === 'only' ? 'only' : hasBinary('Xvfb') ? baseRun : 'missing-binary',
+      headless: true,
+      displayServer: 'xvfb',
+    });
+
+    defineFlowSuite({
+      ...opts,
+      run: baseRun === 'only' ? 'only' : hasBinary('sway') ? baseRun : 'missing-binary',
+      headless: true,
+      displayServer: 'sway',
+    });
+
+    defineFlowSuite({
+      ...opts,
+      run: baseRun === 'only' ? 'only' : hasBinary('kwin_wayland') ? baseRun : 'missing-binary',
+      headless: true,
+      displayServer: 'kwin',
+    });
+  }
+}
+
+defineTerminalFlowSuites({
   label: 'run_flow integration (xterm.js + nvim)',
   terminal: 'xterm.js',
   yamlName: 'nvim_lazy_log.yaml',
   run: canRunTerminal('xterm.js'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (xterm.js + btop)',
   terminal: 'xterm.js',
   cols: 80,
@@ -51,14 +90,14 @@ defineFlowSuite({
   run: canRunTerminal('xterm.js'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (iTerm2 + nvim)',
   terminal: 'iterm2',
   yamlName: 'nvim_lazy_log.yaml',
   run: canRunTerminal('iterm2'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (iTerm2 + btop)',
   terminal: 'iterm2',
   txtMatchers: [/(CPU|Mem|Total)/i],
@@ -66,14 +105,14 @@ defineFlowSuite({
   run: canRunTerminal('iterm2'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Terminal + nvim)',
   terminal: 'macos-terminal',
   yamlName: 'nvim_lazy_log.yaml',
   run: canRunTerminal('macos-terminal'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Terminal + btop)',
   terminal: 'macos-terminal',
   txtMatchers: [/(CPU|Mem|Total)/i],
@@ -81,14 +120,14 @@ defineFlowSuite({
   run: canRunTerminal('macos-terminal'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Alacritty + nvim)',
   terminal: 'alacritty',
   yamlName: 'nvim_lazy_log.yaml',
   run: canRunTerminal('alacritty'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Alacritty + btop)',
   terminal: 'alacritty',
   txtMatchers: [/(CPU|Mem|Total)/i],
@@ -96,14 +135,14 @@ defineFlowSuite({
   run: canRunTerminal('alacritty'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (WezTerm + nvim)',
   terminal: 'wezterm',
   yamlName: 'nvim_lazy_log.yaml',
   run: canRunTerminal('wezterm'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (WezTerm + btop)',
   terminal: 'wezterm',
   cols: 120,
@@ -113,14 +152,14 @@ defineFlowSuite({
   run: canRunTerminal('wezterm'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Ghostty + nvim)',
   terminal: 'ghostty',
   yamlName: 'nvim_lazy_log.yaml',
   run: canRunTerminal('ghostty'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Ghostty + btop)',
   terminal: 'ghostty',
   txtMatchers: [/(CPU|Mem|Total)/i],
@@ -128,14 +167,14 @@ defineFlowSuite({
   run: canRunTerminal('ghostty'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Kitty + nvim)',
   terminal: 'kitty',
   yamlName: 'nvim_lazy_log.yaml',
   run: canRunTerminal('kitty'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Kitty + btop)',
   terminal: 'kitty',
   cols: 120,
@@ -145,14 +184,14 @@ defineFlowSuite({
   run: canRunTerminal('kitty'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Konsole + nvim)',
   terminal: 'konsole',
   yamlName: 'nvim_lazy_log.yaml',
   run: canRunTerminal('konsole'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Konsole + btop)',
   terminal: 'konsole',
   cols: 120,
@@ -162,14 +201,14 @@ defineFlowSuite({
   run: canRunTerminal('konsole'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (GNOME Terminal + nvim)',
   terminal: 'gnome-terminal',
   yamlName: 'nvim_lazy_log.yaml',
   run: canRunTerminal('gnome-terminal'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (GNOME Terminal + btop)',
   terminal: 'gnome-terminal',
   cols: 120,
@@ -179,14 +218,14 @@ defineFlowSuite({
   run: canRunTerminal('gnome-terminal'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Windows Terminal + nvim)',
   terminal: 'windows-terminal',
   yamlName: 'nvim_lazy_log.yaml',
   run: canRunTerminal('windows-terminal'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (Windows Terminal + btop)',
   terminal: 'windows-terminal',
   cols: 120,
@@ -196,14 +235,14 @@ defineFlowSuite({
   run: canRunTerminal('windows-terminal'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (PowerShell + nvim)',
   terminal: 'powershell',
   yamlName: 'nvim_lazy_log.yaml',
   run: canRunTerminal('powershell'),
 });
 
-defineFlowSuite({
+defineTerminalFlowSuites({
   label: 'run_flow integration (PowerShell + btop)',
   terminal: 'powershell',
   cols: 120,
@@ -212,20 +251,3 @@ defineFlowSuite({
   yamlName: 'btop.yaml',
   run: canRunTerminal('powershell'),
 });
-
-// defineFlowSuite({
-//   label: 'run_flow integration (CMD + nvim)',
-//   terminal: 'cmd',
-//   yamlName: 'nvim_lazy_log.yaml',
-//   run: canRunTerminal('cmd'),
-// });
-//
-// defineFlowSuite({
-//   label: 'run_flow integration (CMD + btop)',
-//   terminal: 'cmd',
-//   cols: 120,
-//   rows: 40,
-//   txtMatchers: [/(CPU|Mem|Total)/i],
-//   yamlName: 'btop.yaml',
-//   run: canRunTerminal('cmd'),
-// });

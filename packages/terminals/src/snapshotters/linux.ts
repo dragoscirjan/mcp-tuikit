@@ -42,13 +42,34 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
   ): Promise<void> {
     const isX11 = await isX11DisplayServer();
     const windowId = (spawnResult as { windowId?: string })?.windowId;
+    const virtualSession = (spawnResult as { virtualSession?: { type: string; display: string } })?.virtualSession;
     const de = getDesktopEnvironment();
 
     try {
+      if (virtualSession) {
+        // Headless Mode: Capture from the isolated virtual session
+        if (virtualSession.type === 'xvfb') {
+          // Xvfb runs pure X11, so we use import on the root window
+          await execa('import', ['-window', 'root', outputPath], {
+            env: { ...process.env, DISPLAY: virtualSession.display },
+          });
+          return;
+        } else if (virtualSession.type === 'sway') {
+          // sway runs pure Wayland, so we use grim
+          await execa('grim', [outputPath], {
+            env: { ...process.env, WAYLAND_DISPLAY: virtualSession.display },
+          });
+          await waitForFile(outputPath);
+          return;
+        }
+        throw new Error(`Unsupported virtual session type: ${virtualSession.type}`);
+      }
+
+      // Headed Mode: Use host desktop logic
       await this.captureActiveWindow(outputPath, de, isX11, windowId);
     } catch (error) {
       throw new Error(
-        `Linux native snapshot failed for DE=${de} (X11=${isX11}): ${error instanceof Error ? error.message : String(error)}`,
+        `Linux native snapshot failed for DE=${de} (X11=${isX11}, virtualSession=${virtualSession?.type || 'none'}): ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

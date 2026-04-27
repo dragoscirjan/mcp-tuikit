@@ -4,8 +4,9 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { SessionHandler, TimeoutError, TmuxExecutionError } from '@mcp-tuikit/core';
+import { SessionHandler, TimeoutError } from '@mcp-tuikit/core';
 import { nanoid } from 'nanoid';
+import { TmuxExecutionError } from './errors.js';
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
@@ -17,22 +18,38 @@ interface PipeSession {
 
 export class TmuxSessionHandler implements SessionHandler {
   private activePipes: Map<string, PipeSession> = new Map();
+  protected tmuxBinary: string = process.env.TUIKIT_TMUX_BINARY || 'tmux';
 
   async createSession(cmd: string, cols: number, rows: number): Promise<string> {
     const sessionId = `mcp-${nanoid(8)}`;
-    const tmuxCmd = `tmux new-session -d -s ${sessionId} -x ${cols} -y ${rows} "${cmd}"`;
+    // Hide status bar to prevent stealing 1 row, ensuring btop/etc get full terminal size
+    const tmuxCmd = `${this.tmuxBinary} new-session -d -s ${sessionId} -x ${cols} -y ${rows} "${cmd}" \\; set-option -g status off`;
     try {
       await execAsync(tmuxCmd);
     } catch (err) {
-      if (err instanceof Error && err.message.includes("'tmux' is not recognized")) {
+      const errorMsg = (err as Error).message;
+      if (
+        errorMsg.includes(`'${this.tmuxBinary}' is not recognized`) ||
+        errorMsg.includes('command not found') ||
+        errorMsg.includes('ENOENT')
+      ) {
         throw new TmuxExecutionError(
           `tmux is not installed or not in PATH. On Windows, you can install it via: winget install arndawg.tmux-windows`,
         );
       }
-      throw new TmuxExecutionError(`Failed to create session: ${(err as Error).message}`);
+      throw new TmuxExecutionError(`Failed to create session: ${errorMsg}`);
     }
 
     return sessionId;
+  }
+
+  async hasSession(sessionId: string): Promise<boolean> {
+    try {
+      await execAsync(`${this.tmuxBinary} has-session -t ${sessionId}`);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async closeSession(sessionId: string): Promise<void> {
@@ -41,11 +58,11 @@ export class TmuxSessionHandler implements SessionHandler {
       pipe.stream.destroy();
       this.activePipes.delete(sessionId);
       // Stop pipe-pane and clean up the fifo
-      await execAsync(`tmux pipe-pane -t ${sessionId}`).catch(() => {});
+      await execAsync(`${this.tmuxBinary} pipe-pane -t ${sessionId}`).catch(() => {});
       await fs.rm(pipe.pipePath).catch(() => {});
     }
     try {
-      await execAsync(`tmux kill-session -t ${sessionId}`);
+      await execAsync(`${this.tmuxBinary} kill-session -t ${sessionId}`);
     } catch (err) {
       throw new TmuxExecutionError(`Failed to close session: ${(err as Error).message}`);
     }
@@ -64,12 +81,12 @@ export class TmuxSessionHandler implements SessionHandler {
           // -l sends the text literally.
           // We invoke execFile separately for literal text and key-names (like Enter)
           // because tmux send-keys -l treats ALL subsequent arguments as literal text!
-          await execFileAsync('tmux', ['send-keys', '-t', sessionId, '-l', textPart]);
+          await execFileAsync(this.tmuxBinary, ['send-keys', '-t', sessionId, '-l', textPart]);
         }
 
         // For every newline that was in the original string, send an explicit tmux 'Enter' command
         if (i < parts.length - 1) {
-          await execFileAsync('tmux', ['send-keys', '-t', sessionId, 'Enter']);
+          await execFileAsync(this.tmuxBinary, ['send-keys', '-t', sessionId, 'Enter']);
         }
       }
 
@@ -79,9 +96,14 @@ export class TmuxSessionHandler implements SessionHandler {
     }
   }
 
-  async getScreenPlaintext(sessionId: string, maxLines: number): Promise<string> {
+  async getScreenPlaintext(
+    sessionId: string,
+    maxLines: number = 0,
+    joinWrappedLines: boolean = false,
+  ): Promise<string> {
     try {
-      const { stdout } = await execAsync(`tmux capture-pane -p -t ${sessionId}`);
+      const flags = joinWrappedLines ? '-J -p' : '-p';
+      const { stdout } = await execAsync(`${this.tmuxBinary} capture-pane ${flags} -t ${sessionId}`);
       const lines = stdout.split('\n');
 
       // Remove trailing empty lines that tmux sometimes outputs
@@ -98,6 +120,27 @@ export class TmuxSessionHandler implements SessionHandler {
     }
   }
 
+  async getScreenAnsi(sessionId: string): Promise<string> {
+    try {
+      const { stdout } = await execAsync(`${this.tmuxBinary} capture-pane -p -e -t ${sessionId}`);
+      return stdout;
+    } catch (err) {
+      throw new TmuxExecutionError(`Failed to get screen ANSI: ${(err as Error).message}`);
+    }
+  }
+
+  async getDimensions(sessionId: string): Promise<{ cols: number; rows: number }> {
+    try {
+      const { stdout } = await execAsync(
+        `${this.tmuxBinary} display-message -p -t ${sessionId} '#{window_width}x#{window_height}'`,
+      );
+      const [cols, rows] = stdout.trim().split('x').map(Number);
+      return { cols, rows };
+    } catch (err) {
+      throw new TmuxExecutionError(`Failed to get dimensions: ${(err as Error).message}`);
+    }
+  }
+
   async getScreenJson(sessionId: string): Promise<object> {
     const text = await this.getScreenPlaintext(sessionId, 0);
     return {
@@ -109,7 +152,7 @@ export class TmuxSessionHandler implements SessionHandler {
 
   async getSessionState(sessionId: string): Promise<string> {
     try {
-      const { stdout } = await execAsync(`tmux display-message -p -t ${sessionId} '#{session_id}'`);
+      const { stdout } = await execAsync(`${this.tmuxBinary} display-message -p -t ${sessionId} '#{session_id}'`);
       const cleaned = stdout.trim().replace(/^['"]|['"]$/g, '');
       return cleaned;
     } catch {
@@ -153,7 +196,7 @@ export class TmuxSessionHandler implements SessionHandler {
     (async () => {
       try {
         await execAsync(`mkfifo ${pipePath}`);
-        await execAsync(`tmux pipe-pane -t ${sessionId} "cat >> ${pipePath}"`);
+        await execAsync(`${this.tmuxBinary} pipe-pane -t ${sessionId} "cat >> ${pipePath}"`);
 
         const readStream = createReadStream(pipePath, { encoding: 'utf8' });
         this.activePipes.set(sessionId, { pipePath, stream: readStream });
@@ -173,7 +216,7 @@ export class TmuxSessionHandler implements SessionHandler {
         if (pipe) {
           pipe.stream.destroy();
           this.activePipes.delete(sessionId);
-          execAsync(`tmux pipe-pane -t ${sessionId}`).catch(() => {});
+          execAsync(`${this.tmuxBinary} pipe-pane -t ${sessionId}`).catch(() => {});
           fs.rm(pipe.pipePath).catch(() => {});
         }
       },

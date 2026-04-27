@@ -17,5 +17,8 @@ pnpm-lock.yaml
 *.png
 *.jpg
 *.jpeg
+*.ps1
+*.sh
+*.swift
 assets/
 .env.*

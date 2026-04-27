@@ -1,7 +1,7 @@
 import { SpawnOptions } from '@mcp-tuikit/core';
-import { BaseSpawnerBackend } from './BaseSpawnerBackend.js';
+import { ShellSpawnedBackend } from '@mcp-tuikit/core';
 
-export class KittyBackend extends BaseSpawnerBackend {
+export class KittyBackend extends ShellSpawnedBackend {
   protected async getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions> {
     const isMac = process.platform === 'darwin';
     const bin = process.env.KITTY_BIN ?? (isMac ? '/Applications/kitty.app/Contents/MacOS/kitty' : 'kitty');

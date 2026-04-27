@@ -17,6 +17,17 @@ vi.mock('execa', () => ({
   }),
 }));
 
+vi.mock('./VirtualSessionManager.js', () => ({
+  VirtualSessionManager: {
+    createSession: vi.fn().mockResolvedValue({
+      type: 'xvfb',
+      display: ':99',
+      envOverrides: { DISPLAY: ':99' },
+      kill: vi.fn(),
+    }),
+  },
+}));
+
 const d = process.platform != 'linux' ? describe.skip : describe;
 
 d('LinuxNativeSpawner', () => {
@@ -31,6 +42,11 @@ d('LinuxNativeSpawner', () => {
     process.env.DISPLAY = ':0';
     delete process.env.WAYLAND_DISPLAY;
     delete process.env.XDG_SESSION_TYPE;
+
+    // TUIKIT_HEADLESS is by default '1' on linux, but it branches on '0'.
+    // We should test it in non-headless mode to avoid xvfb branch,
+    // or test xvfb branch specifically. Let's test non-headless to trigger getX11WindowId.
+    process.env.TUIKIT_HEADLESS = '0';
 
     const result = await spawner.spawn({
       executable: 'alacritty',

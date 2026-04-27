@@ -1,5 +1,6 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
+import { TerminalBackend, IdType, SessionHandler, SnapshotStrategy } from '../index.js';
 
 const execAsync = promisify(exec);
 
@@ -68,4 +69,54 @@ export async function spawnAppleScriptTerminal(
   await new Promise((r) => setTimeout(r, startupDelayMs));
 
   return windowId;
+}
+
+export abstract class OsascriptSpawnedBackend extends TerminalBackend {
+  /**
+   * The name of the macOS application to target via AppleScript (e.g., "iTerm", "Terminal").
+   */
+  protected abstract get appName(): string;
+
+  /**
+   * The AppleScript command required to focus the newly spawned window.
+   */
+  protected abstract get generateFocusCmd(): string;
+
+  constructor(sessionHandler: SessionHandler, snapshotStrategy: SnapshotStrategy) {
+    super(sessionHandler, snapshotStrategy);
+  }
+
+  /**
+   * Generates the AppleScript command to create a new window/tab running the given tmux command.
+   * @param tmuxCmd The tmux attach command to run in the new window.
+   */
+  protected abstract generateSpawnCmd(tmuxCmd: string): string;
+
+  /**
+   * Generates the AppleScript command to close a specific window by its ID.
+   * @param windowId The ID of the window to close.
+   */
+  protected abstract generateCloseCmd(windowId: IdType): string;
+
+  async spawn(): Promise<void> {
+    /* jscpd:ignore-end */
+    const [pixelWidth, pixelHeight] = this.sizeInPixels(this.cols, this.rows);
+
+    this._windowId = await spawnAppleScriptTerminal(
+      this._sessionName,
+      pixelWidth,
+      pixelHeight,
+      this.appName,
+      (tmuxCmd) => this.generateSpawnCmd(tmuxCmd),
+      this.generateFocusCmd,
+    );
+
+    this._spawnResult = { windowHandle: this._windowId };
+  }
+
+  async close(): Promise<void> {
+    if (this._windowId) {
+      await runAppleScriptClose(this.appName, this.generateCloseCmd(this._windowId));
+    }
+  }
 }

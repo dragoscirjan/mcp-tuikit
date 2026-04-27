@@ -73,7 +73,9 @@ describe('TmuxSessionHandler', () => {
 
     const cmdArg = mockExecImpl.mock.calls[0][0] as string;
     // Session ID uses nanoid(8): URL-safe chars [A-Za-z0-9_-]
-    expect(cmdArg).toMatch(/^tmux new-session -d -s mcp-[A-Za-z0-9_-]{8} -x 80 -y 24 "bash"$/);
+    expect(cmdArg).toMatch(
+      /^tmux new-session -d -s mcp-[A-Za-z0-9_-]{8} -x 80 -y 24 "bash" \\; set-option -g status off$/,
+    );
     expect(sessionId).toMatch(/^mcp-[A-Za-z0-9_-]{8}$/);
   });
 
@@ -97,6 +99,63 @@ describe('TmuxSessionHandler', () => {
     const cmdArg = mockExecImpl.mock.calls[0][0] as string;
     expect(cmdArg).toBe('tmux capture-pane -p -t my-session');
     expect(output).toBe('line 1\nline 2');
+  });
+
+  it('getScreenPlaintext with joinWrappedLines adds -J flag', async () => {
+    mockExecImpl.mockImplementation((...args: unknown[]) => {
+      const cb = args[args.length - 1] as ExecCallback;
+      cb(null, 'line 1', '');
+    });
+
+    await backend.getScreenPlaintext('my-session', 0, true);
+
+    expect(mockExecImpl).toHaveBeenCalledTimes(1);
+    const cmdArg = mockExecImpl.mock.calls[0][0] as string;
+    expect(cmdArg).toBe('tmux capture-pane -J -p -t my-session');
+  });
+
+  it('getScreenAnsi calls exec with the right tmux CLI arguments', async () => {
+    mockExecImpl.mockImplementation((...args: unknown[]) => {
+      const cb = args[args.length - 1] as ExecCallback;
+      cb(null, 'ansi \x1b[31mred\x1b[0m', '');
+    });
+
+    const output = await backend.getScreenAnsi('my-session');
+
+    expect(mockExecImpl).toHaveBeenCalledTimes(1);
+    const cmdArg = mockExecImpl.mock.calls[0][0] as string;
+    expect(cmdArg).toBe('tmux capture-pane -p -e -t my-session');
+    expect(output).toBe('ansi \x1b[31mred\x1b[0m');
+  });
+
+  it('hasSession returns true if tmux returns 0, false otherwise', async () => {
+    mockExecImpl.mockImplementationOnce((...args: unknown[]) => {
+      const cb = args[args.length - 1] as ExecCallback;
+      cb(null, '', '');
+    });
+
+    expect(await backend.hasSession('alive-session')).toBe(true);
+
+    mockExecImpl.mockImplementationOnce((...args: unknown[]) => {
+      const cb = args[args.length - 1] as ExecCallback;
+      cb(new Error('session not found'), '', '');
+    });
+
+    expect(await backend.hasSession('dead-session')).toBe(false);
+  });
+
+  it('getDimensions parses tmux window size correctly', async () => {
+    mockExecImpl.mockImplementation((...args: unknown[]) => {
+      const cb = args[args.length - 1] as ExecCallback;
+      cb(null, '80x24\n', '');
+    });
+
+    const dimensions = await backend.getDimensions('my-session');
+
+    expect(mockExecImpl).toHaveBeenCalledTimes(1);
+    const cmdArg = mockExecImpl.mock.calls[0][0] as string;
+    expect(cmdArg).toBe("tmux display-message -p -t my-session '#{window_width}x#{window_height}'");
+    expect(dimensions).toEqual({ cols: 80, rows: 24 });
   });
 
   it('getScreenPlaintext with maxLines trims the output', async () => {

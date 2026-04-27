@@ -63,3 +63,4 @@ src/build/
 
 # snapshots
 snapshots/
+.gitnexus
