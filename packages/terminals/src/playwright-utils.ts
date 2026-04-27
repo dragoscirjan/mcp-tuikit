@@ -1,12 +1,10 @@
-import { exec } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { promisify } from 'node:util';
+import { execaCommand } from 'execa';
 import { chromium, LaunchOptions } from 'playwright';
 
 const require = createRequire(import.meta.url);
-const execAsync = promisify(exec);
 
 export async function getPlaywrightLaunchOptions(headless: boolean): Promise<LaunchOptions> {
   const launchOptions: LaunchOptions = { headless };
@@ -15,7 +13,7 @@ export async function getPlaywrightLaunchOptions(headless: boolean): Promise<Lau
     launchOptions.executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
   } else if (process.platform === 'linux') {
     try {
-      const { stdout } = await execAsync('which chromium || which google-chrome || which chrome');
+      const { stdout } = await execaCommand('which chromium || which google-chrome || which chrome', { shell: true });
       if (stdout.trim()) {
         launchOptions.executablePath = stdout.trim();
       }

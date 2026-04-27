@@ -1,5 +1,5 @@
 import fs from 'node:fs/promises';
-import { SessionHandler } from './SessionHandler.js';
+import { SessionHandler } from '@mcp-tuikit/core';
 import { SnapshotStrategy } from './SnapshotStrategy.js';
 
 export type IdType = string | null;

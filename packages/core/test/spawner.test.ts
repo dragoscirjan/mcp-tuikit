@@ -200,20 +200,17 @@ describe('Spawner Integration Tests', () => {
 
       if (process.platform === 'linux') {
         const xvfbAvail = hasBinary('Xvfb');
-        const itXvfb = xvfbAvail ? it : it.skip;
-        itXvfb(`should spawn in Xvfb headless${xvfbAvail ? '' : ' [UNAVAILABLE: Xvfb missing]'}`, async () => {
+        it.runIf(xvfbAvail)(`should spawn in Xvfb headless${xvfbAvail ? '' : ' [UNAVAILABLE: Xvfb missing]'}`, async () => {
           await runSpawnTest('xvfb');
         });
 
         const swayAvail = hasBinary('sway');
-        const itSway = swayAvail ? it : it.skip;
-        itSway(`should spawn in sway headless${swayAvail ? '' : ' [UNAVAILABLE: sway missing]'}`, async () => {
+        it.runIf(swayAvail)(`should spawn in sway headless${swayAvail ? '' : ' [UNAVAILABLE: sway missing]'}`, async () => {
           await runSpawnTest('sway');
         });
 
         const kwinAvail = hasBinary('kwin_wayland');
-        const itKwin = kwinAvail ? it : it.skip;
-        itKwin(`should spawn in kwin headless${kwinAvail ? '' : ' [UNAVAILABLE: kwin missing]'}`, async () => {
+        it.runIf(kwinAvail)(`should spawn in kwin headless${kwinAvail ? '' : ' [UNAVAILABLE: kwin missing]'}`, async () => {
           await runSpawnTest('kwin');
         });
       }

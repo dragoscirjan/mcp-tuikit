@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
-import { SnapshotStrategy, isX11DisplayServer } from '@mcp-tuikit/core';
+import { isX11DisplayServer } from '@mcp-tuikit/core';
+import { SnapshotStrategy } from '../SnapshotStrategy.js';
 import dbus from 'dbus-next';
 import { execa } from 'execa';
 

@@ -1,8 +1,7 @@
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
-import { TerminalBackend, IdType, SessionHandler, SnapshotStrategy } from '../index.js';
-
-const execAsync = promisify(exec);
+import { execa } from 'execa';
+import { SessionHandler } from '@mcp-tuikit/core';
+import { TerminalBackend, IdType } from './TerminalBackend.js';
+import { SnapshotStrategy } from './SnapshotStrategy.js';
 
 export async function runAppleScriptSpawn(
   appName: string,
@@ -37,13 +36,13 @@ export async function runAppleScriptSpawn(
     `end tell`,
   ].join('\n');
 
-  const { stdout } = await execAsync(`osascript -e '${script.replace(/'/g, "'\\''")}'`);
+  const { stdout } = await execa('osascript', ['-e', script]);
   return stdout.trim();
 }
 
 export async function runAppleScriptClose(appName: string, closeCmd: string): Promise<void> {
   const script = [`tell application "${appName}"`, `  ${closeCmd}`, `end tell`].join('\n');
-  await execAsync(`osascript -e '${script.replace(/'/g, "'\\''")}'`).catch(() => {});
+  await execa('osascript', ['-e', script]).catch(() => {});
 }
 
 export async function spawnAppleScriptTerminal(
@@ -56,8 +55,8 @@ export async function spawnAppleScriptTerminal(
 ): Promise<string | null> {
   if (!sessionName) throw new Error(`Cannot spawn ${appName} without an active session ID`);
 
-  const { stdout: tmuxBin } = await execAsync('which tmux');
-  const tmuxAbsPath = tmuxBin.trim();
+  const { stdout: tmuxBin } = await execa('which', ['tmux']);
+  const tmuxAbsPath = tmuxBin;
 
   const tmuxCmd = `${tmuxAbsPath} attach -t ${sessionName}`;
 

@@ -1,5 +1,5 @@
 import { SpawnOptions } from '@mcp-tuikit/core';
-import { ShellSpawnedBackend } from '@mcp-tuikit/core';
+import { ShellSpawnedBackend } from '../ShellSpawnedBackend.js';
 
 export class GhosttyBackend extends ShellSpawnedBackend {
   protected async getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions> {

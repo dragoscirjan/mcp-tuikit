@@ -1,4 +1,4 @@
-import { Terminal } from '@mcp-tuikit/core';
+import { Terminal } from './Terminal.js';
 
 /**
  * Returns the terminal backend to use.

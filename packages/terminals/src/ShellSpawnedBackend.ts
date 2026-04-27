@@ -1,8 +1,7 @@
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
-import { TerminalBackend, SessionHandler, SnapshotStrategy, AppSpawner, SpawnOptions } from '../index.js';
-
-const execAsync = promisify(exec);
+import { execa } from 'execa';
+import { SessionHandler, AppSpawner, SpawnOptions } from '@mcp-tuikit/core';
+import { TerminalBackend } from './TerminalBackend.js';
+import { SnapshotStrategy } from './SnapshotStrategy.js';
 
 export abstract class ShellSpawnedBackend extends TerminalBackend {
   constructor(
@@ -27,8 +26,8 @@ export abstract class ShellSpawnedBackend extends TerminalBackend {
     const sessionName = this._sessionName;
     if (!sessionName) throw new Error('Cannot spawn backend without an active session ID');
 
-    const cmd = process.platform === 'win32' ? 'where.exe tmux' : 'which tmux';
-    const { stdout: tmuxBin } = await execAsync(cmd);
+    const cmd = process.platform === 'win32' ? 'where.exe' : 'which';
+    const { stdout: tmuxBin } = await execa(cmd, ['tmux']);
     const tmuxAbsPath = tmuxBin.split('\n')[0].trim();
 
     const spawnOptions = await this.getSpawnOptions(tmuxAbsPath, sessionName);

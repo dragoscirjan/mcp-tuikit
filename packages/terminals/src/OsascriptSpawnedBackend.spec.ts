@@ -1,33 +1,18 @@
-import { promisify } from 'node:util';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockExecImpl = vi.fn();
+const mockExecaImpl = vi.fn();
 
-function mockExecWithCustomPromisify(...args: unknown[]) {
-  return mockExecImpl(...args);
-}
-(mockExecWithCustomPromisify as unknown as Record<symbol, unknown>)[promisify.custom] = (cmd: string) => {
-  return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-    mockExecImpl(cmd, (err: Error | null, stdout: string, stderr: string) => {
-      if (err) reject(err);
-      else resolve({ stdout, stderr });
-    });
-  });
-};
-
-vi.mock('node:child_process', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('node:child_process')>();
+vi.mock('execa', () => {
   return {
-    ...actual,
-    exec: mockExecWithCustomPromisify,
-    execFile: vi.fn(),
+    execa: (...args: unknown[]) => mockExecaImpl(...args),
   };
 });
 
 // Import AFTER the mock is set up
 const { OsascriptSpawnedBackend, runAppleScriptSpawn, runAppleScriptClose, spawnAppleScriptTerminal } =
   await import('./OsascriptSpawnedBackend.js');
-const { SessionHandler, SnapshotStrategy } = await import('../index.js');
+const { SessionHandler } = await import('@mcp-tuikit/core');
+const { SnapshotStrategy } = await import('./SnapshotStrategy.js');
 type IdType = string;
 
 type ExecCallback = (error: Error | null, stdout: string, stderr: string) => void;
@@ -52,16 +37,15 @@ class DummyOsascriptBackend extends OsascriptSpawnedBackend {
 
 describe('OsascriptSpawnedBackend standalone functions', () => {
   beforeEach(() => {
-    mockExecImpl.mockReset();
-    mockExecImpl.mockImplementation((...args: unknown[]) => {
-      const cmd = args[0] as string;
-      const cb = args[args.length - 1] as ExecCallback;
-      if (cmd.includes('which tmux')) {
-        cb(null, '/usr/bin/tmux\n', '');
-      } else if (cmd.includes('osascript')) {
-        cb(null, 'win-123\n', '');
+    mockExecaImpl.mockReset();
+    mockExecaImpl.mockImplementation(async (bin: string, args: string[] = []) => {
+      const fullCmd = `${bin} ${args.join(' ')}`;
+      if (fullCmd.includes('which tmux')) {
+        return { stdout: '/usr/bin/tmux\n' };
+      } else if (fullCmd.includes('osascript')) {
+        return { stdout: 'win-123\n' };
       } else {
-        cb(null, 'mock-output\n', '');
+        return { stdout: 'mock-output\n' };
       }
     });
   });
@@ -69,19 +53,21 @@ describe('OsascriptSpawnedBackend standalone functions', () => {
   it('runAppleScriptSpawn executes osascript with formatted script', async () => {
     const winId = await runAppleScriptSpawn('TestApp', 'spawn-cmd', 800, 600, 'focus-cmd');
     expect(winId).toBe('win-123');
-    expect(mockExecImpl).toHaveBeenCalledWith(expect.stringContaining('osascript -e'), expect.any(Function));
-    const callCmd = mockExecImpl.mock.calls.find((c) => (c[0] as string).includes('osascript -e'))![0] as string;
-    expect(callCmd).toContain('TestApp');
-    expect(callCmd).toContain('spawn-cmd');
-    expect(callCmd).toContain('focus-cmd');
-    expect(callCmd).toContain('{0, 0, 800, 600}');
+    expect(mockExecaImpl).toHaveBeenCalledWith('osascript', ['-e', expect.any(String)]);
+    const callCmdArgs = mockExecaImpl.mock.calls.find((c) => c[0] === 'osascript')![1] as string[];
+    const scriptArg = callCmdArgs[1];
+    expect(scriptArg).toContain('TestApp');
+    expect(scriptArg).toContain('spawn-cmd');
+    expect(scriptArg).toContain('focus-cmd');
+    expect(scriptArg).toContain('{0, 0, 800, 600}');
   });
 
   it('runAppleScriptClose executes osascript with close cmd', async () => {
     await runAppleScriptClose('TestApp', 'close-cmd');
-    const callCmd = mockExecImpl.mock.calls.find((c) => (c[0] as string).includes('osascript -e'))![0] as string;
-    expect(callCmd).toContain('tell application "TestApp"');
-    expect(callCmd).toContain('close-cmd');
+    const callCmdArgs = mockExecaImpl.mock.calls.find((c) => c[0] === 'osascript')![1] as string[];
+    const scriptArg = callCmdArgs[1];
+    expect(scriptArg).toContain('tell application "TestApp"');
+    expect(scriptArg).toContain('close-cmd');
   });
 
   it('spawnAppleScriptTerminal throws if no session ID', async () => {
@@ -121,16 +107,15 @@ describe('OsascriptSpawnedBackend class', () => {
 
     backend = new DummyOsascriptBackend(sessionHandler, snapshotStrategy);
 
-    mockExecImpl.mockReset();
-    mockExecImpl.mockImplementation((...args: unknown[]) => {
-      const cmd = args[0] as string;
-      const cb = args[args.length - 1] as ExecCallback;
-      if (cmd.includes('which tmux')) {
-        cb(null, '/usr/bin/tmux\n', '');
-      } else if (cmd.includes('osascript')) {
-        cb(null, 'win-123\n', '');
+    mockExecaImpl.mockReset();
+    mockExecaImpl.mockImplementation(async (bin: string, args: string[] = []) => {
+      const fullCmd = `${bin} ${args.join(' ')}`;
+      if (fullCmd.includes('which tmux')) {
+        return { stdout: '/usr/bin/tmux\n' };
+      } else if (fullCmd.includes('osascript')) {
+        return { stdout: 'win-123\n' };
       } else {
-        cb(null, 'mock-output\n', '');
+        return { stdout: 'mock-output\n' };
       }
     });
   });
@@ -151,9 +136,6 @@ describe('OsascriptSpawnedBackend class', () => {
     (backend as unknown as Record<string, unknown>)._windowId = 'win-to-close';
 
     await backend.close();
-    expect(mockExecImpl).toHaveBeenCalledWith(
-      expect.stringContaining('close window win-to-close'),
-      expect.any(Function),
-    );
+    expect(mockExecaImpl).toHaveBeenCalledWith('osascript', ['-e', expect.stringContaining('close window win-to-close')]);
   });
 });

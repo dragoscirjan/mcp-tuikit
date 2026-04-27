@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { it, expect, vi, beforeEach } from 'vitest';
 import { LinuxNativeSpawner } from './LinuxNativeSpawner.js';
+import { describeLinux } from '@mcp-tuikit/test';
 
 vi.mock('node:child_process', () => ({
   spawn: vi.fn(() => ({
@@ -28,9 +29,7 @@ vi.mock('./VirtualSessionManager.js', () => ({
   },
 }));
 
-const d = process.platform != 'linux' ? describe.skip : describe;
-
-d('LinuxNativeSpawner', () => {
+describeLinux('LinuxNativeSpawner', () => {
   let spawner: LinuxNativeSpawner;
 
   beforeEach(() => {

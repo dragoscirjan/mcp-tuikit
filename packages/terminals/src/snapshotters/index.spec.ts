@@ -1,5 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { resolveSnapshotStrategy, PlaywrightSnapshotStrategy, MacOsSnapshotStrategy } from './index.js';
+import { resolveSnapshotStrategy } from './index.js';
+import { PlaywrightSnapshotStrategy } from './index.js';
+import { MacOsSnapshotStrategy } from './index.js';
 
 describe('resolveSnapshotStrategy', () => {
   const originalPlatform = process.platform;

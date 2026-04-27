@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import { describe, it, expect, afterEach } from 'vitest';
 import { VirtualSessionManager, VirtualSession } from '../src/spawn/linux/VirtualSessionManager.js';
+import { isLinux } from '@mcp-tuikit/test';
 
 function hasBinary(bin: string): boolean {
   try {
@@ -11,18 +12,14 @@ function hasBinary(bin: string): boolean {
   }
 }
 
-const isLinux = process.platform === 'linux';
-
-function getTestConfig(bin: string) {
-  if (!isLinux) return { it: it.skip, label: ' [SKIPPED: wrong OS]' };
-  const available = hasBinary(bin);
-  if (!available) return { it: it.skip, label: ' [UNAVAILABLE: binary missing]' };
-  return { it, label: '' };
+function getTestLabel(bin: string) {
+  if (!isLinux) return ' [SKIPPED: wrong OS]';
+  return hasBinary(bin) ? '' : ' [UNAVAILABLE: binary missing]';
 }
 
-const xvfbConfig = getTestConfig('Xvfb');
-const swayConfig = getTestConfig('sway');
-const kwinConfig = getTestConfig('kwin_wayland');
+const xvfbAvail = isLinux && hasBinary('Xvfb');
+const swayAvail = isLinux && hasBinary('sway');
+const kwinAvail = isLinux && hasBinary('kwin_wayland');
 
 describe('VirtualSessionManager Integration Tests', () => {
   let session: VirtualSession | null = null;
@@ -34,7 +31,7 @@ describe('VirtualSessionManager Integration Tests', () => {
     }
   });
 
-  xvfbConfig.it(`should spawn an Xvfb session and assign a random display${xvfbConfig.label}`, async () => {
+  it.runIf(xvfbAvail)(`should spawn an Xvfb session and assign a random display${getTestLabel('Xvfb')}`, async () => {
     session = await VirtualSessionManager.createSession();
 
     expect(session).toBeDefined();
@@ -47,7 +44,7 @@ describe('VirtualSessionManager Integration Tests', () => {
     expect(() => process.kill(session!.pid, 0)).not.toThrow();
   });
 
-  swayConfig.it(`should fallback to sway session if Xvfb is not found${swayConfig.label}`, async () => {
+  it.runIf(swayAvail)(`should fallback to sway session if Xvfb is not found${getTestLabel('sway')}`, async () => {
     // Mock hasCommand so VirtualSessionManager thinks Xvfb is missing and sway is present
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const originalHasCommand = (VirtualSessionManager as any).hasCommand;
@@ -72,7 +69,7 @@ describe('VirtualSessionManager Integration Tests', () => {
     }
   });
 
-  kwinConfig.it(`should fallback to kwin session if Xvfb and sway are not found${kwinConfig.label}`, async () => {
+  it.runIf(kwinAvail)(`should fallback to kwin session if Xvfb and sway are not found${getTestLabel('kwin_wayland')}`, async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const originalHasCommand = (VirtualSessionManager as any).hasCommand;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -3,7 +3,7 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { TerminalBackend } from '@mcp-tuikit/core';
+import { TerminalBackend } from '@mcp-tuikit/terminals';
 import { FlowRunner, Artifact, parseFlow, parseFlowFromString } from '@mcp-tuikit/flow-engine';
 import { BackendFactory, getBackendConfig } from '@mcp-tuikit/terminals';
 import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
