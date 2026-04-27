@@ -1,5 +1,5 @@
-import { SnapshotStrategy } from '@mcp-tuikit/core';
-import { Terminal } from '@mcp-tuikit/core';
+import { SnapshotStrategy } from '../SnapshotStrategy.js';
+import { Terminal } from '../Terminal.js';
 import { LinuxSnapshotStrategy } from './linux.js';
 import { MacOsSnapshotStrategy } from './macos.js';
 import { PlaywrightSnapshotStrategy } from './playwright.js';

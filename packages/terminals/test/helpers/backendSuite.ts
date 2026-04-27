@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TerminalBackend } from '@mcp-tuikit/core';
+import { TerminalBackend } from '../../../../../index.js';
 import { it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { getTerminalTestSuite, RunBackendOptions } from '../../../core/test/helpers/canRunTerminal';
 import { BackendFactory } from '../../src';

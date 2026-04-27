@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { it, expect, vi, beforeEach } from 'vitest';
 import { WindowsNativeSpawner } from './WindowsNativeSpawner.js';
+import { describeWindows } from '@mcp-tuikit/test';
 
 vi.mock('node:child_process', () => ({
   spawn: vi.fn(() => ({
@@ -24,9 +25,7 @@ vi.mock('execa', () => ({
   }),
 }));
 
-const d = process.platform !== 'win32' ? describe.skip : describe;
-
-d('WindowsNativeSpawner', () => {
+describeWindows('WindowsNativeSpawner', () => {
   let spawner: WindowsNativeSpawner;
 
   beforeEach(() => {

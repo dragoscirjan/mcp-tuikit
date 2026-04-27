@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { Terminal } from '@mcp-tuikit/core';
+import { Terminal } from '@mcp-tuikit/terminals';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';

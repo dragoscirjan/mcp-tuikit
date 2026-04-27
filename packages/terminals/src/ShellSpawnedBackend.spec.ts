@@ -26,8 +26,9 @@ vi.mock('node:child_process', async (importOriginal) => {
 
 // Import AFTER the mock is set up
 const { ShellSpawnedBackend } = await import('./ShellSpawnedBackend.js');
-const { SessionHandler, SnapshotStrategy, AppSpawner } = await import('../index.js');
-type SpawnOptions = import('../index.js').SpawnOptions;
+const { SessionHandler, AppSpawner } = await import('@mcp-tuikit/core');
+const { SnapshotStrategy } = await import('./SnapshotStrategy.js');
+type SpawnOptions = import('@mcp-tuikit/core').SpawnOptions;
 type ExecCallback = (error: Error | null, stdout: string, stderr: string) => void;
 
 class DummyShellBackend extends ShellSpawnedBackend {

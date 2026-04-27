@@ -22,6 +22,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@mcp-tuikit/test": "workspace:*",
     "@playwright/test": "^1.59.1",
     "@templ-project/commitlint": "latest",
     "@templ-project/eslint": "latest",
@@ -42,10 +43,18 @@
   },
   "prettier": "@templ-project/prettier",
   "lint-staged": {
-    "*.{js,ts,mjs,cjs,tsx,jsx}": ["eslint --fix", "prettier --write"],
-    "*.{json,md,yml,yaml,toml}": ["prettier --write"]
+    "*.{js,ts,mjs,cjs,tsx,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,toml}": [
+      "prettier --write"
+    ]
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["koffi", "esbuild"]
+    "onlyBuiltDependencies": [
+      "koffi",
+      "esbuild"
+    ]
   }
 }

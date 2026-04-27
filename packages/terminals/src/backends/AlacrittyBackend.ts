@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { ShellSpawnedBackend, SpawnOptions } from '@mcp-tuikit/core';
+import { SpawnOptions } from '@mcp-tuikit/core';
+import { ShellSpawnedBackend } from '../ShellSpawnedBackend.js';
 
 export class AlacrittyBackend extends ShellSpawnedBackend {
   private tmpConfig: string | null = null;

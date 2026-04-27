@@ -1,4 +1,6 @@
-import { TerminalBackend, SpawnerFactory, Terminal } from '@mcp-tuikit/core';
+import { SpawnerFactory } from '@mcp-tuikit/core';
+import { TerminalBackend } from './TerminalBackend.js';
+import { Terminal } from './Terminal.js';
 import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
 import { AlacrittyBackend } from './backends/AlacrittyBackend.js';
 // import { CmdBackend } from './backends/CmdBackend.js';

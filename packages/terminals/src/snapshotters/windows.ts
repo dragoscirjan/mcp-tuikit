@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SnapshotStrategy } from '@mcp-tuikit/core';
-import { Terminal } from '@mcp-tuikit/core';
+import { SnapshotStrategy } from '../SnapshotStrategy.js';
+import { Terminal } from '../Terminal.js';
 import { execa } from 'execa';
 
 export class WindowsSnapshotStrategy implements SnapshotStrategy {

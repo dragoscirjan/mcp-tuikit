@@ -1,4 +1,7 @@
-import { OsascriptSpawnedBackend, SessionHandler, SnapshotStrategy, IdType } from '@mcp-tuikit/core';
+import { SessionHandler } from '@mcp-tuikit/core';
+import { OsascriptSpawnedBackend } from '../OsascriptSpawnedBackend.js';
+import { SnapshotStrategy } from '../SnapshotStrategy.js';
+import { IdType } from '../TerminalBackend.js';
 
 /* jscpd:ignore-start */
 export class MacTerminalAppBackend extends OsascriptSpawnedBackend {

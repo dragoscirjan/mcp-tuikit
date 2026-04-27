@@ -1,28 +1,6 @@
-import { execFile, exec } from 'node:child_process';
-import { promisify } from 'node:util';
-import { SnapshotStrategy } from '@mcp-tuikit/core';
+import { execa } from 'execa';
+import { SnapshotStrategy } from '../SnapshotStrategy.js';
 
-const execAsync = promisify(exec);
-
-/**
- * Helper to wrap execFile in a promise
- */
-function execFileAsync(command: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
-  return new Promise((resolve, reject) => {
-    execFile(command, args, (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve({ stdout: stdout as string, stderr: stderr as string });
-      }
-    });
-  });
-}
-
-/**
- * Returns the frontmost CGWindowNumber for a given app name using CGWindowListCopyWindowInfo.
- * Works for apps that have no AppleScript dictionary (e.g. Alacritty).
- */
 async function getWindowIdViaCGWindowList(appName: string): Promise<string> {
   const script = `
 import Cocoa
@@ -51,7 +29,7 @@ if foundIds.isEmpty {
     fputs("Found IDs but none passed onscreen/size filters: \\(foundIds)\\n", stderr)
 }
 `;
-  const { stdout, stderr } = await execAsync(`swift - << 'SWIFTEOF'\n${script}\nSWIFTEOF`);
+  const { stdout, stderr } = await execa('swift', ['-'], { input: script });
   const windowId = stdout.trim();
   if (!windowId || isNaN(Number(windowId))) {
     throw new Error(`No window found for app "${appName}" via CGWindowList. stderr: ${stderr}`);
@@ -93,7 +71,7 @@ async function getWindowId(appName: string): Promise<string> {
   }
 
   try {
-    const { stdout } = await execFileAsync('osascript', ['-e', script]);
+    const { stdout } = await execa('osascript', ['-e', script]);
     const windowId = stdout.trim();
     if (!windowId || isNaN(Number(windowId))) {
       throw new Error(`Invalid window ID returned: ${windowId}`);
@@ -160,7 +138,7 @@ export async function captureMacOsWindow(
   // Bring the target app to front so its window has a backing store and can be captured.
   // Alacritty has no AppleScript dictionary, so we use `open -a` to activate it.
   const actualAppName = appName === 'macos-terminal' ? 'Terminal' : appName;
-  await execAsync(`open -a "${actualAppName}"`).catch(() => {
+  await execa('open', ['-a', actualAppName]).catch(() => {
     // Best-effort — ignore if activation fails
   });
   // Allow the window compositor to render a frame before capturing.
@@ -172,7 +150,7 @@ export async function captureMacOsWindow(
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       // -x suppress sound, -o no shadow
-      await execFileAsync('screencapture', ['-x', '-o', '-l', windowId, outputPath]);
+      await execa('screencapture', ['-x', '-o', '-l', windowId, outputPath]);
       return;
     } catch (error: unknown) {
       lastError = error instanceof Error ? error : new Error('screencapture failed');
