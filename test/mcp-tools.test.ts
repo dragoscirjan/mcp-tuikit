@@ -13,15 +13,11 @@
  * Run via:
  *   mise run test:integration
  */
-import { exec } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { promisify } from 'node:util';
 import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-
-const execAsync = promisify(exec);
 
 const shellCmd = process.platform === 'win32' ? 'powershell.exe' : 'bash';
 

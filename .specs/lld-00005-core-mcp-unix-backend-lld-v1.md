@@ -35,7 +35,7 @@ Following `CONTRIBUTING.md`, the repository will be structured as a `pnpm` works
 
 ## 3. Core Components
 
-### 3.1 `packages/core`
+### 3.1 `packages/spawn`
 
 - **`TerminalBackend.ts`**: The abstract interface containing `createSession`, `closeSession`, `sendKeys`, `waitForText`, `getScreenPlaintext`, `getScreenJson`, and `getSessionState`.
 - **`errors.ts`**: Specific error types `TimeoutError` and `TmuxExecutionError`.
@@ -61,7 +61,7 @@ Following `CONTRIBUTING.md`, the repository will be structured as a `pnpm` works
    - Create `.mise.toml` (Node.js + pnpm), `package.json` (workspaces setup).
    - Install and configure `@templ-project/eslint`, `@templ-project/prettier`, `@templ-project/tsconfig`, `@templ-project/vitest`.
    - Setup `Taskfile.yml`.
-2. **Implement Core Package (`packages/core`)**:
+2. **Implement Core Package (`packages/spawn`)**:
    - Write tests and implementation for `TerminalBackend` interface (types) and error classes.
 3. **Implement Tmux Package (`packages/tmux`)**:
    - Write tests using `vitest` for `TmuxBackend`.

@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { SpawnOptions } from '@mcp-tuikit/core';
-import { ShellSpawnedBackend } from '../ShellSpawnedBackend.js';
+import { SpawnOptions } from '@mcp-tuikit/spawn';
+import { ShellSpawnedBackend } from '../base/ShellSpawnedBackend.js';
 
 export class CmdBackend extends ShellSpawnedBackend {
   protected async getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions> {

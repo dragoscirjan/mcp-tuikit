@@ -28,7 +28,7 @@ The core challenge with Windows terminals (WezTerm, Alacritty, Windows Terminal)
 
 ## 3. Architecture Changes
 
-### 3.1. Windows Spawner (`packages/core/src/spawn/windows/WindowsNativeSpawner.ts`)
+### 3.1. Windows Spawner (`packages/spawn/src/spawn/windows/WindowsNativeSpawner.ts`)
 
 A new spawner for Windows that utilizes `child_process.spawn`. It will handle identifying the executable and launching it detached. 
 Unlike macOS which uses `open`, Windows can launch the `.exe` directly.
@@ -147,7 +147,7 @@ In `packages/terminals/src/snapshotters/index.ts`:
 
 ## 5. Tasks
 
-1.  **Core Spawner**: Implement `WindowsNativeSpawner.ts` in `packages/core` and integrate it into `SpawnerFactory.ts`.
+1.  **Core Spawner**: Implement `WindowsNativeSpawner.ts` in `packages/spawn` and integrate it into `SpawnerFactory.ts`.
 2.  **Terminal Backends**:
     *   Create `WindowsTerminalBackend.ts`.
     *   Create `PowershellBackend.ts`.

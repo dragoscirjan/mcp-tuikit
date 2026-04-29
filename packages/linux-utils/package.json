@@ -1,0 +1,19 @@
+{
+  "name": "@mcp-tuikit/linux-utils",
+  "version": "1.0.0",
+  "description": "Linux specific utilities for mcp-tuikit",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "koffi": "^2.16.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "typescript": "^5.7.3"
+  }
+}

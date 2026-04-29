@@ -1,6 +1,5 @@
-import { SpawnerFactory } from '@mcp-tuikit/core';
-import { TerminalBackend } from './TerminalBackend.js';
-import { Terminal } from './Terminal.js';
+import { resolveSnapshotStrategy } from '@mcp-tuikit/snapshot';
+import { SpawnerFactory } from '@mcp-tuikit/spawn';
 import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
 import { AlacrittyBackend } from './backends/AlacrittyBackend.js';
 // import { CmdBackend } from './backends/CmdBackend.js';
@@ -13,8 +12,9 @@ import { MacTerminalAppBackend } from './backends/MacTerminalAppBackend.js';
 import { PowershellBackend } from './backends/PowershellBackend.js';
 import { WezTermBackend } from './backends/WezTermBackend.js';
 import { WindowsTerminalBackend } from './backends/WindowsTerminalBackend.js';
-import { PlaywrightBackend } from './PlaywrightBackend.js';
-import { resolveSnapshotStrategy } from './snapshotters/index.js';
+import { PlaywrightBackend } from './base/PlaywrightBackend.js';
+import { TerminalBackend } from './base/TerminalBackend.js';
+import { Terminal } from './Terminal.js';
 
 export class BackendFactory {
   static create(backendConfig: Terminal): TerminalBackend {

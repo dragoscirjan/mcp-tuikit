@@ -55,12 +55,13 @@ packages/*/build/
 src/dist/
 src/build/
 
-# AI workspace
+# AI/agents workspace
 .ai.tmp
+.gitnexus
+.claude
 
 # jscpd
 .jscpd/
 
 # snapshots
 snapshots/
-.gitnexus

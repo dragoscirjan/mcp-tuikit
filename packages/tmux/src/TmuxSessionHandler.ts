@@ -4,9 +4,10 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { SessionHandler, TimeoutError } from '@mcp-tuikit/core';
+import { TimeoutError } from '@mcp-tuikit/spawn';
 import { nanoid } from 'nanoid';
 import { TmuxExecutionError } from './errors.js';
+import { SessionHandler } from './SessionHandler.js';
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);

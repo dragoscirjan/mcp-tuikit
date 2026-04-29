@@ -39,7 +39,7 @@ bundled even on Linux and Windows where it is useless.
 ## Interface
 
 ```ts
-// packages/core/src/Snapshotter.ts
+// packages/spawn/src/Snapshotter.ts
 export interface Snapshotter {
   /**
    * Capture a PNG of the current terminal state.
@@ -73,8 +73,8 @@ The factory is the **only** place platform/backend branching occurs.
 
 | File | Action |
 |------|--------|
-| `packages/core/src/Snapshotter.ts` | **NEW** — `Snapshotter` interface |
-| `packages/core/src/index.ts` | **EDIT** — re-export `Snapshotter` |
+| `packages/spawn/src/Snapshotter.ts` | **NEW** — `Snapshotter` interface |
+| `packages/spawn/src/index.ts` | **EDIT** — re-export `Snapshotter` |
 | `packages/flow-engine/src/snapshotters/macos.ts` | **EDIT** — implement `Snapshotter` via `MacOsSnapshotter` class; keep existing `captureMacOsWindow` as internal helper |
 | `packages/flow-engine/src/snapshotters/playwright.ts` | **NEW** — `PlaywrightSnapshotter` reads ANSI from tmux, calls `capturePlaywrightSnapshot` |
 | `packages/flow-engine/src/snapshotters/linux.ts` | **NEW** — `LinuxSnapshotter` stub |
@@ -127,7 +127,7 @@ class LinuxSnapshotter implements Snapshotter {
 
 ## Implementation Order
 
-1. `packages/core/src/Snapshotter.ts` + re-export from `core/src/index.ts`
+1. `packages/spawn/src/Snapshotter.ts` + re-export from `core/src/index.ts`
 2. `packages/flow-engine/src/snapshotters/playwright.ts`
 3. `packages/flow-engine/src/snapshotters/linux.ts` + `windows.ts`
 4. Edit `packages/flow-engine/src/snapshotters/macos.ts` — add `MacOsSnapshotter` class

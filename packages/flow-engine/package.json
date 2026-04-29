@@ -16,7 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@mcp-tuikit/core": "workspace:*",
+    "@mcp-tuikit/spawn": "workspace:*",
     "@mcp-tuikit/terminals": "workspace:*",
     "js-yaml": "^4.1.0",
     "zod": "^3.24.2"
