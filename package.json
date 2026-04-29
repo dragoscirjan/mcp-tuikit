@@ -13,7 +13,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@mcp-tuikit/core": "workspace:*",
+    "@mcp-tuikit/spawn": "workspace:*",
     "@mcp-tuikit/flow-engine": "workspace:*",
     "@mcp-tuikit/terminals": "workspace:*",
     "@mcp-tuikit/tmux": "workspace:*",
@@ -43,18 +43,10 @@
   },
   "prettier": "@templ-project/prettier",
   "lint-staged": {
-    "*.{js,ts,mjs,cjs,tsx,jsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,yml,yaml,toml}": [
-      "prettier --write"
-    ]
+    "*.{js,ts,mjs,cjs,tsx,jsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,yml,yaml,toml}": ["prettier --write"]
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "koffi",
-      "esbuild"
-    ]
+    "onlyBuiltDependencies": ["koffi", "esbuild"]
   }
 }

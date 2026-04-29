@@ -1,0 +1,10 @@
+{
+  "extends": "@templ-project/tsconfig/esm.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.spec.ts"]
+}

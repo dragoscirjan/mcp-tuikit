@@ -26,7 +26,7 @@ The `packages/flow-engine` should only focus on YAML flow execution (`schema.ts`
 
 We introduce `packages/terminals` to house the `TerminalBackend` implementations and factory.
 
-1.  **`packages/core`**: `SessionHandler.ts`, `TerminalBackend.ts`, `SnapshotStrategy.ts`
+1.  **`packages/spawn`**: `SessionHandler.ts`, `TerminalBackend.ts`, `SnapshotStrategy.ts`
 2.  **`packages/tmux`**: `TmuxSessionHandler.ts` (implements `SessionHandler`)
 3.  **`packages/terminals`**: `PlaywrightBackend.ts`, `NativeTerminalBackend.ts`, `BackendFactory.ts`, `spawner.ts`, `config.ts`, `snapshotters/*`
 4.  **`packages/flow-engine`**: `runner.ts`, `schema.ts` (imports interfaces from `core` and `BackendFactory` from `terminals`)
@@ -34,7 +34,7 @@ We introduce `packages/terminals` to house the `TerminalBackend` implementations
 ### 2.2 Interfaces
 
 ```typescript
-// packages/core/src/SessionHandler.ts
+// packages/spawn/src/SessionHandler.ts
 export interface SessionHandler {
   createSession(cmd: string, cols: number, rows: number, sessionName?: string): Promise<string>;
   closeSession(sessionId: string): Promise<void>;
@@ -46,7 +46,7 @@ export interface SessionHandler {
 ```
 
 ```typescript
-// packages/core/src/TerminalBackend.ts
+// packages/spawn/src/TerminalBackend.ts
 import { SessionHandler } from './SessionHandler';
 
 export interface SpawnResult {
@@ -83,7 +83,7 @@ Spawns actual terminal applications (`alacritty`, `iterm2`, `ghostty`, `wezterm`
 
 Instead of hardcoded stub classes for Windows/Linux that throw errors:
 ```typescript
-// packages/core/src/SnapshotStrategy.ts
+// packages/spawn/src/SnapshotStrategy.ts
 export interface SnapshotStrategy {
   capture(outputPath: string, cols: number, rows: number, tmuxSession: string): Promise<void>;
 }
@@ -111,7 +111,7 @@ export function createTerminalBackend(): TerminalBackend {
 
 - **Task 1: Core Interfaces & Packages Setup**
   - Create `packages/terminals` package layout.
-  - Update `packages/core/src/TerminalBackend.ts` to `SessionHandler.ts` and `TerminalBackend.ts`.
+  - Update `packages/spawn/src/TerminalBackend.ts` to `SessionHandler.ts` and `TerminalBackend.ts`.
 
 - **Task 2: Implement `TmuxSessionHandler`**
   - Rename `packages/tmux/src/TmuxBackend.ts` to `TmuxSessionHandler.ts`.

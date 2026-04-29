@@ -114,7 +114,24 @@ export function defineFlowSuite(opts: FlowSuiteOptions): void {
 
       // Mock VirtualSessionManager if we want a specific display server
       if (headless && displayServer) {
-        const { VirtualSessionManager } = await import('../../packages/core/src/spawn/linux/VirtualSessionManager.js');
+        const { execSync } = await import('node:child_process');
+        const realWhich = execSync('which which').toString().trim();
+
+        const fakeWhichPath = path.join(tempDir, 'which');
+        const mockXvfb = displayServer === 'xvfb' ? '1' : '0';
+        const mockSway = displayServer === 'sway' ? '1' : '0';
+        const mockKwin = displayServer === 'kwin' ? '1' : '0';
+
+        const fakeWhichScript = `#!/bin/sh
+if [ "$1" = "Xvfb" ] && [ "${mockXvfb}" = "0" ]; then exit 1; fi
+if [ "$1" = "sway" ] && [ "${mockSway}" = "0" ]; then exit 1; fi
+if [ "$1" = "kwin_wayland" ] && [ "${mockKwin}" = "0" ]; then exit 1; fi
+exec ${realWhich} "$@"
+`;
+        await fs.writeFile(fakeWhichPath, fakeWhichScript, { mode: 0o755 });
+        process.env.PATH = `${tempDir}:${process.env.PATH}`;
+
+        const { VirtualSessionManager } = await import('@mcp-tuikit/spawn');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation(async (cmd: string) => {
           if (displayServer === 'xvfb' && cmd === 'Xvfb') return true;

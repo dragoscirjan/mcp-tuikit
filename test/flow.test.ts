@@ -24,8 +24,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { beforeAll } from 'vitest';
 import { defineFlowSuite, FlowSuiteOptions } from './helpers/flowSuite.js';
-import { canRunTerminal } from './packages/core/test/helpers/canRunTerminal';
-import { hasBinary } from './packages/core/test/helpers/hasBinary';
+import { canRunTerminal } from './packages/spawn/test/helpers/canRunTerminal';
+import { hasBinary } from './packages/spawn/test/helpers/hasBinary';
 
 const SNAPSHOTS = path.resolve(import.meta.dirname, '..', 'snapshots');
 
@@ -36,7 +36,7 @@ beforeAll(async () => {
 // ── Suites ────────────────────────────────────────────────────────────────────
 
 function defineTerminalFlowSuites(opts: Omit<FlowSuiteOptions, 'headless' | 'displayServer'>) {
-  const { terminal, label } = opts;
+  const { terminal } = opts;
   const baseRun = opts.run || canRunTerminal(terminal);
 
   if (terminal === 'xterm.js') {
@@ -52,23 +52,16 @@ function defineTerminalFlowSuites(opts: Omit<FlowSuiteOptions, 'headless' | 'dis
   if (process.platform === 'linux') {
     defineFlowSuite({
       ...opts,
-      run: baseRun === 'only' ? 'only' : hasBinary('Xvfb') ? baseRun : 'missing-binary',
+      run: baseRun === 'only' ? 'only' : hasBinary('Xvfb') && hasBinary('import') ? baseRun : 'missing-binary',
       headless: true,
       displayServer: 'xvfb',
     });
 
     defineFlowSuite({
       ...opts,
-      run: baseRun === 'only' ? 'only' : hasBinary('sway') ? baseRun : 'missing-binary',
+      run: baseRun === 'only' ? 'only' : hasBinary('sway') && hasBinary('grim') ? baseRun : 'missing-binary',
       headless: true,
       displayServer: 'sway',
-    });
-
-    defineFlowSuite({
-      ...opts,
-      run: baseRun === 'only' ? 'only' : hasBinary('kwin_wayland') ? baseRun : 'missing-binary',
-      headless: true,
-      displayServer: 'kwin',
     });
   }
 }

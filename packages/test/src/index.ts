@@ -18,5 +18,3 @@ export const itLinux = it.runIf(isLinux);
 export const isPosix = isMac || isLinux;
 export const describePosix = describe.runIf(isPosix);
 export const itPosix = it.runIf(isPosix);
-
-

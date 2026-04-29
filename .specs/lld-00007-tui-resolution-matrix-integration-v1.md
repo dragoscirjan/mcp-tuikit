@@ -44,9 +44,9 @@ Terminal emulators calculate rows and columns based on the font size. We will us
 
 ## 3. Implementation Tasks
 
-1. **`packages/core/src/utils.ts` (New file)**:
+1. **`packages/spawn/src/utils.ts` (New file)**:
    - Implement `parseResolutions(resolutionStr: string)` returning an array of `{ width, height, cols, rows }` assuming a `10x20` character size.
-   - Write tests in `packages/core/test/utils.test.ts`.
+   - Write tests in `packages/spawn/test/utils.test.ts`.
 2. **`packages/flow-engine/src/runner.ts`**:
    - Update `FlowRunner.run(flow, overrideCols?, overrideRows?, suffix?)` to accept optional dimensions and an output suffix (to avoid overwriting snapshots).
    - Alternatively, inject the overrides directly into a deep clone of the `flow` object before running.

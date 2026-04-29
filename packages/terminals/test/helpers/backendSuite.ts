@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TerminalBackend } from '../../../../../index.js';
 import { it, expect, beforeAll, afterAll, vi } from 'vitest';
-import { getTerminalTestSuite, RunBackendOptions } from '../../../core/test/helpers/canRunTerminal';
+import { TerminalBackend } from '../../../../../index.js';
+import { getTerminalTestSuite, RunBackendOptions } from '../../../spawn/test/helpers/canRunTerminal';
 import { BackendFactory } from '../../src';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../');
@@ -35,6 +35,14 @@ export function defineBackendSuite(opts: ExtendedRunBackendOptions): void {
   let d = suite.d;
   if (opts.run === 'skip') {
     d = d.skip;
+  } else if (opts.run === 'only') {
+    d = d.only;
+  } else if (opts.run === 'missing-binary') {
+    d = d.skip;
+    suite.label += ' [UNAVAILABLE: binary missing]';
+  } else if (opts.run === 'wrong-os') {
+    d = d.skip;
+    suite.label += ' [SKIPPED: wrong OS]';
   }
 
   d(suite.label, () => {
@@ -69,7 +77,7 @@ export function defineBackendSuite(opts: ExtendedRunBackendOptions): void {
 
       // Mock VirtualSessionManager if we want a specific display server
       if (headless && displayServer) {
-        const { VirtualSessionManager } = await import('../../../core/src/spawn/linux/VirtualSessionManager');
+        const { VirtualSessionManager } = await import('@mcp-tuikit/spawn');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation(async (cmd: string) => {
           if (displayServer === 'xvfb' && cmd === 'Xvfb') return true;

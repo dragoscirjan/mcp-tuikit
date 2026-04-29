@@ -81,7 +81,7 @@ The FlowRunner in the flow-engine package follows the same dual-session pattern,
 
 ## 4. Core Components (Status)
 
-### 4.1 packages/core — DONE
+### 4.1 packages/spawn — DONE
 
 - **TerminalBackend interface**: Defines createSession, closeSession, sendKeys, waitForText, getScreenPlaintext, getScreenJson, getSessionState. Fully implemented and tested.
 - **errors.ts**: TimeoutError and TmuxExecutionError. Fully implemented and tested.
@@ -187,7 +187,7 @@ These are ordered by dependency. Each task should be 1-3 files.
 - Add/update tests in TmuxBackend.spec.ts
 
 ### Task 4: Add resize method to TerminalBackend and TmuxBackend
-- Files: `packages/core/src/TerminalBackend.ts`, `packages/tmux/src/TmuxBackend.ts`
+- Files: `packages/spawn/src/TerminalBackend.ts`, `packages/tmux/src/TmuxBackend.ts`
 - Add `resizeSession(sessionId: string, cols: number, rows: number): Promise<void>` to the interface
 - Implement via `tmux resize-window -t ID -x COLS -y ROWS`
 - Add tests

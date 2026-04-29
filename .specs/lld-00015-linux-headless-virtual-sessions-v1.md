@@ -14,7 +14,7 @@ Enable completely silent, programmatic, prompt-free testing and execution of Lin
 
 ## Architecture & Components
 
-### 1. `packages/core/src/spawn/linux/VirtualSessionManager.ts`
+### 1. `packages/spawn/src/spawn/linux/VirtualSessionManager.ts`
 A new utility responsible for initializing and terminating headless compositors.
 - Checks `TUIKIT_HEADLESS` (defaults to `1` on Linux).
 - Detects the host environment using `isX11DisplayServer()`.
@@ -30,7 +30,7 @@ A new utility responsible for initializing and terminating headless compositors.
   }
   ```
 
-### 2. `packages/core/src/spawn/linux/LinuxNativeSpawner.ts`
+### 2. `packages/spawn/src/spawn/linux/LinuxNativeSpawner.ts`
 - If `TUIKIT_HEADLESS !== '0'`, requests a `VirtualSession` from `VirtualSessionManager`.
 - Spawns the terminal process using the `envOverrides` returned by the virtual session.
 - Extends the `spawnResult` to include virtual session metadata so the snapshotter knows how to capture it.
