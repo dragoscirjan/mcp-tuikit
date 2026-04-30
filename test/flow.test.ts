@@ -76,8 +76,8 @@ defineTerminalFlowSuites({
 defineTerminalFlowSuites({
   label: 'run_flow integration (xterm.js + btop)',
   terminal: 'xterm.js',
-  cols: 80,
-  rows: 25,
+  cols: 120,
+  rows: 40,
   txtMatchers: [/(CPU|Mem|Total)/i],
   yamlName: 'btop.yaml',
   run: canRunTerminal('xterm.js'),

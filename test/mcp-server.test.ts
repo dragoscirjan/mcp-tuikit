@@ -3,12 +3,10 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { Terminal } from '@mcp-tuikit/terminals';
+import { canRunTerminal, hasBinary, getTerminalTestSuite } from '@mcp-tuikit/test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { it, expect, beforeAll, afterAll } from 'vitest';
-import { canRunTerminal } from './packages/spawn/test/helpers/canRunTerminal';
-import { getTerminalTestSuite } from './packages/spawn/test/helpers/canRunTerminal';
-import { hasBinary } from './packages/spawn/test/helpers/hasBinary';
 
 interface ToolResponseContent {
   type: string;

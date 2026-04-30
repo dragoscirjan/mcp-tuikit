@@ -74,7 +74,7 @@ describe('TmuxSessionHandler', () => {
     const cmdArg = mockExecImpl.mock.calls[0][0] as string;
     // Session ID uses nanoid(8): URL-safe chars [A-Za-z0-9_-]
     expect(cmdArg).toMatch(
-      /^tmux new-session -d -s mcp-[A-Za-z0-9_-]{8} -x 80 -y 24 "bash" \\; set-option -g status off$/,
+      /^tmux new-session -d -s mcp-[A-Za-z0-9_-]{8} -x 80 -y 24 \\; set-option -g status off \\; resize-window -x 80 -y 24 \\; send-keys -l "bash" \\; send-keys C-m$/,
     );
     expect(sessionId).toMatch(/^mcp-[A-Za-z0-9_-]{8}$/);
   });
