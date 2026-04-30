@@ -59,7 +59,14 @@ function defineTerminalFlowSuites(opts: Omit<FlowSuiteOptions, 'headless' | 'dis
 
     defineFlowSuite({
       ...opts,
-      run: baseRun === 'only' ? 'only' : hasBinary('sway') && hasBinary('grim') ? baseRun : 'missing-binary',
+      run:
+        baseRun === 'only'
+          ? 'only'
+          : terminal === 'wezterm'
+            ? 'skip' // known issue: black screen under headless sway
+            : hasBinary('sway') && hasBinary('grim')
+              ? baseRun
+              : 'missing-binary',
       headless: true,
       displayServer: 'sway',
     });
