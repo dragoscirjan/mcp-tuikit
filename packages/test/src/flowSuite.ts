@@ -11,6 +11,7 @@ import path from 'node:path';
 import { FlowRunner, Artifact, parseFlow } from '@mcp-tuikit/flow-engine';
 import { BackendFactory } from '@mcp-tuikit/terminals';
 import { Terminal } from '@mcp-tuikit/terminals';
+import sharp from 'sharp';
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 
 export interface RunFlowOptions {
@@ -209,7 +210,7 @@ exec ${realWhich} "$@"
       });
     }
 
-    it('png snapshot is a valid image (>1 KB) and has PNG magic bytes', async () => {
+    it('png snapshot is a valid image (>1 KB) and has PNG magic bytes and is not entirely black', async () => {
       const artifact = artifacts.find((a) => a.format === 'png')!;
       const stat = await fsPromises.stat(artifact.path);
       expect(stat.size).toBeGreaterThan(1000);
@@ -224,6 +225,11 @@ exec ${realWhich} "$@"
       } finally {
         await fd.close();
       }
+
+      // Check that it's not 100% black
+      const stats = await sharp(artifact.path).stats();
+      const isAllBlack = stats.channels.slice(0, 3).every((ch) => ch.max === 0);
+      expect(isAllBlack).toBe(false);
     });
   });
 }

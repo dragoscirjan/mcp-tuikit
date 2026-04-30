@@ -18,7 +18,7 @@ export class ITerm2Backend extends OsascriptSpawnedBackend {
   }
 
   protected generateSpawnCmd(tmuxCmd: string): string {
-    return `create window with default profile command "${tmuxCmd}"`;
+    return `create window with default profile command "${tmuxCmd.replace(/"/g, '\\"')}"`;
   }
 
   protected generateCloseCmd(windowId: IdType): string {
