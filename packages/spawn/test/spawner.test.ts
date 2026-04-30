@@ -1,5 +1,5 @@
-import { getTerminalTestSuite } from '@mcp-tuikit/test';
-import { hasBinary } from '@mcp-tuikit/test';
+import { getTerminalTestSuite } from '@dragoscirjan/mcp-tuikit-test';
+import { hasBinary } from '@dragoscirjan/mcp-tuikit-test';
 import { describe, it, expect, vi } from 'vitest';
 import { SpawnOptions } from '../src/spawn/AppSpawner.js';
 import { SpawnerFactory } from '../src/spawn/SpawnerFactory.js';
@@ -170,7 +170,7 @@ describe('Spawner Integration Tests', () => {
           if (isLinuxHeadless) {
             shouldHaveWindowId = false;
           } else if (process.platform === 'linux') {
-            const { isX11DisplayServer } = await import('@mcp-tuikit/linux-utils');
+            const { isX11DisplayServer } = await import('@dragoscirjan/mcp-tuikit-linux-utils');
             const isX11 = await isX11DisplayServer();
             if (!isX11) {
               shouldHaveWindowId = false;

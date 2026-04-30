@@ -1,5 +1,5 @@
-import { SnapshotStrategy } from '@mcp-tuikit/snapshot';
-import { SessionHandler } from '@mcp-tuikit/tmux';
+import { SnapshotStrategy } from '@dragoscirjan/mcp-tuikit-snapshot';
+import { SessionHandler } from '@dragoscirjan/mcp-tuikit-tmux';
 import { OsascriptSpawnedBackend } from '../base/OsascriptSpawnedBackend.js';
 import { IdType } from '../base/TerminalBackend.js';
 

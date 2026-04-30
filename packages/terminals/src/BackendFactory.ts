@@ -1,6 +1,6 @@
-import { resolveSnapshotStrategy } from '@mcp-tuikit/snapshot';
-import { SpawnerFactory } from '@mcp-tuikit/spawn';
-import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
+import { resolveSnapshotStrategy } from '@dragoscirjan/mcp-tuikit-snapshot';
+import { SpawnerFactory } from '@dragoscirjan/mcp-tuikit-spawn';
+import { TmuxSessionHandler } from '@dragoscirjan/mcp-tuikit-tmux';
 import { AlacrittyBackend } from './backends/AlacrittyBackend.js';
 // import { CmdBackend } from './backends/CmdBackend.js';
 import { GhosttyBackend } from './backends/GhosttyBackend.js';

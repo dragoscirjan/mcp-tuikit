@@ -45,7 +45,9 @@ run = "pnpm jscpd ."
 [tasks."docs:build"]
 description = "Build the MkDocs documentation site"
 run = "uv run mkdocs build --strict"
+env = { NO_MKDOCS_2_WARNING = "1" }
 
 [tasks."docs:serve"]
 description = "Serve the MkDocs documentation site locally"
 run = "uv run mkdocs serve"
+env = { NO_MKDOCS_2_WARNING = "1" }

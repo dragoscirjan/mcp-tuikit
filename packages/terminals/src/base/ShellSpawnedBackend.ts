@@ -1,6 +1,6 @@
-import { SnapshotStrategy } from '@mcp-tuikit/snapshot';
-import { AppSpawner, SpawnOptions } from '@mcp-tuikit/spawn';
-import { SessionHandler } from '@mcp-tuikit/tmux';
+import { SnapshotStrategy } from '@dragoscirjan/mcp-tuikit-snapshot';
+import { AppSpawner, SpawnOptions } from '@dragoscirjan/mcp-tuikit-spawn';
+import { SessionHandler } from '@dragoscirjan/mcp-tuikit-tmux';
 import { execa } from 'execa';
 import { TerminalBackend } from './TerminalBackend.js';
 

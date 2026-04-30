@@ -11,8 +11,8 @@ vi.mock('execa', () => {
 // Import AFTER the mock is set up
 const { OsascriptSpawnedBackend, runAppleScriptSpawn, runAppleScriptClose, spawnAppleScriptTerminal } =
   await import('./OsascriptSpawnedBackend.js');
-type SessionHandler = import('@mcp-tuikit/tmux').SessionHandler;
-type SnapshotStrategy = import('@mcp-tuikit/snapshot').SnapshotStrategy;
+type SessionHandler = import('@dragoscirjan/mcp-tuikit-tmux').SessionHandler;
+type SnapshotStrategy = import('@dragoscirjan/mcp-tuikit-snapshot').SnapshotStrategy;
 type IdType = string;
 
 class DummyOsascriptBackend extends OsascriptSpawnedBackend {

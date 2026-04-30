@@ -24,7 +24,7 @@ This Low-Level Design defines the structure for the Flow Engine and Headless Ren
 
 ## 3. Package Structure
 
-Create a workspace package `packages/flow-engine`. It will depend on `@mcp-tuikit/core` which provides the `TerminalBackend` interface.
+Create a workspace package `packages/flow-engine`. It will depend on `@dragoscirjan/mcp-tuikit-core` which provides the `TerminalBackend` interface.
 
 ## 4. Components
 

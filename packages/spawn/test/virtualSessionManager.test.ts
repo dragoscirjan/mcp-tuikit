@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process';
-import { isLinux } from '@mcp-tuikit/test';
+import { isLinux } from '@dragoscirjan/mcp-tuikit-test';
 import { describe, it, expect, afterEach } from 'vitest';
 import { VirtualSessionManager, VirtualSession } from '../src/spawn/linux/VirtualSessionManager.js';
 

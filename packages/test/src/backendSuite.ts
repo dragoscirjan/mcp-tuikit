@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TerminalBackend, BackendFactory } from '@mcp-tuikit/terminals';
+import { TerminalBackend, BackendFactory } from '@dragoscirjan/mcp-tuikit-terminals';
 import { it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { getTerminalTestSuite, RunBackendOptions } from './canRunTerminal.js';
 
@@ -77,7 +77,7 @@ export function defineBackendSuite(opts: ExtendedRunBackendOptions): void {
 
       // Mock VirtualSessionManager if we want a specific display server
       if (headless && displayServer) {
-        const { VirtualSessionManager } = await import('@mcp-tuikit/spawn');
+        const { VirtualSessionManager } = await import('@dragoscirjan/mcp-tuikit-spawn');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation((async (
           cmd: string,

@@ -22,9 +22,9 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { canRunTerminal } from '@mcp-tuikit/test';
-import { hasBinary } from '@mcp-tuikit/test';
-import { defineFlowSuite, FlowSuiteOptions } from '@mcp-tuikit/test';
+import { canRunTerminal } from '@dragoscirjan/mcp-tuikit-test';
+import { hasBinary } from '@dragoscirjan/mcp-tuikit-test';
+import { defineFlowSuite, FlowSuiteOptions } from '@dragoscirjan/mcp-tuikit-test';
 import { beforeAll } from 'vitest';
 
 const SNAPSHOTS = path.resolve(import.meta.dirname, '..', 'snapshots');
@@ -59,7 +59,14 @@ function defineTerminalFlowSuites(opts: Omit<FlowSuiteOptions, 'headless' | 'dis
 
     defineFlowSuite({
       ...opts,
-      run: baseRun === 'only' ? 'only' : hasBinary('sway') && hasBinary('grim') ? baseRun : 'missing-binary',
+      run:
+        baseRun === 'only'
+          ? 'only'
+          : terminal === 'wezterm'
+            ? 'skip' // known issue: black screen under headless sway
+            : hasBinary('sway') && hasBinary('grim')
+              ? baseRun
+              : 'missing-binary',
       headless: true,
       displayServer: 'sway',
     });

@@ -1,76 +1,42 @@
 # Native Backends
 
-`mcp-tuikit` uses different "backends" to run the terminal application and take visual `.png` snapshots. These backends are automatically detected based on the OS and installed software, but you can explicitly force a backend using the `MCP_TUIKIT_BACKEND` environment variable.
+`mcp-tuikit` supports a variety of terminal backends. The backend defines _where_ the TUI application is rendered. This is extremely useful for verifying that a TUI renders correctly on a specific terminal emulator.
 
-The backend only matters for visual `.png` snapshots and rendering visual terminal windows on your host machine. The underlying state and text `txt` output is always managed purely by `tmux` headless sessions.
+By default, the backend is determined based on your OS and installed dependencies, but it can be overridden.
 
----
+## Supported Terminals
 
-## 1. Headless Fallback (`xterm.js`)
+### Cross-Platform
 
-If no native graphical terminal is found, or if running in a pure headless CI environment (e.g. GitHub Actions), `mcp-tuikit` falls back to `xterm.js`.
-It spins up a hidden Playwright Chromium browser, connects it to the `tmux` session via websockets, and uses the browser to render the ANSI colors and take a `.png` screenshot.
+- **xterm.js (Playwright):** The most robust headless backend. It spawns a hidden Playwright browser, loads `xterm.js`, and pipes the PTY into it. Excellent for CI environments.
+- **Alacritty**
+- **WezTerm**
+- **Kitty**
+- **Ghostty**
 
-This ensures you can always get graphical representations of your TUIs, even without a desktop environment.
+### macOS Specific
 
----
+- **Terminal.app (MacTerminalAppBackend)**
+- **iTerm2**
 
-## 2. Linux & macOS Terminals
+### Linux Specific
 
-`mcp-tuikit` has deep integration with the following native terminal emulators. It will spawn the application in a new window, execute your commands, take native OS-level screenshots (like `gnome-screenshot` or `spectacle` on Linux, and `screencapture` on macOS), and close the window.
+- **Gnome Terminal**
+- **Konsole**
 
-### Ghostty
+### Windows Specific
 
-A fast, cross-platform, GPU-accelerated terminal emulator written in Zig.
+- **Windows Terminal**
+- **Cmd**
+- **Powershell**
 
-- **Variable**: `MCP_TUIKIT_BACKEND=ghostty`
+## How Backend Resolution Works
 
-### Alacritty
+The server attempts to use the most stable native backend available in your environment. If visual snapshots fail or a UI is not requested, it falls back to headless abstractions.
 
-A popular OpenGL terminal emulator.
+You can explicitly force a backend by setting the `MCP_TUIKIT_BACKEND` environment variable before starting the MCP server.
 
-- **Variable**: `MCP_TUIKIT_BACKEND=alacritty`
-
-### Kitty
-
-A fast, feature-rich, GPU-based terminal emulator.
-
-- **Variable**: `MCP_TUIKIT_BACKEND=kitty`
-
-### WezTerm
-
-A GPU-accelerated cross-platform terminal emulator and multiplexer written in Rust.
-
-- **Variable**: `MCP_TUIKIT_BACKEND=wezterm`
-
----
-
-## 3. macOS Exclusives
-
-### iTerm2
-
-The standard macOS replacement for Terminal.app.
-
-- **Variable**: `MCP_TUIKIT_BACKEND=iterm2`
-
-### Terminal.app
-
-The default macOS terminal.
-
-- **Variable**: `MCP_TUIKIT_BACKEND=macos-terminal`
-
----
-
-## 4. Linux Exclusives
-
-### Konsole
-
-The default terminal emulator for the KDE Plasma desktop.
-
-- **Variable**: `MCP_TUIKIT_BACKEND=konsole`
-
-### GNOME Terminal
-
-The default terminal emulator for the GNOME desktop environment (and default on Ubuntu).
-
-- **Variable**: `MCP_TUIKIT_BACKEND=gnome-terminal`
+```bash
+export MCP_TUIKIT_BACKEND="Alacritty"
+npx @dragoscirjan/mcp-tuikit
+```

@@ -1,46 +1,27 @@
 # mcp-tuikit
 
-**Bridging Large Language Models and TUI Applications**
+**mcp-tuikit** is a powerful [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that enables AI agents to orchestrate, interact with, and monitor Text User Interfaces (TUIs) and headless terminal applications.
 
-`mcp-tuikit` is a powerful Model Context Protocol (MCP) server that exposes a suite of tools for LLMs (like Claude, Cursor, and ChatGPT) to create, manage, and test Terminal User Interface (TUI) applications.
+**🚀 Fully Cross-OS Compatible**  
+Designed from the ground up to run seamlessly on **macOS**, **Linux**, and **Windows**. It bridges the gap between LLMs and native terminal environments, allowing agents to "see" (via PNGs and text) and "type" (via keystrokes) across any operating system.
 
-Instead of your LLM struggling to guess what a TUI looks like or how it responds, `mcp-tuikit` allows the LLM to spawn real terminal sessions (via `tmux`), inject keystrokes, wait for UI updates, and receive precise text and image snapshots of the terminal state.
+## What Does It Do?
+
+- **Spawn & Orchestrate:** Launch complex terminal applications (`nvim`, `htop`, `git`, or standard shells) using backends like `tmux`, `xterm.js`, or native emulators (Alacritty, WezTerm, iTerm2, etc.).
+- **Capture State:** Take accurate textual representations and pixel-perfect visual PNG screenshots of running terminal apps.
+- **Headless Execution:** Run terminal sessions invisibly in CI environments (via `Xvfb`, `Sway`, or `kwin` on Linux, or `xterm.js` everywhere) without interrupting the user's workflow.
+- **Flow Engine:** Execute pre-defined, step-by-step TUI interaction scripts (YAML-based) for testing or autonomous agent tasks.
 
 ## Why mcp-tuikit?
 
-- **Real TUI Development for LLMs:** Let your AI assistant "see" the terminal output in real-time.
-- **Cross-Platform Native Backends:** Supports running terminals via Alacritty, Ghostty, WezTerm, Kitty, xterm.js, and more across macOS and Linux.
-- **Reproducible Flows:** Define complex multi-step terminal interactions using simple YAML flows (`run_flow`).
-- **Headless & CI Friendly:** Ideal for integration tests and visual regression testing.
+Traditionally, giving an AI agent access to a terminal means piping raw `stdout`/`stderr`. This fails spectacularly for curses-based applications (like `vim` or `fzf`) that rely on complex ANSI escape sequences and screen redrawing.
 
-## Quick Start
+`mcp-tuikit` solves this by running an actual PTY (pseudo-terminal) backed by `tmux` and rendering it to the agent either as a clean text grid or a visual screenshot. The agent sees exactly what a human would see.
 
-### Installation
-
-Ensure you have `tmux` installed on your system.
-Then, you can start the MCP server directly via `npx` or `pnpx`:
-
-```bash
-npx @dragoscirjan/mcp-tuikit
-```
-
-### Integrating with Claude Desktop
-
-Add the following to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "tuikit": {
-      "command": "npx",
-      "args": ["-y", "@dragoscirjan/mcp-tuikit"]
-    }
-  }
-}
-```
+---
 
 ## Next Steps
 
-- [Setup & Configuration](guide/setup.md)
-- [How to Prompt LLMs for TUI Development](guide/llm-integration.md)
-- [View all exposed MCP Tools](reference/tools.md)
+- **[Installation & Dependencies](getting-started/installation.md)**: Learn how to set up `mcp-tuikit` on your OS.
+- **[Setup with LLMs](getting-started/llm-setup.md)**: Connect the server to Claude Desktop, Cursor, or other agents.
+- **[Troubleshooting & Known Issues](possible-problems.md)**: Check platform limitations and edge cases.

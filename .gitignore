@@ -53,6 +53,7 @@ src/build/
 .ai.tmp
 .gitnexus
 .claude
+.playwright-mcp
 
 # jscpd
 .jscpd/

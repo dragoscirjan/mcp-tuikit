@@ -13,7 +13,7 @@ opencode-agent: lead-engineer
 Currently, `NativeTerminalBackend` in `packages/terminals` is a monolithic class managing multiple terminal applications via a `switch(backendConfig)`. It conflates terminal-specific commands (e.g. `Alacritty`'s TOML, `Ghostty`'s `--class`) with OS-specific commands (e.g. `open -n -a` or `.pid` from `execa`). We need to decouple OS process and window management into a distinct "Spawner" layer using the Strategy Pattern, and split terminal tools into dedicated classes. This sets the stage for clean Windows and Linux support later.
 
 ## Objectives
-1. Introduce a generic `AppSpawner` abstraction inside `@mcp-tuikit/core` that standardizes process launching and Window ID retrieval.
+1. Introduce a generic `AppSpawner` abstraction inside `@dragoscirjan/mcp-tuikit-core` that standardizes process launching and Window ID retrieval.
 2. Provide concrete macOS implementations (`MacOsNativeSpawner`, `MacOsOpenSpawner`) utilizing our `get-macos-app-wid.swift` script.
 3. Replace the `NativeTerminalBackend` monolith with dedicated backends: `AlacrittyBackend`, `GhosttyBackend`, and `WezTermBackend`.
 4. Define a factory pattern that matches the terminal backend with the appropriate OS spawner at runtime.
@@ -62,7 +62,7 @@ Create specific backend classes extending `TerminalBackend`. They will take an `
 ## Tasks
 1. Move the Swift script to `packages/spawn/scripts/get-macos-app-wid.swift`.
 2. Implement `AppSpawner` and macOS variants in `packages/spawn/src/spawn/`.
-3. Export new spawn classes and interfaces from `@mcp-tuikit/core`.
+3. Export new spawn classes and interfaces from `@dragoscirjan/mcp-tuikit-core`.
 4. Implement `AlacrittyBackend`, `GhosttyBackend`, `WezTermBackend` in `packages/terminals/src/backends/`.
 5. Update `TerminalBackend.ts` to fully remove `switch` logic and utilize the `[IdType, IdType]` return tuple in `spawn()`.
 6. Refactor the backend factory/provider (in `src/index.ts` or server setup) to instantiate the new specific classes with the appropriate OS-level spawner based on `process.platform`.

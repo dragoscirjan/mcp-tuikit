@@ -16,7 +16,7 @@
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
+import { TmuxSessionHandler } from '@dragoscirjan/mcp-tuikit-tmux';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 const shellCmd = process.platform === 'win32' ? 'powershell.exe' : 'bash';

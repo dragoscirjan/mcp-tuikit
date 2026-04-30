@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { SpawnOptions } from '@mcp-tuikit/spawn';
+import { SpawnOptions } from '@dragoscirjan/mcp-tuikit-spawn';
 import { ShellSpawnedBackend } from '../base/ShellSpawnedBackend.js';
 
 export class CmdBackend extends ShellSpawnedBackend {

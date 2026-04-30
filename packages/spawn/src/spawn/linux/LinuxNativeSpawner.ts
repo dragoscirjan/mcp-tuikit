@@ -50,7 +50,7 @@ export class LinuxNativeSpawner implements AppSpawner {
     }
 
     if (requireWindowId && pid) {
-      const { isX11DisplayServer } = await import('@mcp-tuikit/linux-utils');
+      const { isX11DisplayServer } = await import('@dragoscirjan/mcp-tuikit-linux-utils');
       const isX11 = virtualSession ? virtualSession.type === 'xvfb' : await isX11DisplayServer();
 
       if (isX11 && !virtualSession) {

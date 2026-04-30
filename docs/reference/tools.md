@@ -1,86 +1,21 @@
-# MCP Tools Reference
+# MCP Tools & Resources
 
-The `mcp-tuikit` server currently exposes several core tools specifically designed for LLM and TUI integration. This page outlines the available functionality and parameters.
+`mcp-tuikit` exposes a suite of MCP tools and resources that allow the AI agent to orchestrate the terminal.
 
-!!! tip "Work in Progress"
-This reference section is currently manually maintained, but will soon be auto-generated from the TypeScript definitions in `packages/*`.
+## Available Tools
 
----
+| Tool                  | Parameters                                                                         | Description                                                                                                                                                      |
+| --------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`create_session`**  | `command` (string), `cols` (number, default: 80), `rows` (number, default: 30)     | Creates a new terminal session and opens the configured terminal window. Returns the `session_id`.                                                               |
+| **`close_session`**   | `session_id` (string)                                                              | Closes a terminal session and destroys its terminal window.                                                                                                      |
+| **`create_snapshot`** | `session_id` (string), `format` (enum: txt, png, both), `intent` (optional string) | Captures a textual and/or visual PNG snapshot from an active session. Snapshots are saved to the local file system, and paths are returned to the agent.         |
+| **`send_keys`**       | `session_id` (string), `keys` (string), `submit` (boolean, default: false)         | Sends keystrokes to the terminal session. Keys should be in `tmux` format (e.g., `C-c` for Ctrl+C). If `submit` is true, an Enter key is automatically appended. |
+| **`wait_for_text`**   | `session_id` (string), `pattern` (string), `timeout_ms` (number, default: 5000)    | Suspends execution until a specific regex pattern appears in the terminal output. Excellent for waiting until a CLI tool finishes loading.                       |
+| **`run_flow`**        | `yaml_path` (optional string), `yaml_string` (optional string), `cols`, `rows`     | Runs a multi-step TUI flow autonomously using the internal Flow Engine.                                                                                          |
+| **`list_sessions`**   | _none_                                                                             | Lists all active terminal sessions created by the server.                                                                                                        |
 
-### `mcp-tuikit-dev_create_session`
+## Available Resources
 
-Creates a new background terminal session (via `tmux`) and opens the configured native terminal window (if applicable). This is the starting point for manual TUI testing.
-
-**Parameters:**
-
-- `command` _(string, required)_: The command to run inside the terminal session (e.g., `bash`, `python app.py`).
-- `cols` _(number, optional)_: Terminal width in columns.
-- `rows` _(number, optional)_: Terminal height in rows.
-
----
-
-### `mcp-tuikit-dev_close_session`
-
-Closes a running terminal session and its associated terminal window, freeing up system resources.
-
-**Parameters:**
-
-- `session_id` _(string, required)_: The unique Session ID returned by `create_session`.
-
----
-
-### `mcp-tuikit-dev_create_snapshot`
-
-Captures a precise `txt` and/or `png` snapshot of the active terminal session. This allows the LLM to read the current state of a curses app, progress bar, or interactive prompt.
-
-**Parameters:**
-
-- `session_id` _(string, required)_: The active Session ID.
-- `format` _(enum: txt, png, both)_: The snapshot format to capture.
-- `intent` _(string, optional)_: A human-readable intent/label describing the snapshot.
-
----
-
-### `mcp-tuikit-dev_send_keys`
-
-Sends keystrokes directly to the active terminal session, simulating human keyboard input.
-
-**Parameters:**
-
-- `session_id` _(string, required)_: The active Session ID.
-- `keys` _(string, required)_: The string to type (supports tmux format for special characters).
-- `submit` _(boolean, optional)_: If `true`, automatically appends an `Enter` keystroke after typing.
-
----
-
-### `mcp-tuikit-dev_wait_for_text`
-
-Blocks execution and polls the terminal screen until a specific regular expression pattern appears in the output. Useful for waiting for a TUI app to finish loading before taking a snapshot.
-
-**Parameters:**
-
-- `session_id` _(string, required)_: The active Session ID.
-- `pattern` _(string, required)_: The regex pattern to wait for.
-- `timeout_ms` _(number, optional)_: How long to wait before timing out (in milliseconds).
-
----
-
-### `mcp-tuikit-dev_run_flow`
-
-Instead of calling individual tools one by one, `run_flow` reads a declarative YAML file that spawns a session, sends keys, takes snapshots, and closes the session automatically in an isolated environment.
-
-**Parameters:**
-
-- `yaml_path` _(string, optional)_: Absolute or relative path to a YAML flow definition file.
-- `yaml_string` _(string, optional)_: Inline YAML flow definition (if passing the flow directly from the LLM prompt).
-- `cols` _(number, optional)_: Terminal width override.
-- `rows` _(number, optional)_: Terminal height override.
-
----
-
-### `mcp-tuikit-dev_list_sessions`
-
-Lists all active terminal sessions currently managed by `mcp-tuikit`. This helps the LLM debug state if it loses track of its session IDs.
-
-**Parameters:**
-_(None)_
+| Resource URI                                          | Description                                                                                                                                                                                  |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `terminal://session/{id}/screen.txt?maxLines={limit}` | **Plaintext terminal buffer.** Exposes the live ANSI-stripped textual representation of the terminal screen. Agents can "read" this resource to see exactly what is on the screen right now. |

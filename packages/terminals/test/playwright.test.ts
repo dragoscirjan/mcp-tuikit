@@ -24,7 +24,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { capturePlaywrightSnapshot } from '@mcp-tuikit/snapshot';
+import { capturePlaywrightSnapshot } from '@dragoscirjan/mcp-tuikit-snapshot';
 import { chromium } from 'playwright';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 

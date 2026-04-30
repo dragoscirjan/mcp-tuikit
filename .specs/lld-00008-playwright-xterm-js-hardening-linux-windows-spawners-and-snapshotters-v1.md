@@ -176,7 +176,7 @@ Add a `windows-terminal` case to the `switch` block in `packages/flow-engine/src
 
 tmux does not run natively on Windows. It is available inside WSL (Windows Subsystem for Linux). The spawner must account for this.
 
-The recommended approach: Windows Terminal (`wt.exe`) can launch a WSL profile directly. The flow engine on Windows assumes the MCP server itself runs inside WSL (since it depends on tmux from `@mcp-tuikit/tmux`). Windows Terminal attaches to the tmux session running in WSL.
+The recommended approach: Windows Terminal (`wt.exe`) can launch a WSL profile directly. The flow engine on Windows assumes the MCP server itself runs inside WSL (since it depends on tmux from `@dragoscirjan/mcp-tuikit-tmux`). Windows Terminal attaches to the tmux session running in WSL.
 
 ### Invocation
 

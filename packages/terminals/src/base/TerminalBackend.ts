@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
-import { SnapshotStrategy } from '@mcp-tuikit/snapshot';
-import { SessionHandler } from '@mcp-tuikit/tmux';
+import { SnapshotStrategy } from '@dragoscirjan/mcp-tuikit-snapshot';
+import { SessionHandler } from '@dragoscirjan/mcp-tuikit-tmux';
 
 export type IdType = string | null;
 
