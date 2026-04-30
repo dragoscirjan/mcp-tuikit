@@ -13,12 +13,13 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@mcp-tuikit/spawn": "workspace:*",
     "@mcp-tuikit/flow-engine": "workspace:*",
+    "@mcp-tuikit/spawn": "workspace:*",
     "@mcp-tuikit/terminals": "workspace:*",
     "@mcp-tuikit/tmux": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "nanoid": "^5.1.7",
+    "sharp": "^0.34.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {

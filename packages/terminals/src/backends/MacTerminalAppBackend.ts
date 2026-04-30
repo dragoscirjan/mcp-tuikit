@@ -18,7 +18,7 @@ export class MacTerminalAppBackend extends OsascriptSpawnedBackend {
   }
 
   protected generateSpawnCmd(tmuxCmd: string): string {
-    return `set newTab to do script "${tmuxCmd}"`;
+    return `set newTab to do script "${tmuxCmd.replace(/"/g, '\\"')}"`;
   }
 
   protected generateCloseCmd(windowId: IdType): string {
