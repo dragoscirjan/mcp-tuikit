@@ -1,6 +1,6 @@
+import { getTerminalTestSuite } from '@mcp-tuikit/test';
+import { hasBinary } from '@mcp-tuikit/test';
 import { describe, it, expect, vi } from 'vitest';
-import { getTerminalTestSuite } from './helpers/canRunTerminal.js';
-import { hasBinary } from './helpers/hasBinary.js';
 import { SpawnOptions } from '../src/spawn/AppSpawner.js';
 import { SpawnerFactory } from '../src/spawn/SpawnerFactory.js';
 import { Terminal } from '../src/Terminal.js';

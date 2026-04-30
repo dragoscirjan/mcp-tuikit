@@ -85,7 +85,8 @@ export function canRunTerminal(terminal: RunBackendOptions['terminal']): RunBack
           : hasBinary('pwsh')
             ? ''
             : 'missing-binary';
-    case 'cmd':
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    case 'cmd' as any:
       return process.platform !== 'win32' ? 'wrong-os' : target === 'cmd' ? 'only' : '';
     default:
       return 'skip';

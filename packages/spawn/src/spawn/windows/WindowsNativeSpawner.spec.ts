@@ -1,14 +1,18 @@
-import { describeWindows } from '@mcp-tuikit/test';
-import { it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+const describeWindows = process.platform === 'win32' ? describe : describe.skip;
 import { WindowsNativeSpawner } from './WindowsNativeSpawner.js';
 
-vi.mock('node:child_process', () => ({
-  spawn: vi.fn(() => ({
-    unref: vi.fn(),
-    on: vi.fn(),
-    pid: 1234,
-  })),
-}));
+vi.mock('node:child_process', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:child_process')>();
+  return {
+    ...actual,
+    spawn: vi.fn(() => ({
+      unref: vi.fn(),
+      on: vi.fn(),
+      pid: 1234,
+    })),
+  };
+});
 
 vi.mock('execa', () => ({
   execa: vi.fn(async (cmd, args) => {

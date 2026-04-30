@@ -1,9 +1,11 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["src/**/*"],
-  "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"],
   "compilerOptions": {
     "outDir": "dist",
-    "declaration": false
-  }
+    "declaration": true,
+    "composite": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"],
+  "references": [{ "path": "../flow-engine" }, { "path": "../spawn" }, { "path": "../terminals" }]
 }

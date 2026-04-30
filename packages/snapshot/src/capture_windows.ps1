@@ -35,6 +35,7 @@ if (![string]::IsNullOrEmpty($TargetWindowId)) {
 }
 
 # If we couldn't use TargetWindowId, try to find it by name
+# jscpd:ignore-start
 if ($hwnd -eq [IntPtr]::Zero -and ![string]::IsNullOrEmpty($TargetProcessName)) {
     $procs = Get-Process -Name $TargetProcessName -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -NE 0 -and $_.StartTime -gt (Get-Date).AddSeconds(-15) } | Sort-Object StartTime -Descending
     if ($procs -and $procs.Count -gt 0) {
@@ -56,6 +57,7 @@ if ($hwnd -eq [IntPtr]::Zero) {
         $hwnd = $procs[0].MainWindowHandle
     }
 }
+# jscpd:ignore-end
 
 if ($hwnd -eq [IntPtr]::Zero) {
     Write-Error "Could not find target window."

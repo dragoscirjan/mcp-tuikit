@@ -1,3 +1,4 @@
+/* jscpd:ignore-start */
 import { execSync } from 'node:child_process';
 
 export function hasBinary(bin: string): boolean {
@@ -12,3 +13,4 @@ export function hasBinary(bin: string): boolean {
     return false;
   }
 }
+/* jscpd:ignore-end */

@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "test": "vitest run"
   },
@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@mcp-tuikit/spawn": "workspace:*",
+    "@mcp-tuikit/test": "workspace:*",
     "@templ-project/tsconfig": "latest",
     "@types/node": "^22.13.5",
     "typescript": "^5.7.3",
