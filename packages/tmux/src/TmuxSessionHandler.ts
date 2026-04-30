@@ -24,7 +24,7 @@ export class TmuxSessionHandler implements SessionHandler {
   async createSession(cmd: string, cols: number, rows: number): Promise<string> {
     const sessionId = `mcp-${nanoid(8)}`;
     // Hide status bar to prevent stealing 1 row, ensuring btop/etc get full terminal size
-    const tmuxCmd = `${this.tmuxBinary} new-session -d -s ${sessionId} -x ${cols} -y ${rows} "${cmd}" \\; set-option -g status off`;
+    const tmuxCmd = `${this.tmuxBinary} new-session -d -s ${sessionId} -x ${cols} -y ${rows} \\; set-option -g status off \\; resize-window -x ${cols} -y ${rows} \\; send-keys -l "${cmd.replace(/"/g, '\\"')}" \\; send-keys C-m`;
     try {
       await execAsync(tmuxCmd);
     } catch (err) {
