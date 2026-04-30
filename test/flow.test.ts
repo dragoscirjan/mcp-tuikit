@@ -22,10 +22,10 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { canRunTerminal } from '@mcp-tuikit/test';
+import { hasBinary } from '@mcp-tuikit/test';
+import { defineFlowSuite, FlowSuiteOptions } from '@mcp-tuikit/test';
 import { beforeAll } from 'vitest';
-import { defineFlowSuite, FlowSuiteOptions } from './helpers/flowSuite.js';
-import { canRunTerminal } from './packages/spawn/test/helpers/canRunTerminal';
-import { hasBinary } from './packages/spawn/test/helpers/hasBinary';
 
 const SNAPSHOTS = path.resolve(import.meta.dirname, '..', 'snapshots');
 

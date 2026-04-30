@@ -1,6 +1,6 @@
-import { defineBackendSuite } from './helpers/backendSuite';
-import { canRunTerminal } from '../../spawn/test/helpers/canRunTerminal';
-import { hasBinary } from '../../spawn/test/helpers/hasBinary';
+import { canRunTerminal } from '@mcp-tuikit/test';
+import { hasBinary } from '@mcp-tuikit/test';
+import { defineBackendSuite } from '@mcp-tuikit/test';
 
 // Helper to define all display variants for a given terminal
 function defineTerminalSuites(terminal: Parameters<typeof canRunTerminal>[0], label: string) {

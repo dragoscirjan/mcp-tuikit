@@ -1,11 +1,11 @@
 {
-  "extends": "@templ-project/tsconfig/esm.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
     "declaration": true,
-    "declarationMap": true,
-    "ignoreDeprecations": "5.0"
+    "composite": true
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.spec.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["**/*.spec.ts", "**/*.test.ts"],
+  "references": [{ "path": "../tmux" }, { "path": "../linux-utils" }]
 }

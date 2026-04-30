@@ -4,12 +4,13 @@
  * - `runFlow`: parse a YAML flow, pass dims to FlowRunner constructor, run it.
  * - `defineFlowSuite`: declare a describe block whose artifacts are pre-run externally.
  */
-import fs from 'node:fs/promises';
+import * as fs from 'node:fs';
+import * as fsPromises from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { FlowRunner, Artifact, parseFlow } from '@mcp-tuikit/flow-engine';
 import { BackendFactory } from '@mcp-tuikit/terminals';
-import { Terminal } from '@mcp-tuikit/terminals/src';
+import { Terminal } from '@mcp-tuikit/terminals';
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 
 export interface RunFlowOptions {
@@ -78,9 +79,14 @@ export function defineFlowSuite(opts: FlowSuiteOptions): void {
     finalLabel += ' (headed)';
   }
 
-  let d = describe;
+  let artifacts: Artifact[] = [];
+  const originalEnv = { ...process.env };
+  let hasCommandSpy: ReturnType<typeof vi.spyOn> | undefined;
+  let tempDir: string | undefined;
 
-  /* jscpd:ignore-start */
+  // Handled skips
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let d: any = describe;
   if (run === 'skip') {
     d = describe.skip;
   } else if (run === 'only') {
@@ -92,32 +98,42 @@ export function defineFlowSuite(opts: FlowSuiteOptions): void {
     d = describe.skip;
     finalLabel += ' [SKIPPED: wrong OS]';
   }
-  /* jscpd:ignore-end */
 
   d(finalLabel, () => {
-    let artifacts: Artifact[] = [];
-    const originalEnv = { ...process.env };
-    let hasCommandSpy: ReturnType<typeof vi.spyOn> | undefined;
-    let tempDir: string | undefined;
-
     beforeAll(async () => {
+      // jscpd:ignore-start
       if (headless) {
         process.env.TUIKIT_HEADLESS = '1';
 
         // Isolate XDG_RUNTIME_DIR to prevent terminals like Ghostty from connecting
         // to the user's running daemon on Wayland/DBus.
-        tempDir = await fs.mkdtemp(path.join(os.tmpdir(), `mcp-tuikit-test-${terminal}-`));
-        process.env.XDG_RUNTIME_DIR = tempDir;
+        tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `mcp-tuikit-test-${terminal}-`));
+        process.env.XDG_RUNTIME_DIR = tempDir || '';
       } else {
         process.env.TUIKIT_HEADLESS = '0';
       }
+
+      if (headless && displayServer) {
+        const { VirtualSessionManager } = await import('@mcp-tuikit/spawn');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation((async (
+          cmd: string,
+        ) => {
+          if (displayServer === 'xvfb' && cmd === 'Xvfb') return true;
+          if (displayServer === 'sway' && cmd === 'sway') return true;
+          if (displayServer === 'kwin' && cmd === 'kwin_wayland') return true;
+          return false;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as any);
+      }
+      // jscpd:ignore-end
 
       // Mock VirtualSessionManager if we want a specific display server
       if (headless && displayServer) {
         const { execSync } = await import('node:child_process');
         const realWhich = execSync('which which').toString().trim();
 
-        const fakeWhichPath = path.join(tempDir, 'which');
+        const fakeWhichPath = path.join(tempDir || '', 'which');
         const mockXvfb = displayServer === 'xvfb' ? '1' : '0';
         const mockSway = displayServer === 'sway' ? '1' : '0';
         const mockKwin = displayServer === 'kwin' ? '1' : '0';
@@ -128,17 +144,22 @@ if [ "$1" = "sway" ] && [ "${mockSway}" = "0" ]; then exit 1; fi
 if [ "$1" = "kwin_wayland" ] && [ "${mockKwin}" = "0" ]; then exit 1; fi
 exec ${realWhich} "$@"
 `;
-        await fs.writeFile(fakeWhichPath, fakeWhichScript, { mode: 0o755 });
-        process.env.PATH = `${tempDir}:${process.env.PATH}`;
+        await fsPromises.writeFile(fakeWhichPath, fakeWhichScript, { mode: 0o755 });
+        process.env.PATH = `${tempDir || ''}:${process.env.PATH}`;
 
+        // jscpd:ignore-start
         const { VirtualSessionManager } = await import('@mcp-tuikit/spawn');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation(async (cmd: string) => {
+        hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation((async (
+          cmd: string,
+        ) => {
           if (displayServer === 'xvfb' && cmd === 'Xvfb') return true;
           if (displayServer === 'sway' && cmd === 'sway') return true;
           if (displayServer === 'kwin' && cmd === 'kwin_wayland') return true;
           return false;
-        });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as any);
+        // jscpd:ignore-end
       }
 
       artifacts = await runFlow(flowPath(yamlName), {
@@ -156,7 +177,7 @@ exec ${realWhich} "$@"
         hasCommandSpy.mockRestore();
       }
       if (tempDir) {
-        await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        await fsPromises.rm(tempDir, { recursive: true, force: true }).catch(() => {});
       }
     });
 
@@ -176,25 +197,25 @@ exec ${realWhich} "$@"
 
     it('txt snapshot is non-empty', async () => {
       const artifact = artifacts.find((a) => a.format === 'txt')!;
-      const txt = await fs.readFile(artifact.path, 'utf8');
+      const txt = await fsPromises.readFile(artifact.path, 'utf8');
       expect(txt.trim().length).toBeGreaterThan(0);
     });
 
     for (const pattern of txtMatchers) {
       it(`txt snapshot matches ${String(pattern)}`, async () => {
         const artifact = artifacts.find((a) => a.format === 'txt')!;
-        const txt = await fs.readFile(artifact.path, 'utf8');
+        const txt = await fsPromises.readFile(artifact.path, 'utf8');
         expect(txt).toMatch(pattern);
       });
     }
 
     it('png snapshot is a valid image (>1 KB) and has PNG magic bytes', async () => {
       const artifact = artifacts.find((a) => a.format === 'png')!;
-      const stat = await fs.stat(artifact.path);
+      const stat = await fsPromises.stat(artifact.path);
       expect(stat.size).toBeGreaterThan(1000);
 
       // Check PNG magic bytes: 89 50 4e 47 0d 0a 1a 0a
-      const fd = await fs.open(artifact.path, 'r');
+      const fd = await fsPromises.open(artifact.path, 'r');
       try {
         const buffer = Buffer.alloc(8);
         await fd.read(buffer, 0, 8, 0);
@@ -211,5 +232,5 @@ exec ${realWhich} "$@"
  * Convenience: absolute path to a flow YAML inside the project's flows/ directory.
  */
 export function flowPath(name: string): string {
-  return path.resolve(import.meta.dirname, '../../flows', name);
+  return path.resolve(import.meta.dirname, '../../../flows', name);
 }

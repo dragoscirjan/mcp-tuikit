@@ -2,10 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { TerminalBackend, BackendFactory } from '@mcp-tuikit/terminals';
 import { it, expect, beforeAll, afterAll, vi } from 'vitest';
-import { TerminalBackend } from '../../../../../index.js';
-import { getTerminalTestSuite, RunBackendOptions } from '../../../spawn/test/helpers/canRunTerminal';
-import { BackendFactory } from '../../src';
+import { getTerminalTestSuite, RunBackendOptions } from './canRunTerminal.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../');
 const snapshotsDir = path.join(repoRoot, 'snapshots');
@@ -31,8 +30,9 @@ export function defineBackendSuite(opts: ExtendedRunBackendOptions): void {
 
   const suite = getTerminalTestSuite(terminal, finalLabel);
 
-  // If the run type specifies skipping, apply it to the describe block
-  let d = suite.d;
+  // Backend testing
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let d: any = suite.d;
   if (opts.run === 'skip') {
     d = d.skip;
   } else if (opts.run === 'only') {
@@ -70,7 +70,7 @@ export function defineBackendSuite(opts: ExtendedRunBackendOptions): void {
         // Isolate XDG_RUNTIME_DIR to prevent terminals like Ghostty from connecting
         // to the user's running daemon on Wayland/DBus.
         tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `mcp-tuikit-test-${terminal}-`));
-        process.env.XDG_RUNTIME_DIR = tempDir;
+        process.env.XDG_RUNTIME_DIR = tempDir || '';
       } else {
         process.env.TUIKIT_HEADLESS = '0';
       }
@@ -79,19 +79,23 @@ export function defineBackendSuite(opts: ExtendedRunBackendOptions): void {
       if (headless && displayServer) {
         const { VirtualSessionManager } = await import('@mcp-tuikit/spawn');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation(async (cmd: string) => {
+        hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation((async (
+          cmd: string,
+        ) => {
           if (displayServer === 'xvfb' && cmd === 'Xvfb') return true;
           if (displayServer === 'sway' && cmd === 'sway') return true;
           if (displayServer === 'kwin' && cmd === 'kwin_wayland') return true;
           return false;
-        });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as any);
       }
 
       backend = BackendFactory.create(terminal);
 
       let shellCmd = process.env.SHELL || 'zsh';
       if (process.platform === 'win32') {
-        if (terminal === 'cmd') shellCmd = 'cmd.exe';
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((terminal as any) === 'cmd') shellCmd = 'cmd.exe';
         else if (terminal === 'powershell' || terminal === 'windows-terminal') shellCmd = 'powershell.exe';
         else shellCmd = 'powershell.exe'; // fallback for win32
       }
@@ -128,7 +132,7 @@ export function defineBackendSuite(opts: ExtendedRunBackendOptions): void {
     it(`should execute shell loop and capture output (${terminal} - ${variantSuffix})`, async () => {
       // Send OS/shell appropriate loop syntax
       if (process.platform === 'win32') {
-        if (terminal === 'cmd') {
+        if ((terminal as string) === 'cmd') {
           // CMD syntax: delay 1 sec between prints
           await backend.sendKeys('for /L %i in (1,1,5) do (echo LLM-TEST-OUTPUT-%i & timeout /t 1 >nul)\n');
         } else {

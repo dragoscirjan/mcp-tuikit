@@ -21,12 +21,12 @@
  * Output PNGs are saved to <repo-root>/snapshots/ so they survive the test
  * run and can be inspected visually (matching real usage of create_snapshot).
  */
-import { capturePlaywrightSnapshot } from '@mcp-tuikit/snapshot';
-import { chromium } from 'playwright';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { capturePlaywrightSnapshot } from '@mcp-tuikit/snapshot';
+import { chromium } from 'playwright';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
 // ── Snapshot output directory ────────────────────────────────────────────────
 

@@ -1,13 +1,17 @@
-import { describeLinux } from '@mcp-tuikit/test';
-import { it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+const describeLinux = process.platform === 'linux' ? describe : describe.skip;
 import { LinuxNativeSpawner } from './LinuxNativeSpawner.js';
 
-vi.mock('node:child_process', () => ({
-  spawn: vi.fn(() => ({
-    unref: vi.fn(),
-    pid: 1234,
-  })),
-}));
+vi.mock('node:child_process', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:child_process')>();
+  return {
+    ...actual,
+    spawn: vi.fn(() => ({
+      unref: vi.fn(),
+      pid: 1234,
+    })),
+  };
+});
 
 vi.mock('execa', () => ({
   execa: vi.fn(async (cmd) => {

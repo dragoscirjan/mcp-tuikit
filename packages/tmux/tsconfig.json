@@ -1,9 +1,11 @@
 {
-  "extends": "@templ-project/tsconfig/esm.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "declaration": true
+    "declaration": true,
+    "composite": true
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.spec.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["**/*.spec.ts", "**/*.test.ts"],
+  "references": [{ "path": "../spawn" }]
 }
