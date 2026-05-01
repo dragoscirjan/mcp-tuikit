@@ -19,16 +19,17 @@
     "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
     "@dragoscirjan/mcp-tuikit-terminals": "workspace:*",
     "js-yaml": "^4.1.0",
+    "nanoid": "^5.1.9",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@dragoscirjan/mcp-tuikit-test": "workspace:*",
     "@templ-project/tsconfig": "latest",
     "@types/fs-extra": "^11.0.4",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.0.0",
     "typescript": "^5.0.0",
-    "vitest": "^2.1.0",
-    "@dragoscirjan/mcp-tuikit-test": "workspace:*"
+    "vitest": "^2.1.0"
   },
   "publishConfig": {
     "access": "public"

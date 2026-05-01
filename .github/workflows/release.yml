@@ -45,15 +45,6 @@ jobs:
         # Using multi-semantic-release for independent versioning in pnpm workspaces
         run: pnpm dlx multi-semantic-release
 
-      - name: Semantic Release (Root Package)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          HUSKY: 0
-        # multi-semantic-release ignores the root directory.
-        # We run standard semantic-release to version and publish the main @dragoscirjan/mcp-tuikit package.
-        run: pnpm exec semantic-release
-
   docs:
     name: Build & Deploy Docs
     runs-on: ubuntu-latest

@@ -1,0 +1,32 @@
+{
+  "name": "@dragoscirjan/mcp-tuikit",
+  "version": "0.0.0-development",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-tuikit": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "eslint --fix ."
+  },
+  "dependencies": {
+    "@dragoscirjan/mcp-tuikit-flow-engine": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-terminals": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-tmux": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "nanoid": "^5.1.7",
+    "sharp": "^0.34.5",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@dragoscirjan/mcp-tuikit-test": "workspace:*",
+    "@types/node": "^25.6.0",
+    "typescript": "latest",
+    "vitest": "latest"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

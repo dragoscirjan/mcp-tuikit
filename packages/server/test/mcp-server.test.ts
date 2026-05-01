@@ -96,7 +96,7 @@ exec ${realWhich} "$@"
 
       transport = new StdioClientTransport({
         command: 'node',
-        args: ['dist/index.js'],
+        args: [path.resolve(__dirname, '../dist/index.js')],
         env: envOverrides,
       });
       client = new Client({ name: 'test-client', version: '1.0.0' }, { capabilities: {} });
