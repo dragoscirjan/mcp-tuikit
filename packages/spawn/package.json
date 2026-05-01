@@ -1,6 +1,6 @@
 {
   "name": "@dragoscirjan/mcp-tuikit-spawn",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,7 +9,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@dragoscirjan/mcp-tuikit-test": "1.0.0",
+    "@dragoscirjan/mcp-tuikit-test": "workspace:*",
     "typescript": "^5.0.0",
     "vitest": "^1.0.0"
   },
@@ -24,7 +24,7 @@
     "execa": "^9.6.1"
   },
   "optionalDependencies": {
-    "@dragoscirjan/mcp-tuikit-linux-utils": "1.0.0"
+    "@dragoscirjan/mcp-tuikit-linux-utils": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

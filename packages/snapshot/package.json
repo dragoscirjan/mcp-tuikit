@@ -1,6 +1,6 @@
 {
   "name": "@dragoscirjan/mcp-tuikit-snapshot",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "description": "Terminal screenshot capture strategies for mcp-tuikit",
   "type": "module",
   "main": "dist/index.js",
@@ -11,7 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@dragoscirjan/mcp-tuikit-tmux": "1.0.0",
+    "@dragoscirjan/mcp-tuikit-tmux": "workspace:*",
     "@xterm/xterm": "^5.5.0",
     "dbus-next": "^0.10.2",
     "execa": "^9.5.2",
@@ -19,7 +19,7 @@
     "playwright": "^1.50.1"
   },
   "optionalDependencies": {
-    "@dragoscirjan/mcp-tuikit-linux-utils": "1.0.0"
+    "@dragoscirjan/mcp-tuikit-linux-utils": "workspace:*"
   },
   "devDependencies": {
     "@templ-project/tsconfig": "latest",
