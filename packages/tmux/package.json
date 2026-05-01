@@ -1,6 +1,6 @@
 {
   "name": "@dragoscirjan/mcp-tuikit-tmux",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,7 +8,7 @@
     "build": "tsc -b"
   },
   "dependencies": {
-    "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-spawn": "1.0.0",
     "nanoid": "^5.1.7"
   },
   "devDependencies": {
