@@ -11,15 +11,15 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@dragoscirjan/mcp-tuikit-snapshot": "workspace:*",
-    "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
-    "@dragoscirjan/mcp-tuikit-tmux": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-snapshot": "1.0.0",
+    "@dragoscirjan/mcp-tuikit-spawn": "1.0.0",
+    "@dragoscirjan/mcp-tuikit-tmux": "1.0.0",
     "execa": "^9.5.2",
     "playwright": "^1.50.1"
   },
   "devDependencies": {
-    "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
-    "@dragoscirjan/mcp-tuikit-test": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-spawn": "1.0.0",
+    "@dragoscirjan/mcp-tuikit-test": "1.0.0",
     "@templ-project/tsconfig": "latest",
     "@types/node": "^22.13.5",
     "typescript": "^5.7.3",
