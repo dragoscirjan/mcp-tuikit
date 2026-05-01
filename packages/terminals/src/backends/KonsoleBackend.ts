@@ -1,4 +1,4 @@
-import { SpawnOptions } from '@mcp-tuikit/spawn';
+import { SpawnOptions } from '@dragoscirjan/mcp-tuikit-spawn';
 import { ShellSpawnedBackend } from '../base/ShellSpawnedBackend.js';
 
 export class KonsoleBackend extends ShellSpawnedBackend {

@@ -1,10 +1,10 @@
-import { isX11DisplayServer } from '@mcp-tuikit/linux-utils';
+import { isX11DisplayServer } from '@dragoscirjan/mcp-tuikit-linux-utils';
 import { execa } from 'execa';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { LinuxSnapshotStrategy } from './linux.js';
 
-vi.mock('@mcp-tuikit/linux-utils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@mcp-tuikit/linux-utils')>();
+vi.mock('@dragoscirjan/mcp-tuikit-linux-utils', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@dragoscirjan/mcp-tuikit-linux-utils')>();
   return {
     ...actual,
     isX11DisplayServer: vi.fn(),

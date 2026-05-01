@@ -1,5 +1,5 @@
 {
-  "name": "mcp-tuikit",
+  "name": "@dragoscirjan/mcp-tuikit",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
@@ -13,17 +13,17 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@mcp-tuikit/flow-engine": "workspace:*",
-    "@mcp-tuikit/spawn": "workspace:*",
-    "@mcp-tuikit/terminals": "workspace:*",
-    "@mcp-tuikit/tmux": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-flow-engine": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-terminals": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-tmux": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "nanoid": "^5.1.7",
     "sharp": "^0.34.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@mcp-tuikit/test": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-test": "workspace:*",
     "@playwright/test": "^1.59.1",
     "@templ-project/commitlint": "latest",
     "@templ-project/eslint": "latest",

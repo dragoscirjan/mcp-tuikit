@@ -3,10 +3,10 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { FlowRunner, Artifact, parseFlow, parseFlowFromString } from '@mcp-tuikit/flow-engine';
-import { TerminalBackend } from '@mcp-tuikit/terminals';
-import { BackendFactory, getBackendConfig } from '@mcp-tuikit/terminals';
-import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
+import { FlowRunner, Artifact, parseFlow, parseFlowFromString } from '@dragoscirjan/mcp-tuikit-flow-engine';
+import { TerminalBackend } from '@dragoscirjan/mcp-tuikit-terminals';
+import { BackendFactory, getBackendConfig } from '@dragoscirjan/mcp-tuikit-terminals';
+import { TmuxSessionHandler } from '@dragoscirjan/mcp-tuikit-tmux';
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { nanoid } from 'nanoid';

@@ -47,7 +47,7 @@ Reads the TUIKIT_TERMINAL environment variable for explicit override. In CI envi
 
 ### 1.3 Flow Runner (runner.ts) — DONE (macOS and Playwright paths)
 
-FlowRunner accepts a TerminalBackend (from @mcp-tuikit/core) and optional cols/rows dimensions (default 80x30). Executes flow steps sequentially.
+FlowRunner accepts a TerminalBackend (from @dragoscirjan/mcp-tuikit-core) and optional cols/rows dimensions (default 80x30). Executes flow steps sequentially.
 
 **Spawn step — dual path:**
 
@@ -205,7 +205,7 @@ Tasks R1, R2, and R6 can proceed in parallel. Tasks R3-R5 are blocked on the Win
 
 ## 4. Interfaces and Contracts
 
-### TerminalBackend (from @mcp-tuikit/core)
+### TerminalBackend (from @dragoscirjan/mcp-tuikit-core)
 
 The flow engine depends on TerminalBackend which provides: createSession, closeSession, sendKeys, waitForText, getScreenPlaintext, getScreenJson, and getSessionState. The runner only uses createSession, closeSession, sendKeys, and waitForText. It also relies on an undocumented onData method accessed via type cast; this should be formalized in the interface.
 

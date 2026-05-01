@@ -1,5 +1,5 @@
 {
-  "name": "@mcp-tuikit/terminals",
+  "name": "@dragoscirjan/mcp-tuikit-terminals",
   "version": "1.0.0",
   "description": "Terminal backends and snapshotters for mcp-tuikit",
   "type": "module",
@@ -11,15 +11,15 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@mcp-tuikit/snapshot": "workspace:*",
-    "@mcp-tuikit/spawn": "workspace:*",
-    "@mcp-tuikit/tmux": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-snapshot": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-tmux": "workspace:*",
     "execa": "^9.5.2",
     "playwright": "^1.50.1"
   },
   "devDependencies": {
-    "@mcp-tuikit/spawn": "workspace:*",
-    "@mcp-tuikit/test": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-test": "workspace:*",
     "@templ-project/tsconfig": "latest",
     "@types/node": "^22.13.5",
     "typescript": "^5.7.3",

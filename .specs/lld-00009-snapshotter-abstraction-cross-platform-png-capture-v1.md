@@ -33,7 +33,7 @@ bundled even on Linux and Windows where it is useless.
    implementation based on `backendConfig` (env → platform).
 4. Replace every `if (process.platform === 'darwin')` and `if (backendConfig === 'playwright')`
    guard in `runner.ts` and `src/index.ts` with a single `snapshotter.capture(...)` call.
-5. Expose the `Snapshotter` interface from `@mcp-tuikit/core` so external packages
+5. Expose the `Snapshotter` interface from `@dragoscirjan/mcp-tuikit-core` so external packages
    can implement their own without depending on `flow-engine`.
 
 ## Interface

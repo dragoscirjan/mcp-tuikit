@@ -1,5 +1,5 @@
-import { loadXtermAssets, getPlaywrightLaunchOptions, SnapshotStrategy } from '@mcp-tuikit/snapshot';
-import { SessionHandler, TmuxSessionHandler } from '@mcp-tuikit/tmux';
+import { loadXtermAssets, getPlaywrightLaunchOptions, SnapshotStrategy } from '@dragoscirjan/mcp-tuikit-snapshot';
+import { SessionHandler, TmuxSessionHandler } from '@dragoscirjan/mcp-tuikit-tmux';
 import { Browser, Page, chromium } from 'playwright';
 import { TerminalBackend } from './TerminalBackend.js';
 

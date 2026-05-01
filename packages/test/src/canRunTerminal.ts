@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process';
-import { Terminal } from '@mcp-tuikit/terminals';
+import { Terminal } from '@dragoscirjan/mcp-tuikit-terminals';
 import { describe } from 'vitest';
 
 export interface RunBackendOptions {

@@ -22,9 +22,9 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { canRunTerminal } from '@mcp-tuikit/test';
-import { hasBinary } from '@mcp-tuikit/test';
-import { defineFlowSuite, FlowSuiteOptions } from '@mcp-tuikit/test';
+import { canRunTerminal } from '@dragoscirjan/mcp-tuikit-test';
+import { hasBinary } from '@dragoscirjan/mcp-tuikit-test';
+import { defineFlowSuite, FlowSuiteOptions } from '@dragoscirjan/mcp-tuikit-test';
 import { beforeAll } from 'vitest';
 
 const SNAPSHOTS = path.resolve(import.meta.dirname, '..', 'snapshots');

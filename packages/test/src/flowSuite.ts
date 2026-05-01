@@ -8,9 +8,9 @@ import * as fs from 'node:fs';
 import * as fsPromises from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { FlowRunner, Artifact, parseFlow } from '@mcp-tuikit/flow-engine';
-import { BackendFactory } from '@mcp-tuikit/terminals';
-import { Terminal } from '@mcp-tuikit/terminals';
+import { FlowRunner, Artifact, parseFlow } from '@dragoscirjan/mcp-tuikit-flow-engine';
+import { BackendFactory } from '@dragoscirjan/mcp-tuikit-terminals';
+import { Terminal } from '@dragoscirjan/mcp-tuikit-terminals';
 import sharp from 'sharp';
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 
@@ -115,7 +115,7 @@ export function defineFlowSuite(opts: FlowSuiteOptions): void {
       }
 
       if (headless && displayServer) {
-        const { VirtualSessionManager } = await import('@mcp-tuikit/spawn');
+        const { VirtualSessionManager } = await import('@dragoscirjan/mcp-tuikit-spawn');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation((async (
           cmd: string,
@@ -149,7 +149,7 @@ exec ${realWhich} "$@"
         process.env.PATH = `${tempDir || ''}:${process.env.PATH}`;
 
         // jscpd:ignore-start
-        const { VirtualSessionManager } = await import('@mcp-tuikit/spawn');
+        const { VirtualSessionManager } = await import('@dragoscirjan/mcp-tuikit-spawn');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation((async (
           cmd: string,

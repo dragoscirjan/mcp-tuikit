@@ -40,7 +40,7 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
     _tmuxSession: string,
     spawnResult?: unknown,
   ): Promise<void> {
-    const { isX11DisplayServer } = await import('@mcp-tuikit/linux-utils');
+    const { isX11DisplayServer } = await import('@dragoscirjan/mcp-tuikit-linux-utils');
     const isX11 = await isX11DisplayServer();
     const windowId = (spawnResult as { windowId?: string })?.windowId;
     const virtualSession = (spawnResult as { virtualSession?: { type: string; display: string } })?.virtualSession;

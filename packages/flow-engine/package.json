@@ -1,5 +1,5 @@
 {
-  "name": "@mcp-tuikit/flow-engine",
+  "name": "@dragoscirjan/mcp-tuikit-flow-engine",
   "version": "1.0.0",
   "type": "module",
   "main": "dist/index.js",
@@ -16,8 +16,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@mcp-tuikit/spawn": "workspace:*",
-    "@mcp-tuikit/terminals": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-terminals": "workspace:*",
     "js-yaml": "^4.1.0",
     "zod": "^3.24.2"
   },
@@ -28,6 +28,6 @@
     "@types/node": "^22.0.0",
     "typescript": "^5.0.0",
     "vitest": "^2.1.0",
-    "@mcp-tuikit/test": "workspace:*"
+    "@dragoscirjan/mcp-tuikit-test": "workspace:*"
   }
 }

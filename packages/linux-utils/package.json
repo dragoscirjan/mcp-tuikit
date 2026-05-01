@@ -1,5 +1,5 @@
 {
-  "name": "@mcp-tuikit/linux-utils",
+  "name": "@dragoscirjan/mcp-tuikit-linux-utils",
   "version": "1.0.0",
   "description": "Linux specific utilities for mcp-tuikit",
   "type": "module",

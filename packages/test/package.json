@@ -1,5 +1,5 @@
 {
-  "name": "@mcp-tuikit/test",
+  "name": "@dragoscirjan/mcp-tuikit-test",
   "version": "1.0.0",
   "type": "module",
   "main": "dist/index.js",
@@ -9,9 +9,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@mcp-tuikit/flow-engine": "workspace:*",
-    "@mcp-tuikit/spawn": "workspace:*",
-    "@mcp-tuikit/terminals": "workspace:*"
+    "@dragoscirjan/mcp-tuikit-flow-engine": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-terminals": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

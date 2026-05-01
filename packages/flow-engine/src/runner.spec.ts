@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { TerminalBackend } from '@mcp-tuikit/terminals';
+import { TerminalBackend } from '@dragoscirjan/mcp-tuikit-terminals';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FlowRunner } from './runner.js';
 import { Flow } from './schema.js';

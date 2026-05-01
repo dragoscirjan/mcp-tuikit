@@ -1,4 +1,4 @@
-import { TmuxSessionHandler } from '@mcp-tuikit/tmux';
+import { TmuxSessionHandler } from '@dragoscirjan/mcp-tuikit-tmux';
 import { capturePlaywrightSnapshot } from './playwright-utils.js';
 import { SnapshotStrategy } from './SnapshotStrategy.js';
 

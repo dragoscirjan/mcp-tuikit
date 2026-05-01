@@ -8,16 +8,16 @@ importers:
 
   .:
     dependencies:
-      '@mcp-tuikit/flow-engine':
+      '@dragoscirjan/mcp-tuikit-flow-engine':
         specifier: workspace:*
         version: link:packages/flow-engine
-      '@mcp-tuikit/spawn':
+      '@dragoscirjan/mcp-tuikit-spawn':
         specifier: workspace:*
         version: link:packages/spawn
-      '@mcp-tuikit/terminals':
+      '@dragoscirjan/mcp-tuikit-terminals':
         specifier: workspace:*
         version: link:packages/terminals
-      '@mcp-tuikit/tmux':
+      '@dragoscirjan/mcp-tuikit-tmux':
         specifier: workspace:*
         version: link:packages/tmux
       '@modelcontextprotocol/sdk':
@@ -33,7 +33,7 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
-      '@mcp-tuikit/test':
+      '@dragoscirjan/mcp-tuikit-test':
         specifier: workspace:*
         version: link:packages/test
       '@playwright/test':
@@ -90,10 +90,10 @@ importers:
 
   packages/flow-engine:
     dependencies:
-      '@mcp-tuikit/spawn':
+      '@dragoscirjan/mcp-tuikit-spawn':
         specifier: workspace:*
         version: link:../spawn
-      '@mcp-tuikit/terminals':
+      '@dragoscirjan/mcp-tuikit-terminals':
         specifier: workspace:*
         version: link:../terminals
       js-yaml:
@@ -103,7 +103,7 @@ importers:
         specifier: ^3.24.2
         version: 3.25.76
     devDependencies:
-      '@mcp-tuikit/test':
+      '@dragoscirjan/mcp-tuikit-test':
         specifier: workspace:*
         version: link:../test
       '@templ-project/tsconfig':
@@ -140,7 +140,7 @@ importers:
 
   packages/snapshot:
     dependencies:
-      '@mcp-tuikit/tmux':
+      '@dragoscirjan/mcp-tuikit-tmux':
         specifier: workspace:*
         version: link:../tmux
       '@xterm/xterm':
@@ -172,7 +172,7 @@ importers:
         specifier: ^4.1.4
         version: 4.1.5(@types/node@22.19.17)(vite@7.3.2(@types/node@22.19.17)(jiti@2.6.1)(yaml@2.8.3))
     optionalDependencies:
-      '@mcp-tuikit/linux-utils':
+      '@dragoscirjan/mcp-tuikit-linux-utils':
         specifier: workspace:*
         version: link:../linux-utils
 
@@ -182,7 +182,7 @@ importers:
         specifier: ^9.6.1
         version: 9.6.1
     devDependencies:
-      '@mcp-tuikit/test':
+      '@dragoscirjan/mcp-tuikit-test':
         specifier: workspace:*
         version: link:../test
       typescript:
@@ -192,19 +192,19 @@ importers:
         specifier: ^1.0.0
         version: 1.6.1(@types/node@25.6.0)
     optionalDependencies:
-      '@mcp-tuikit/linux-utils':
+      '@dragoscirjan/mcp-tuikit-linux-utils':
         specifier: workspace:*
         version: link:../linux-utils
 
   packages/terminals:
     dependencies:
-      '@mcp-tuikit/snapshot':
+      '@dragoscirjan/mcp-tuikit-snapshot':
         specifier: workspace:*
         version: link:../snapshot
-      '@mcp-tuikit/spawn':
+      '@dragoscirjan/mcp-tuikit-spawn':
         specifier: workspace:*
         version: link:../spawn
-      '@mcp-tuikit/tmux':
+      '@dragoscirjan/mcp-tuikit-tmux':
         specifier: workspace:*
         version: link:../tmux
       execa:
@@ -214,7 +214,7 @@ importers:
         specifier: ^1.50.1
         version: 1.59.1
     devDependencies:
-      '@mcp-tuikit/test':
+      '@dragoscirjan/mcp-tuikit-test':
         specifier: workspace:*
         version: link:../test
       '@templ-project/tsconfig':
@@ -232,13 +232,13 @@ importers:
 
   packages/test:
     dependencies:
-      '@mcp-tuikit/flow-engine':
+      '@dragoscirjan/mcp-tuikit-flow-engine':
         specifier: workspace:*
         version: link:../flow-engine
-      '@mcp-tuikit/spawn':
+      '@dragoscirjan/mcp-tuikit-spawn':
         specifier: workspace:*
         version: link:../spawn
-      '@mcp-tuikit/terminals':
+      '@dragoscirjan/mcp-tuikit-terminals':
         specifier: workspace:*
         version: link:../terminals
     devDependencies:
@@ -260,7 +260,7 @@ importers:
 
   packages/tmux:
     dependencies:
-      '@mcp-tuikit/spawn':
+      '@dragoscirjan/mcp-tuikit-spawn':
         specifier: workspace:*
         version: link:../spawn
       nanoid:

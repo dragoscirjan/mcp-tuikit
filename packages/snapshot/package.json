@@ -1,5 +1,5 @@
 {
-  "name": "@mcp-tuikit/snapshot",
+  "name": "@dragoscirjan/mcp-tuikit-snapshot",
   "version": "1.0.0",
   "description": "Terminal screenshot capture strategies for mcp-tuikit",
   "type": "module",
@@ -11,7 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@mcp-tuikit/tmux": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-tmux": "workspace:*",
     "@xterm/xterm": "^5.5.0",
     "dbus-next": "^0.10.2",
     "execa": "^9.5.2",
@@ -19,7 +19,7 @@
     "playwright": "^1.50.1"
   },
   "optionalDependencies": {
-    "@mcp-tuikit/linux-utils": "workspace:*"
+    "@dragoscirjan/mcp-tuikit-linux-utils": "workspace:*"
   },
   "devDependencies": {
     "@templ-project/tsconfig": "latest",

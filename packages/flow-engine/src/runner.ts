@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { TerminalBackend } from '@mcp-tuikit/terminals';
+import { TerminalBackend } from '@dragoscirjan/mcp-tuikit-terminals';
 import { nanoid } from 'nanoid';
 import { Flow, Action } from './schema.js';
 
