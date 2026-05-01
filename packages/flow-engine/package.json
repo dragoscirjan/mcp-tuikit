@@ -16,8 +16,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@dragoscirjan/mcp-tuikit-spawn": "1.0.0",
-    "@dragoscirjan/mcp-tuikit-terminals": "1.0.0",
+    "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
+    "@dragoscirjan/mcp-tuikit-terminals": "workspace:*",
     "js-yaml": "^4.1.0",
     "zod": "^3.24.2"
   },
@@ -28,7 +28,7 @@
     "@types/node": "^22.0.0",
     "typescript": "^5.0.0",
     "vitest": "^2.1.0",
-    "@dragoscirjan/mcp-tuikit-test": "1.0.0"
+    "@dragoscirjan/mcp-tuikit-test": "workspace:*"
   },
   "publishConfig": {
     "access": "public"
