@@ -1,4 +1,4 @@
-import { Terminal } from '@mcp-tuikit/core';
+import { Terminal } from './Terminal.js';
 
 /**
  * Returns the terminal backend to use.
@@ -8,10 +8,8 @@ import { Terminal } from '@mcp-tuikit/core';
  * Default: 'xterm.js'
  */
 export function getBackendConfig(): Terminal {
-  if (process.env.TUIKIT_HEADLESS === '1') {
-    return 'xterm.js';
-  }
-  return (process.env.TUIKIT_TERMINAL as Terminal) ?? 'xterm.js';
+  // Note: We no longer force 'xterm.js' when TUIKIT_HEADLESS=1, because Linux now supports headless runs for native terminals
+  return (process.env.TUIKIT_TERMINAL as Terminal) || 'xterm.js';
 }
 
 /**

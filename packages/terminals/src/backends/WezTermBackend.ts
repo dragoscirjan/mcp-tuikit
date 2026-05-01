@@ -1,5 +1,5 @@
-import { SpawnOptions } from '@mcp-tuikit/core';
-import { ShellSpawnedBackend } from '@mcp-tuikit/core';
+import { SpawnOptions } from '@mcp-tuikit/spawn';
+import { ShellSpawnedBackend } from '../base/ShellSpawnedBackend.js';
 
 export class WezTermBackend extends ShellSpawnedBackend {
   protected async getSpawnOptions(tmuxAbsPath: string, sessionName: string): Promise<SpawnOptions> {

@@ -24,11 +24,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { capturePlaywrightSnapshot } from '@mcp-tuikit/snapshot';
 import { chromium } from 'playwright';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { capturePlaywrightSnapshot } from '../src/playwright-utils.js';
 
-// ── Snapshot output directory ─────────────────────────────────────────────────
+// ── Snapshot output directory ────────────────────────────────────────────────
 
 // Resolve <repo-root>/snapshots/ regardless of where vitest is invoked from.
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../');
@@ -38,13 +38,11 @@ beforeAll(async () => {
   // Integration tests run headed by default (real usage).
   // Set TUIKIT_HEADLESS=1 externally if you need headless (e.g. CI).
   await fs.mkdir(snapshotsDir, { recursive: true });
-
   process.env.TUIKIT_HEADLESS = '1';
 });
 
 afterAll(() => {
   // PNGs are intentionally kept in snapshots/ for post-run inspection.
-
   delete process.env.TUIKIT_HEADLESS;
 });
 
@@ -122,9 +120,20 @@ async function analyzePixels(pngPath: string): Promise<PixelStats> {
   }
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// Helper to check if we can launch chromium (e.g. missing libgbm on NixOS)
+async function canLaunchChromium() {
+  try {
+    const b = await chromium.launch({ headless: true });
+    await b.close();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-describe('capturePlaywrightSnapshot — xterm.js rendering verification', () => {
+const runTests = await canLaunchChromium();
+
+describe.runIf(runTests)('capturePlaywrightSnapshot — xterm.js rendering verification', () => {
   it('produces green pixels when ANSI green text is written', async () => {
     const out = snapshotPng('green-text');
     // \x1b[32m = ANSI green foreground

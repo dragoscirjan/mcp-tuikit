@@ -20,7 +20,7 @@ Currently, `NativeTerminalBackend` in `packages/terminals` is a monolithic class
 
 ## Architecture
 
-### 1. `packages/core/src/spawn/AppSpawner.ts`
+### 1. `packages/spawn/src/spawn/AppSpawner.ts`
 Defines the cross-platform contract:
 
 ```typescript
@@ -42,13 +42,13 @@ export interface AppSpawner {
 }
 ```
 
-### 2. `packages/core/src/spawn/macos/`
+### 2. `packages/spawn/src/spawn/macos/`
 *   **`getWindowId.ts`**: Helper that compiles/runs the Swift script `get-macos-app-wid.swift`. Given a PID or App Name, it returns the macOS Window ID.
 *   **`MacOsNativeSpawner.ts`**: Implements `AppSpawner`. Uses Node's `execa(executable, args)` in detached mode. Captures the `.pid` immediately, then polls `getWindowId(pid)`.
 *   **`MacOsOpenSpawner.ts`**: Implements `AppSpawner`. Uses `execa('open', ['-na', executable, '--args', ...args])`. Uses `pgrep -nx` to find the newest PID matching the `appName`, then queries `getWindowId(pid)`.
 
 ### 3. Scripts
-*   Extract `experiments/get-macos-app-wid.swift` to `packages/core/scripts/get-macos-app-wid.swift`.
+*   Extract `experiments/get-macos-app-wid.swift` to `packages/spawn/scripts/get-macos-app-wid.swift`.
 
 ### 4. `packages/terminals/src/backends/`
 Create specific backend classes extending `TerminalBackend`. They will take an `AppSpawner` instance.
@@ -60,8 +60,8 @@ Create specific backend classes extending `TerminalBackend`. They will take an `
 *Note: Remove `NativeTerminalBackend.ts` entirely.*
 
 ## Tasks
-1. Move the Swift script to `packages/core/scripts/get-macos-app-wid.swift`.
-2. Implement `AppSpawner` and macOS variants in `packages/core/src/spawn/`.
+1. Move the Swift script to `packages/spawn/scripts/get-macos-app-wid.swift`.
+2. Implement `AppSpawner` and macOS variants in `packages/spawn/src/spawn/`.
 3. Export new spawn classes and interfaces from `@mcp-tuikit/core`.
 4. Implement `AlacrittyBackend`, `GhosttyBackend`, `WezTermBackend` in `packages/terminals/src/backends/`.
 5. Update `TerminalBackend.ts` to fully remove `switch` logic and utilize the `[IdType, IdType]` return tuple in `spawn()`.

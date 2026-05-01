@@ -1,4 +1,7 @@
-import { OsascriptSpawnedBackend, SessionHandler, SnapshotStrategy, IdType } from '@mcp-tuikit/core';
+import { SnapshotStrategy } from '@mcp-tuikit/snapshot';
+import { SessionHandler } from '@mcp-tuikit/tmux';
+import { OsascriptSpawnedBackend } from '../base/OsascriptSpawnedBackend.js';
+import { IdType } from '../base/TerminalBackend.js';
 
 // jscpd:ignore-start
 export class ITerm2Backend extends OsascriptSpawnedBackend {
@@ -15,7 +18,7 @@ export class ITerm2Backend extends OsascriptSpawnedBackend {
   }
 
   protected generateSpawnCmd(tmuxCmd: string): string {
-    return `create window with default profile command "${tmuxCmd}"`;
+    return `create window with default profile command "${tmuxCmd.replace(/"/g, '\\"')}"`;
   }
 
   protected generateCloseCmd(windowId: IdType): string {

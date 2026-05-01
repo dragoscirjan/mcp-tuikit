@@ -26,7 +26,7 @@ This LLD addresses six gaps in the flow engine's cross-platform support:
 
 6. The `runner.ts` snapshot branch only handles Playwright and macOS; Linux and Windows are missing.
 
-All changes stay within `packages/flow-engine`. No changes to `packages/core` or `packages/tmux` are needed. All new dependencies must be MIT-compatible.
+All changes stay within `packages/flow-engine`. No changes to `packages/spawn` or `packages/tmux` are needed. All new dependencies must be MIT-compatible.
 
 ## 2. Architecture: Component Breakdown
 

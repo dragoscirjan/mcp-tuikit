@@ -6,21 +6,21 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc && node scripts/copy-assets.js",
+    "build": "tsc -b",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "test": "vitest run"
   },
   "dependencies": {
-    "@mcp-tuikit/core": "workspace:*",
+    "@mcp-tuikit/snapshot": "workspace:*",
+    "@mcp-tuikit/spawn": "workspace:*",
     "@mcp-tuikit/tmux": "workspace:*",
-    "@xterm/xterm": "^5.5.0",
-    "dbus-next": "^0.10.2",
     "execa": "^9.5.2",
-    "nanoid": "^5.1.2",
     "playwright": "^1.50.1"
   },
   "devDependencies": {
-    "@mcp-tuikit/core": "workspace:*",
+    "@mcp-tuikit/spawn": "workspace:*",
+    "@mcp-tuikit/test": "workspace:*",
+    "@templ-project/tsconfig": "latest",
     "@types/node": "^22.13.5",
     "typescript": "^5.7.3",
     "vitest": "^4.1.4"

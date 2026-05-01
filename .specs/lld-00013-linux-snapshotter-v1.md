@@ -31,7 +31,7 @@ The Rust module is strictly responsible for bulletproof detection of the active 
 * **Interface**: The native module exposes a simple, synchronous JavaScript API:
   * `export function getDisplayServerProtocol(): 'x11' | 'wayland' | 'unknown'`
 
-### 2.3 Current Phase: Window Spawner & CLI Fallbacks (`packages/core` & `packages/terminals`)
+### 2.3 Current Phase: Window Spawner & CLI Fallbacks (`packages/spawn` & `packages/terminals`)
 
 For the *immediate* Phase 1 implementation, the actual screenshot capture and window identification will continue to rely on existing CLI fallbacks and Spawner extraction logic, driven by the Rust detection layer.
 

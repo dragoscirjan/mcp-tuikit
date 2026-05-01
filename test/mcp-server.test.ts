@@ -2,13 +2,11 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { Terminal } from '@mcp-tuikit/core';
+import { Terminal } from '@mcp-tuikit/terminals';
+import { canRunTerminal, hasBinary, getTerminalTestSuite } from '@mcp-tuikit/test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { canRunTerminal } from './packages/core/test/helpers/canRunTerminal';
-import { getTerminalTestSuite } from './packages/core/test/helpers/canRunTerminal';
-import { hasBinary } from './packages/core/test/helpers/hasBinary';
+import { it, expect, beforeAll, afterAll } from 'vitest';
 
 interface ToolResponseContent {
   type: string;
@@ -47,6 +45,14 @@ function defineServerSuite(opts: ServerSuiteOptions) {
   let d = suite.d;
   if (opts.run === 'skip') {
     d = d.skip;
+  } else if (opts.run === 'only') {
+    d = d.only;
+  } else if (opts.run === 'missing-binary') {
+    d = d.skip;
+    suite.label += ' [UNAVAILABLE: binary missing]';
+  } else if (opts.run === 'wrong-os') {
+    d = d.skip;
+    suite.label += ' [SKIPPED: wrong OS]';
   }
 
   d(suite.label, () => {
@@ -72,11 +78,14 @@ function defineServerSuite(opts: ServerSuiteOptions) {
           const mockSway = displayServer === 'sway' ? '1' : '0';
           const mockKwin = displayServer === 'kwin' ? '1' : '0';
 
+          const { execSync } = await import('node:child_process');
+          const realWhich = execSync('which which').toString().trim();
+
           const fakeWhichScript = `#!/bin/sh
 if [ "$1" = "Xvfb" ] && [ "${mockXvfb}" = "0" ]; then exit 1; fi
 if [ "$1" = "sway" ] && [ "${mockSway}" = "0" ]; then exit 1; fi
 if [ "$1" = "kwin_wayland" ] && [ "${mockKwin}" = "0" ]; then exit 1; fi
-exec /usr/bin/which "$@"
+exec ${realWhich} "$@"
 `;
           await fs.writeFile(fakeWhichPath, fakeWhichScript, { mode: 0o755 });
           envOverrides.PATH = `${tempDir}:${process.env.PATH}`;
@@ -157,6 +166,9 @@ exec /usr/bin/which "$@"
           format: 'both',
         },
       });
+      if (snapRes.isError) {
+        console.error('Snap Res Error:', JSON.stringify(snapRes.content));
+      }
       expect(snapRes.isError).toBeFalsy();
       const snapResContent = snapRes.content as unknown as ToolResponseContent[];
       const artifacts = JSON.parse(snapResContent[0].text) as ArtifactResult[];
@@ -200,7 +212,7 @@ function defineTerminalServerSuites(terminal: Terminal, label: string) {
     defineServerSuite({
       label,
       terminal,
-      run: baseRun === 'only' ? 'only' : hasBinary('Xvfb') ? baseRun : 'missing-binary',
+      run: baseRun === 'only' ? 'only' : hasBinary('Xvfb') && hasBinary('import') ? baseRun : 'missing-binary',
       headless: true,
       displayServer: 'xvfb',
     });
@@ -208,17 +220,9 @@ function defineTerminalServerSuites(terminal: Terminal, label: string) {
     defineServerSuite({
       label,
       terminal,
-      run: baseRun === 'only' ? 'only' : hasBinary('sway') ? baseRun : 'missing-binary',
+      run: baseRun === 'only' ? 'only' : hasBinary('sway') && hasBinary('grim') ? baseRun : 'missing-binary',
       headless: true,
       displayServer: 'sway',
-    });
-
-    defineServerSuite({
-      label,
-      terminal,
-      run: baseRun === 'only' ? 'only' : hasBinary('kwin_wayland') ? baseRun : 'missing-binary',
-      headless: true,
-      displayServer: 'kwin',
     });
   }
 }

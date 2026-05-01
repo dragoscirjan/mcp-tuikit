@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     // Integration tests spawn real terminals; suites must run one at a time
     // to avoid concurrent terminal conflicts and resource contention.
+    fileParallelism: false,
     sequence: {
       concurrent: false,
     },

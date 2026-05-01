@@ -1,0 +1,30 @@
+{
+  "name": "@mcp-tuikit/test",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@mcp-tuikit/flow-engine": "workspace:*",
+    "@mcp-tuikit/spawn": "workspace:*",
+    "@mcp-tuikit/terminals": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/sharp": "^0.32.0",
+    "sharp": "^0.34.5",
+    "typescript": "^5.0.0",
+    "vitest": "^2.1.8"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  }
+}

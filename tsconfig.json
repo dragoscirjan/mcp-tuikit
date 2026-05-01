@@ -4,6 +4,16 @@
   "exclude": ["src/**/*.spec.ts"],
   "compilerOptions": {
     "outDir": "dist",
-    "declaration": true
-  }
+    "declaration": true,
+    "composite": true
+  },
+  "references": [
+    { "path": "./packages/spawn" },
+    { "path": "./packages/linux-utils" },
+    { "path": "./packages/snapshot" },
+    { "path": "./packages/terminals" },
+    { "path": "./packages/tmux" },
+    { "path": "./packages/flow-engine" },
+    { "path": "./packages/test" }
+  ]
 }

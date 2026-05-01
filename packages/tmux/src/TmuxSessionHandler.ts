@@ -4,9 +4,10 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { SessionHandler, TimeoutError } from '@mcp-tuikit/core';
+import { TimeoutError } from '@mcp-tuikit/spawn';
 import { nanoid } from 'nanoid';
 import { TmuxExecutionError } from './errors.js';
+import { SessionHandler } from './SessionHandler.js';
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
@@ -23,7 +24,8 @@ export class TmuxSessionHandler implements SessionHandler {
   async createSession(cmd: string, cols: number, rows: number): Promise<string> {
     const sessionId = `mcp-${nanoid(8)}`;
     // Hide status bar to prevent stealing 1 row, ensuring btop/etc get full terminal size
-    const tmuxCmd = `${this.tmuxBinary} new-session -d -s ${sessionId} -x ${cols} -y ${rows} "${cmd}" \\; set-option -g status off`;
+    const sep = process.platform === 'win32' ? '";"' : '\\;';
+    const tmuxCmd = `${this.tmuxBinary} new-session -d -s ${sessionId} -x ${cols} -y ${rows} ${sep} set-option -g status off ${sep} resize-window -x ${cols} -y ${rows} ${sep} send-keys -l "${cmd.replace(/"/g, '\\"')}" ${sep} send-keys C-m`;
     try {
       await execAsync(tmuxCmd);
     } catch (err) {
@@ -134,7 +136,8 @@ export class TmuxSessionHandler implements SessionHandler {
       const { stdout } = await execAsync(
         `${this.tmuxBinary} display-message -p -t ${sessionId} '#{window_width}x#{window_height}'`,
       );
-      const [cols, rows] = stdout.trim().split('x').map(Number);
+      const cleanStdout = stdout.replace(/'/g, '').trim();
+      const [cols, rows] = cleanStdout.split('x').map(Number);
       return { cols, rows };
     } catch (err) {
       throw new TmuxExecutionError(`Failed to get dimensions: ${(err as Error).message}`);

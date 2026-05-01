@@ -1,4 +1,7 @@
-import { OsascriptSpawnedBackend, SessionHandler, SnapshotStrategy, IdType } from '@mcp-tuikit/core';
+import { SnapshotStrategy } from '@mcp-tuikit/snapshot';
+import { SessionHandler } from '@mcp-tuikit/tmux';
+import { OsascriptSpawnedBackend } from '../base/OsascriptSpawnedBackend.js';
+import { IdType } from '../base/TerminalBackend.js';
 
 /* jscpd:ignore-start */
 export class MacTerminalAppBackend extends OsascriptSpawnedBackend {
@@ -15,7 +18,7 @@ export class MacTerminalAppBackend extends OsascriptSpawnedBackend {
   }
 
   protected generateSpawnCmd(tmuxCmd: string): string {
-    return `set newTab to do script "${tmuxCmd}"`;
+    return `set newTab to do script "${tmuxCmd.replace(/"/g, '\\"')}"`;
   }
 
   protected generateCloseCmd(windowId: IdType): string {

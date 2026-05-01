@@ -20,7 +20,10 @@
     "**/.specs/**",
     "**/target/**",
     "**/*.d.ts",
-    "**/index.js"
+    "**/index.js",
+    ".venv/**/*",
+    "AGENTS.md",
+    "CLAUDE.md"
   ],
   "output": ".jscpd",
   "reporters": ["console", "html"],

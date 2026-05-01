@@ -5,10 +5,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc -b"
   },
   "dependencies": {
-    "@mcp-tuikit/core": "workspace:*",
+    "@mcp-tuikit/spawn": "workspace:*",
     "nanoid": "^5.1.7"
   },
   "devDependencies": {

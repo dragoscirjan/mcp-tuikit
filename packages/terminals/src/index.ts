@@ -1,5 +1,9 @@
+export * from './Terminal.js';
+export * from './base/TerminalBackend.js';
+export * from './base/ShellSpawnedBackend.js';
+export * from './base/OsascriptSpawnedBackend.js';
 export * from './BackendFactory.js';
-export * from './PlaywrightBackend.js';
+export * from './base/PlaywrightBackend.js';
 export * from './backends/ITerm2Backend.js';
 export * from './backends/MacTerminalAppBackend.js';
 export * from './backends/AlacrittyBackend.js';
@@ -9,4 +13,3 @@ export * from './backends/WindowsTerminalBackend.js';
 export * from './backends/PowershellBackend.js';
 export * from './backends/CmdBackend.js';
 export * from './config.js';
-export * from './snapshotters/index.js';
