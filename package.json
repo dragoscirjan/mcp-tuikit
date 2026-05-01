@@ -1,6 +1,6 @@
 {
   "name": "@dragoscirjan/mcp-tuikit",
-  "private": true,
+  "version": "0.0.0-development",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
