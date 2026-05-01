@@ -9,9 +9,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@dragoscirjan/mcp-tuikit-flow-engine": "workspace:*",
-    "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
-    "@dragoscirjan/mcp-tuikit-terminals": "workspace:*"
+    "@dragoscirjan/mcp-tuikit-flow-engine": "1.0.0",
+    "@dragoscirjan/mcp-tuikit-spawn": "1.0.0",
+    "@dragoscirjan/mcp-tuikit-terminals": "1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
