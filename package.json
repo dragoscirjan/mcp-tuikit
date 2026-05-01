@@ -57,5 +57,8 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": ["koffi", "esbuild"]
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

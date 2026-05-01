@@ -29,5 +29,8 @@
     "typescript": "^5.0.0",
     "vitest": "^2.1.0",
     "@dragoscirjan/mcp-tuikit-test": "1.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
