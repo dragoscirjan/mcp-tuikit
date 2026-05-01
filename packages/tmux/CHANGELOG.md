@@ -1,3 +1,10 @@
+## @dragoscirjan/mcp-tuikit-tmux [1.0.2](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-tmux@1.0.1...@dragoscirjan/mcp-tuikit-tmux@1.0.2) (2026-05-01)
+
+
+### Dependencies
+
+* **@dragoscirjan/mcp-tuikit-spawn:** upgraded to 1.0.2
+
 ## @dragoscirjan/mcp-tuikit-tmux [1.0.1](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-tmux@1.0.0...@dragoscirjan/mcp-tuikit-tmux@1.0.1) (2026-05-01)
 
 
