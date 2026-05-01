@@ -1,3 +1,10 @@
+## @dragoscirjan/mcp-tuikit-linux-utils [1.0.1](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-linux-utils@1.0.0...@dragoscirjan/mcp-tuikit-linux-utils@1.0.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* **release:** do not commit package.json with semantic-release ([7a38d89](https://github.com/dragoscirjan/mcp-tuikit/commit/7a38d89397bb574b872a27f0dbd8d2310e6039e3))
+
 # @dragoscirjan/mcp-tuikit-linux-utils 1.0.0 (2026-05-01)
 
 
