@@ -66,20 +66,32 @@ describe('TmuxSessionHandler', () => {
     backend = new TmuxSessionHandler();
   });
 
-  it('createSession calls exec with the right tmux CLI arguments', async () => {
+  it('createSession calls execFile with the right tmux CLI arguments sequentially', async () => {
     const sessionId = await backend.createSession('bash', 80, 24);
 
-    expect(mockExecImpl).toHaveBeenCalledTimes(1);
-
-    const cmdArg = mockExecImpl.mock.calls[0][0] as string;
-    // Session ID uses nanoid(8): URL-safe chars [A-Za-z0-9_-]
-    const sep = process.platform === 'win32' ? '";"' : '\\\\;';
-    expect(cmdArg).toMatch(
-      new RegExp(
-        `^tmux new-session -d -s mcp-[A-Za-z0-9_-]{8} -x 80 -y 24 ${sep} set-option -g status off ${sep} resize-window -x 80 -y 24 ${sep} send-keys -l "bash" ${sep} send-keys C-m$`,
-      ),
-    );
     expect(sessionId).toMatch(/^mcp-[A-Za-z0-9_-]{8}$/);
+
+    // 1. new-session
+    // 2. set-option (status off)
+    // 3. resize-window
+    // 4. send-keys -l bash
+    // 5. send-keys Enter
+    expect(mockExecFileImpl).toHaveBeenCalledTimes(5);
+
+    const call1 = mockExecFileImpl.mock.calls[0][1] as string[];
+    expect(call1).toEqual(['new-session', '-d', '-s', sessionId, '-x', '80', '-y', '24']);
+
+    const call2 = mockExecFileImpl.mock.calls[1][1] as string[];
+    expect(call2).toEqual(['set-option', '-t', sessionId, 'status', 'off']);
+
+    const call3 = mockExecFileImpl.mock.calls[2][1] as string[];
+    expect(call3).toEqual(['resize-window', '-t', sessionId, '-x', '80', '-y', '24']);
+
+    const call4 = mockExecFileImpl.mock.calls[3][1] as string[];
+    expect(call4).toEqual(['send-keys', '-t', sessionId, '-l', 'bash']);
+
+    const call5 = mockExecFileImpl.mock.calls[4][1] as string[];
+    expect(call5).toEqual(['send-keys', '-t', sessionId, 'Enter']);
   });
 
   it('sendKeys calls execFile with the right tmux CLI arguments', async () => {

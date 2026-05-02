@@ -23,11 +23,27 @@ export class TmuxSessionHandler implements SessionHandler {
 
   async createSession(cmd: string, cols: number, rows: number): Promise<string> {
     const sessionId = `mcp-${nanoid(8)}`;
-    // Hide status bar to prevent stealing 1 row, ensuring btop/etc get full terminal size
-    const sep = process.platform === 'win32' ? '";"' : '\\;';
-    const tmuxCmd = `${this.tmuxBinary} new-session -d -s ${sessionId} -x ${cols} -y ${rows} ${sep} set-option -g status off ${sep} resize-window -x ${cols} -y ${rows} ${sep} send-keys -l "${cmd.replace(/"/g, '\\"')}" ${sep} send-keys C-m`;
     try {
-      await execAsync(tmuxCmd);
+      // 1. Create the session
+      await execFileAsync(this.tmuxBinary, [
+        'new-session',
+        '-d',
+        '-s',
+        sessionId,
+        '-x',
+        String(cols),
+        '-y',
+        String(rows),
+      ]);
+
+      // 2. Hide status bar to prevent stealing 1 row
+      await execFileAsync(this.tmuxBinary, ['set-option', '-t', sessionId, 'status', 'off']);
+
+      // 3. Resize window again (status bar removal might have changed dimensions)
+      await execFileAsync(this.tmuxBinary, ['resize-window', '-t', sessionId, '-x', String(cols), '-y', String(rows)]);
+
+      // 4. Send the command and press Enter
+      await this.sendKeys(sessionId, cmd + '\n');
     } catch (err) {
       const errorMsg = (err as Error).message;
       if (
