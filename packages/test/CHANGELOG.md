@@ -1,3 +1,12 @@
+## @dragoscirjan/mcp-tuikit-test [1.0.3](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-test@1.0.2...@dragoscirjan/mcp-tuikit-test@1.0.3) (2026-05-02)
+
+
+### Dependencies
+
+* **@dragoscirjan/mcp-tuikit-flow-engine:** upgraded to 1.0.4
+* **@dragoscirjan/mcp-tuikit-spawn:** upgraded to 1.0.3
+* **@dragoscirjan/mcp-tuikit-terminals:** upgraded to 1.0.4
+
 ## @dragoscirjan/mcp-tuikit-test [1.0.2](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-test@1.0.1...@dragoscirjan/mcp-tuikit-test@1.0.2) (2026-05-01)
 
 
