@@ -76,11 +76,14 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
   }
 
   private async captureActiveWindow(outputPath: string, de: string, isX11: boolean, windowId?: string): Promise<void> {
+    const path = await import('node:path');
+    const absoluteOutputPath = path.resolve(process.cwd(), outputPath);
+
     // 1. KDE Plasma (Wayland and X11)
     if (de === 'KDE') {
       try {
-        await execa('spectacle', ['-a', '-b', '-n', '-o', outputPath]);
-        await waitForFile(outputPath);
+        await execa('spectacle', ['-a', '-b', '-n', '-o', absoluteOutputPath]);
+        await waitForFile(absoluteOutputPath);
         return;
       } catch (e) {
         throw new Error('spectacle capture failed: ' + String(e));
@@ -90,8 +93,8 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
     // 2. GNOME (Wayland and X11)
     if (de === 'GNOME') {
       try {
-        await execa('gnome-screenshot', ['-w', '-f', outputPath]);
-        await waitForFile(outputPath);
+        await execa('gnome-screenshot', ['-w', '-f', absoluteOutputPath]);
+        await waitForFile(absoluteOutputPath);
         return;
       } catch {
         let bus: dbus.MessageBus | null = null;
@@ -99,7 +102,7 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
           bus = dbus.sessionBus();
           const obj = await bus.getProxyObject('org.gnome.Shell.Screenshot', '/org/gnome/Shell/Screenshot');
           const iface = obj.getInterface('org.gnome.Shell.Screenshot');
-          await iface.Screenshot(false, false, outputPath);
+          await iface.Screenshot(false, false, absoluteOutputPath);
           return;
         } finally {
           if (bus) bus.disconnect();
@@ -110,8 +113,8 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
     // 3. MATE (X11)
     if (de === 'MATE') {
       try {
-        await execa('mate-screenshot', ['-w', '-f', outputPath]);
-        await waitForFile(outputPath);
+        await execa('mate-screenshot', ['-w', '-f', absoluteOutputPath]);
+        await waitForFile(absoluteOutputPath);
         return;
       } catch (e) {
         throw new Error('mate-screenshot capture failed: ' + String(e));
@@ -121,8 +124,8 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
     // 4. XFCE (X11)
     if (de === 'XFCE') {
       try {
-        await execa('xfce4-screenshooter', ['-w', '-s', outputPath]);
-        await waitForFile(outputPath);
+        await execa('xfce4-screenshooter', ['-w', '-s', absoluteOutputPath]);
+        await waitForFile(absoluteOutputPath);
         return;
       } catch (e) {
         throw new Error('xfce4-screenshooter capture failed: ' + String(e));
@@ -132,19 +135,19 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
     // 5. Generic X11 Fallback
     if (isX11 && windowId) {
       try {
-        await execa('import', ['-window', windowId, outputPath]);
+        await execa('import', ['-window', windowId, absoluteOutputPath]);
         return;
       } catch {
         // ignore
       }
       try {
-        await execa('scrot', ['-u', '-d', '0', '-z', outputPath]);
+        await execa('scrot', ['-u', '-d', '0', '-z', absoluteOutputPath]);
         return;
       } catch {
         // ignore
       }
       try {
-        await execa('maim', ['-i', windowId, outputPath]);
+        await execa('maim', ['-i', windowId, absoluteOutputPath]);
         return;
       } catch {
         // ignore
@@ -154,8 +157,8 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
     // 6. Generic Wayland Fallback (full screen grim)
     if (!isX11) {
       try {
-        await execa('grim', [outputPath]);
-        await waitForFile(outputPath);
+        await execa('grim', [absoluteOutputPath]);
+        await waitForFile(absoluteOutputPath);
         return;
       } catch (e) {
         throw new Error('grim fallback failed: ' + String(e));

@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { isX11DisplayServer } from '@dragoscirjan/mcp-tuikit-linux-utils';
 import { execa } from 'execa';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -30,17 +31,17 @@ vi.mock('dbus-next', () => {
   };
 });
 
-vi.mock('fs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('fs')>();
+// Since node:fs is imported as * as fs in linux.ts, vi.mock should use that format
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>();
   return {
     ...actual,
-    existsSync: vi.fn(() => true),
-    statSync: vi.fn(() => ({ size: 100 })),
+    existsSync: vi.fn().mockImplementation(() => true),
+    statSync: vi.fn().mockImplementation(() => ({ size: 100 })),
   };
 });
 
 describe('LinuxSnapshotStrategy', () => {
-  let strategy: LinuxSnapshotStrategy;
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(() => {
@@ -54,28 +55,26 @@ describe('LinuxSnapshotStrategy', () => {
   });
 
   it('should try to capture using X11 tools when in X11 env', async () => {
-    process.env.XDG_CURRENT_DESKTOP = 'UNKNOWN';
     vi.mocked(isX11DisplayServer).mockResolvedValue(true);
+    // Return empty for desktop env so it falls back to generic X11
+    vi.stubEnv('XDG_CURRENT_DESKTOP', '');
 
-    strategy = new LinuxSnapshotStrategy();
-    await strategy.capture('output.png', 80, 24, 'session', {
-      windowId: '1234',
-      fallbackIdentifier: 'Alacritty',
-    });
+    const strategy = new LinuxSnapshotStrategy();
+    await strategy.capture('output.png', 80, 24, 'session-id', { windowId: '1234' });
 
-    expect(execa).toHaveBeenCalledWith('import', ['-window', '1234', 'output.png']);
+    const absoluteOutputPath = path.resolve(process.cwd(), 'output.png');
+    expect(execa).toHaveBeenCalledWith('import', ['-window', '1234', absoluteOutputPath]);
   });
 
   it('should capture using Wayland grim when in Wayland env', async () => {
-    process.env.XDG_CURRENT_DESKTOP = 'UNKNOWN';
     vi.mocked(isX11DisplayServer).mockResolvedValue(false);
+    // Generic wayland fallback
+    vi.stubEnv('XDG_CURRENT_DESKTOP', '');
 
-    strategy = new LinuxSnapshotStrategy();
-    await strategy.capture('output.png', 80, 24, 'session', {
-      windowId: '1234',
-      fallbackIdentifier: 'Alacritty',
-    });
+    const strategy = new LinuxSnapshotStrategy();
+    await strategy.capture('output.png', 80, 24, 'session-id', {});
 
-    expect(execa).toHaveBeenCalledWith('grim', ['output.png']);
+    const absoluteOutputPath = path.resolve(process.cwd(), 'output.png');
+    expect(execa).toHaveBeenCalledWith('grim', [absoluteOutputPath]);
   });
 });
