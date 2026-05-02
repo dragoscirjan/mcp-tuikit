@@ -1,3 +1,15 @@
+## @dragoscirjan/mcp-tuikit-tmux [1.0.3](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-tmux@1.0.2...@dragoscirjan/mcp-tuikit-tmux@1.0.3) (2026-05-02)
+
+
+### Bug Fixes
+
+* resolve tmux crash on linux during session creation ([69b767c](https://github.com/dragoscirjan/mcp-tuikit/commit/69b767c1e8cad335757bcd18ed5846a80e8fc294))
+
+
+### Dependencies
+
+* **@dragoscirjan/mcp-tuikit-spawn:** upgraded to 1.0.3
+
 ## @dragoscirjan/mcp-tuikit-tmux [1.0.2](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-tmux@1.0.1...@dragoscirjan/mcp-tuikit-tmux@1.0.2) (2026-05-01)
 
 
