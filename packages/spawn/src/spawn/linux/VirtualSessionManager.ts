@@ -16,24 +16,31 @@ export class VirtualSessionManager {
    * If none are available, throws a detailed error for the LLM to provide an installation command.
    */
   static async createSession(): Promise<VirtualSession> {
-    if (await this.hasCommand('Xvfb')) {
+    const hasXvfb = await this.hasCommand('Xvfb');
+    const hasImport = await this.hasCommand('import');
+    const hasSway = await this.hasCommand('sway');
+    const hasGrim = await this.hasCommand('grim');
+    const hasKwin = await this.hasCommand('kwin_wayland');
+    const hasSpectacle = await this.hasCommand('spectacle');
+
+    if (hasXvfb && hasImport) {
       return this.createXvfbSession();
     }
 
-    if (await this.hasCommand('sway')) {
+    if (hasSway && hasGrim) {
       return this.createSwaySession();
     }
 
-    if (await this.hasCommand('kwin_wayland')) {
+    if (hasKwin && hasSpectacle) {
       return this.createKwinSession();
     }
 
     throw new Error(
-      'No headless virtual compositor found. ' +
-        'To run mcp-tuikit headlessly on Linux, please install one of the following:\n' +
-        '- Xvfb (Recommended, Universal): sudo apt-get install xvfb\n' +
+      'No completely configured headless virtual compositor found. ' +
+        'To run mcp-tuikit headlessly on Linux, please install a compositor AND its snapshot tool:\n' +
+        '- Xvfb (Recommended, Universal): sudo apt-get install xvfb imagemagick\n' +
         '- sway (Wayland): sudo apt-get install sway grim\n' +
-        '- kwin_wayland (KDE)',
+        '- kwin_wayland (KDE): sudo apt-get install kwin-wayland spectacle',
     );
   }
 
