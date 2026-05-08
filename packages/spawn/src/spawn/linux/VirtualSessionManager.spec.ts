@@ -24,7 +24,7 @@ describe('VirtualSessionManager', () => {
     });
 
     it('should fallback to sway if xvfb is missing', async () => {
-      hasCommandSpy.mockImplementation(async (cmd: string) => cmd === 'sway');
+      hasCommandSpy.mockImplementation(async (cmd: string) => cmd === 'sway' || cmd === 'grim');
 
       const session = await VirtualSessionManager.createSession();
 
@@ -36,7 +36,7 @@ describe('VirtualSessionManager', () => {
     });
 
     it('should fallback to kwin if xvfb and sway are missing', async () => {
-      hasCommandSpy.mockImplementation(async (cmd: string) => cmd === 'kwin_wayland');
+      hasCommandSpy.mockImplementation(async (cmd: string) => cmd === 'kwin_wayland' || cmd === 'spectacle');
 
       const session = await VirtualSessionManager.createSession();
 
@@ -49,7 +49,9 @@ describe('VirtualSessionManager', () => {
     it('should throw an informative error if no headless compositor is available', async () => {
       hasCommandSpy.mockResolvedValue(false);
 
-      await expect(VirtualSessionManager.createSession()).rejects.toThrow(/No headless virtual compositor found/);
+      await expect(VirtualSessionManager.createSession()).rejects.toThrow(
+        /No completely configured headless virtual compositor found/,
+      );
     });
   });
 });
