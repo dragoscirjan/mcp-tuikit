@@ -146,9 +146,9 @@ describe('Spawner Integration Tests', () => {
           hasCommandSpy = vi
             .spyOn(VirtualSessionManager as unknown as Record<string, unknown>, 'hasCommand')
             .mockImplementation(async (cmd: string) => {
-              if (expectedVirtualSessionType === 'xvfb' && cmd === 'Xvfb') return true;
-              if (expectedVirtualSessionType === 'sway' && cmd === 'sway') return true;
-              if (expectedVirtualSessionType === 'kwin' && cmd === 'kwin_wayland') return true;
+              if (expectedVirtualSessionType === 'xvfb' && (cmd === 'Xvfb' || cmd === 'import')) return true;
+              if (expectedVirtualSessionType === 'sway' && (cmd === 'sway' || cmd === 'grim')) return true;
+              if (expectedVirtualSessionType === 'kwin' && (cmd === 'kwin_wayland' || cmd === 'spectacle')) return true;
               return false;
             });
         }

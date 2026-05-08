@@ -82,9 +82,9 @@ export function defineBackendSuite(opts: ExtendedRunBackendOptions): void {
         hasCommandSpy = vi.spyOn(VirtualSessionManager as any, 'hasCommand').mockImplementation((async (
           cmd: string,
         ) => {
-          if (displayServer === 'xvfb' && cmd === 'Xvfb') return true;
-          if (displayServer === 'sway' && cmd === 'sway') return true;
-          if (displayServer === 'kwin' && cmd === 'kwin_wayland') return true;
+          if (displayServer === 'xvfb' && (cmd === 'Xvfb' || cmd === 'import')) return true;
+          if (displayServer === 'sway' && (cmd === 'sway' || cmd === 'grim')) return true;
+          if (displayServer === 'kwin' && (cmd === 'kwin_wayland' || cmd === 'spectacle')) return true;
           return false;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }) as any);

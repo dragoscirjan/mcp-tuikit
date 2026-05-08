@@ -62,6 +62,14 @@ export class LinuxSnapshotStrategy implements SnapshotStrategy {
           });
           await waitForFile(outputPath);
           return;
+        } else if (virtualSession.type === 'kwin') {
+          const path = await import('node:path');
+          const absoluteOutputPath = path.resolve(process.cwd(), outputPath);
+          await execa('spectacle', ['-a', '-b', '-n', '-o', absoluteOutputPath], {
+            env: { ...process.env, WAYLAND_DISPLAY: virtualSession.display },
+          });
+          await waitForFile(absoluteOutputPath, 10000);
+          return;
         }
         throw new Error(`Unsupported virtual session type: ${virtualSession.type}`);
       }
