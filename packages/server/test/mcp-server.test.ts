@@ -239,6 +239,15 @@ function defineTerminalServerSuites(terminal: Terminal, label: string) {
       headless: true,
       displayServer: 'sway',
     });
+
+    defineServerSuite({
+      label,
+      terminal,
+      run:
+        baseRun === 'only' ? 'only' : hasBinary('kwin_wayland') && hasBinary('spectacle') ? baseRun : 'missing-binary',
+      headless: true,
+      displayServer: 'kwin',
+    });
   }
 }
 
