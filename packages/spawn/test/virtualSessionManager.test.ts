@@ -49,7 +49,7 @@ describe('VirtualSessionManager Integration Tests', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const originalHasCommand = (VirtualSessionManager as any).hasCommand;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (VirtualSessionManager as any).hasCommand = async (cmd: string) => cmd === 'sway';
+    (VirtualSessionManager as any).hasCommand = async (cmd: string) => cmd === 'sway' || cmd === 'grim';
 
     try {
       session = await VirtualSessionManager.createSession();
@@ -75,7 +75,7 @@ describe('VirtualSessionManager Integration Tests', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const originalHasCommand = (VirtualSessionManager as any).hasCommand;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (VirtualSessionManager as any).hasCommand = async (cmd: string) => cmd === 'kwin_wayland';
+      (VirtualSessionManager as any).hasCommand = async (cmd: string) => cmd === 'kwin_wayland' || cmd === 'spectacle';
 
       try {
         session = await VirtualSessionManager.createSession();

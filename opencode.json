@@ -4,10 +4,27 @@
     "codeindex_cocoindex": {
       "enabled": true
     },
-    "mcp-tuikit-dev": {
+    "dev_tuikit": {
       "type": "local",
-      "command": ["node", "dist/index.js"],
+      "command": ["node", "packages/server/dist/index.js"],
       "enabled": true
+    },
+    "dev_tuikit_wezterm": {
+      "type": "local",
+      "command": ["node", "packages/server/dist/index.js"],
+      "enabled": true,
+      "environment": {
+        "TUIKIT_TERMINAL": "wezterm"
+      }
+    },
+    "dev_tuikit_wezterm_hl": {
+      "type": "local",
+      "command": ["node", "packages/server/dist/index.js"],
+      "enabled": true,
+      "environment": {
+        "TUIKIT_TERMINAL": "wezterm",
+        "TUIKIT_HEADLESS": "0"
+      }
     }
   }
 }
