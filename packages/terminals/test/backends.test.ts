@@ -51,6 +51,16 @@ function defineTerminalSuites(terminal: Parameters<typeof canRunTerminal>[0], la
       headless: true,
       displayServer: 'sway',
     });
+
+    // Kwin
+    defineBackendSuite({
+      label,
+      terminal,
+      run:
+        baseRun === 'only' ? 'only' : hasBinary('kwin_wayland') && hasBinary('spectacle') ? baseRun : 'missing-binary',
+      headless: true,
+      displayServer: 'kwin',
+    });
   }
 }
 

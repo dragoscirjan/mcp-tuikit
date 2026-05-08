@@ -70,6 +70,20 @@ function defineTerminalFlowSuites(opts: Omit<FlowSuiteOptions, 'headless' | 'dis
       headless: true,
       displayServer: 'sway',
     });
+
+    defineFlowSuite({
+      ...opts,
+      run:
+        baseRun === 'only'
+          ? 'only'
+          : terminal === 'wezterm'
+            ? 'skip'
+            : hasBinary('kwin_wayland') && hasBinary('spectacle')
+              ? baseRun
+              : 'missing-binary',
+      headless: true,
+      displayServer: 'kwin',
+    });
   }
 }
 
