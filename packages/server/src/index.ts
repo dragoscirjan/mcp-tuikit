@@ -12,6 +12,8 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
 
+import { checkDependencies } from './dependencies.js';
+
 const DEFAULT_COLS = 80;
 const DEFAULT_ROWS = 30;
 const STATE_DIR = path.join(os.homedir(), '.mcp-tuikit');
@@ -278,6 +280,30 @@ server.registerTool(
         : '';
 
     return { content: [{ type: 'text', text: `Flow executed successfully.${artifactText}` }] };
+  },
+);
+
+server.registerTool(
+  'check_system_dependencies',
+  {
+    description: 'Check if the host system has all required dependencies for mcp-tuikit to run properly.',
+  },
+  async () => {
+    const result = await checkDependencies();
+    if (result.ok) {
+      return {
+        content: [{ type: 'text', text: `✅ ${result.details}\nInstalled tools: ${result.installed.join(', ')}` }],
+      };
+    } else {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `❌ ${result.details}\nInstalled tools: ${result.installed.join(', ')}\nMissing tools: ${result.missing.join(', ')}\nPlease install the missing dependencies.`,
+          },
+        ],
+      };
+    }
   },
 );
 

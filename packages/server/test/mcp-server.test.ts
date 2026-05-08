@@ -110,6 +110,21 @@ exec ${realWhich} "$@"
       }
     });
 
+    it(`verifies dependencies via check_system_dependencies (${terminal})`, async () => {
+      const depRes = await client.callTool({
+        name: 'check_system_dependencies',
+        arguments: {},
+      });
+      if (depRes.isError) {
+        console.error('Check Dependencies Error:', JSON.stringify(depRes.content, null, 2));
+      }
+      expect(depRes.isError).toBeFalsy();
+      const content = depRes.content as unknown as ToolResponseContent[];
+      expect(content[0].text).toContain(
+        terminal === 'xterm.js' || (headless && process.platform === 'linux' && displayServer) ? '✅' : '✅',
+      );
+    }, 10000);
+
     it(`runs echo loop and captures output via MCP tools (${terminal})`, async () => {
       // 1. Create Session
       const isWin = process.platform === 'win32';
