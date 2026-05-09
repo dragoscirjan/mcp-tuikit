@@ -77,15 +77,16 @@ Ask your AI agent:
 
 ## Available Tools
 
-| Tool              | Parameters                                       | Description                                                |
-| ----------------- | ------------------------------------------------ | ---------------------------------------------------------- |
-| `create_session`  | `command`, `cols?`, `rows?`                      | Create a new terminal session running a specific command.  |
-| `close_session`   | `session_id`                                     | Close an active terminal session.                          |
-| `create_snapshot` | `session_id`, `format` (txt/png/both), `intent?` | Capture a txt and/or png snapshot from an active session.  |
-| `send_keys`       | `session_id`, `keys`, `submit?` (bool)           | Send keystrokes to an active session using tmux format.    |
-| `wait_for_text`   | `session_id`, `pattern`, `timeout_ms?`           | Wait for a regex pattern to appear in the terminal output. |
-| `run_flow`        | `yaml_path?`, `yaml_string?`, `cols?`, `rows?`   | Run a TUI YAML flow and capture artifacts autonomously.    |
-| `list_sessions`   | _(none)_                                         | List all active terminal sessions and their states.        |
+| Tool                        | Parameters                                       | Description                                                |
+| --------------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
+| `create_session`            | `command`, `cols?`, `rows?`                      | Create a new terminal session running a specific command.  |
+| `close_session`             | `session_id`                                     | Close an active terminal session.                          |
+| `create_snapshot`           | `session_id`, `format` (txt/png/both), `intent?` | Capture a txt and/or png snapshot from an active session.  |
+| `send_keys`                 | `session_id`, `keys`, `submit?` (bool)           | Send keystrokes to an active session using tmux format.    |
+| `wait_for_text`             | `session_id`, `pattern`, `timeout_ms?`           | Wait for a regex pattern to appear in the terminal output. |
+| `run_flow`                  | `yaml_path?`, `yaml_string?`, `cols?`, `rows?`   | Run a TUI YAML flow and capture artifacts autonomously.    |
+| `list_sessions`             | _(none)_                                         | List all active terminal sessions and their states.        |
+| `check_system_dependencies` | _(none)_                                         | Check if the host system has all required dependencies.    |
 
 **Resources:**
 

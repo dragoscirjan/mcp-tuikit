@@ -43,11 +43,11 @@ macOS relies on built-in tools (`osascript`, `screencapture`, `CGWindowList`) to
 To run **headless native terminals**, Linux requires a virtual compositor or X server.
 
 - **Wayland (Native):** Requires a Wayland compositor like `sway` (along with `grim` for screenshots) or KDE`s `kwin` (`kwin_wayland`).
-- **X11 (Legacy):** Requires `Xvfb` (virtual framebuffer) and `x11-apps`.
+- **X11 (Legacy):** Requires `Xvfb` (virtual framebuffer), `x11-apps`, and `imagemagick` (for screenshots).
 
 ```bash
 # Ubuntu/Debian example for headless dependencies
-sudo apt install xvfb sway grim
+sudo apt install xvfb imagemagick sway grim
 ```
 
 ### Windows
@@ -67,3 +67,10 @@ npx -y @dragoscirjan/mcp-tuikit
 ```
 
 _(Note: Playwright is used internally for the `xterm.js` backend and will automatically download its Chromium binary on first run)._
+
+## 4. Verifying Dependencies
+
+`mcp-tuikit` includes a built-in MCP tool to verify that your system meets all requirements for your configured backend:
+
+- **Tool:** `check_system_dependencies`
+- **Description:** Checks if the host system has all required dependencies installed (e.g., `tmux`, `Xvfb`, `imagemagick`, `sway`, `grim`, `spectacle`). Returns a detailed list of installed and missing tools.
