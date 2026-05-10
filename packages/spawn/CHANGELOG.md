@@ -1,3 +1,15 @@
+## @dragoscirjan/mcp-tuikit-spawn [1.1.1](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-spawn@1.1.0...@dragoscirjan/mcp-tuikit-spawn@1.1.1) (2026-05-10)
+
+
+### Bug Fixes
+
+* **snapshot:** implement kwin headless snapshots via spectacle and align test mocks ([55fc7e1](https://github.com/dragoscirjan/mcp-tuikit/commit/55fc7e198e3c57931e5d9ff9ad72041ac1652e26))
+
+
+### Dependencies
+
+* **@dragoscirjan/mcp-tuikit-test:** upgraded to 1.0.6
+
 # @dragoscirjan/mcp-tuikit-spawn [1.1.0](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-spawn@1.0.4...@dragoscirjan/mcp-tuikit-spawn@1.1.0) (2026-05-10)
 
 
