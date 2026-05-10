@@ -94,11 +94,12 @@ jobs:
           cd docs-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git status
           git add mcp-tuikit
 
-          if git diff-index --quiet HEAD; then
+          if git diff --staged --quiet; then
             echo "No documentation changes to deploy."
           else
             git commit -m "docs(mcp-tuikit): update documentation site"
-            git push
+            git push origin main
           fi
