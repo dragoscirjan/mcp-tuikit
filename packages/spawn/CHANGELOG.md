@@ -1,3 +1,20 @@
+# @dragoscirjan/mcp-tuikit-spawn [1.1.0](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-spawn@1.0.4...@dragoscirjan/mcp-tuikit-spawn@1.1.0) (2026-05-10)
+
+
+### Bug Fixes
+
+* **tests:** update VirtualSessionManager fallback mocks to expect both compositor and snapshot tool ([709aa66](https://github.com/dragoscirjan/mcp-tuikit/commit/709aa6646955ab8e56bd8e831794c20b96ce54f1))
+
+
+### Features
+
+* **server:** add check_system_dependencies mcp tool ([eb1e42d](https://github.com/dragoscirjan/mcp-tuikit/commit/eb1e42df4be04ccc8fc63d02f2d7296bac1045d4))
+
+
+### Dependencies
+
+* **@dragoscirjan/mcp-tuikit-test:** upgraded to 1.0.5
+
 ## @dragoscirjan/mcp-tuikit-spawn [1.0.4](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-spawn@1.0.3...@dragoscirjan/mcp-tuikit-spawn@1.0.4) (2026-05-02)
 
 
