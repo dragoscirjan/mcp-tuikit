@@ -64,3 +64,4 @@ snapshots/
 # mkdocs
 site/
 .venv
+packages/server/README.md
