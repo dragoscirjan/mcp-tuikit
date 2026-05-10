@@ -1,3 +1,13 @@
+## @dragoscirjan/mcp-tuikit-terminals [1.0.7](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-terminals@1.0.6...@dragoscirjan/mcp-tuikit-terminals@1.0.7) (2026-05-10)
+
+
+### Dependencies
+
+* **@dragoscirjan/mcp-tuikit-snapshot:** upgraded to 1.0.7
+* **@dragoscirjan/mcp-tuikit-spawn:** upgraded to 1.1.1
+* **@dragoscirjan/mcp-tuikit-tmux:** upgraded to 1.0.6
+* **@dragoscirjan/mcp-tuikit-test:** upgraded to 1.0.6
+
 ## @dragoscirjan/mcp-tuikit-terminals [1.0.6](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-terminals@1.0.5...@dragoscirjan/mcp-tuikit-terminals@1.0.6) (2026-05-10)
 
 
