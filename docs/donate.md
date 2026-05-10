@@ -20,7 +20,7 @@ Prefer **Open Collective**? You can choose a tier here:
 
 You can also make a **one-time donation** via PayPal:
 
-[Donate via PayPal](https://paypal.me/dragoscirjan)
+[Donate via PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=GSVDU63RKG45A&currency_code=USD&source=url)
 
 ## 🧡 Patreon
 
