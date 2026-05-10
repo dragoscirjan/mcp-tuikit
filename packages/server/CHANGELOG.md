@@ -1,3 +1,10 @@
+## @dragoscirjan/mcp-tuikit [1.1.2](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit@1.1.1...@dragoscirjan/mcp-tuikit@1.1.2) (2026-05-10)
+
+
+### Bug Fixes
+
+* copy readme to main module at build ([2cffc7c](https://github.com/dragoscirjan/mcp-tuikit/commit/2cffc7cbb38b640944a17f490b24c241e3154886))
+
 ## @dragoscirjan/mcp-tuikit [1.1.1](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit@1.1.0...@dragoscirjan/mcp-tuikit@1.1.1) (2026-05-10)
 
 
