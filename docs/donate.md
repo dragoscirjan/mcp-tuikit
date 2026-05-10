@@ -26,6 +26,6 @@ You can also make a **one-time donation** via PayPal:
 
 If you prefer Patreon, you can support me there:
 
-[Become a Patron](https://patreon.com/dragoscirjan)
+[Become a Patron](https://patreon.com/lunaticthinker)
 
 Thank you for helping `mcp-tuikit` grow and stay maintained! 🚀
