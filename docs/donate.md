@@ -20,7 +20,7 @@ Prefer **Open Collective**? You can choose a tier here:
 
 You can also make a **one-time donation** via PayPal:
 
-[Donate via PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=GSVDU63RKG45A&currency_code=USD&source=url)
+[Donate via PayPal](https://www.paypal.com/donate/?hosted_button_id=SX65ZWE9VM9FQ)
 
 ## 🧡 Patreon
 
