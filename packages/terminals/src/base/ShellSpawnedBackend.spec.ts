@@ -1,6 +1,14 @@
 import { promisify } from 'node:util';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const mockExecaImpl = vi.fn();
+
+vi.mock('execa', () => {
+  return {
+    execa: (...args: unknown[]) => mockExecaImpl(...args),
+  };
+});
+
 const mockExecImpl = vi.fn();
 
 function mockExecWithCustomPromisify(...args: unknown[]) {
@@ -58,6 +66,17 @@ describe('ShellSpawnedBackend', () => {
       } else {
         cb(null, 'mock-output\n', '');
       }
+    });
+
+    mockExecaImpl.mockReset();
+    mockExecaImpl.mockImplementation(async (cmd: string, args: string[]) => {
+      if (cmd === 'which' || cmd === 'where.exe') {
+        return { stdout: '/usr/bin/tmux\n' };
+      }
+      if (cmd === '/usr/bin/tmux' && args?.[0] === 'list-clients') {
+        return { stdout: 'mock-client\n' };
+      }
+      return { stdout: 'mock-output\n' };
     });
 
     sessionHandler = {

@@ -39,6 +39,26 @@ export abstract class ShellSpawnedBackend extends TerminalBackend {
 
     // Pass the full result but ensure windowHandle mapping is preserved for older snapshotters
     this._spawnResult = { ...result, windowHandle: this._windowId };
+
+    // On Linux, wait for the GUI terminal to fully attach to the tmux session
+    // before considering spawn complete. This prevents race conditions where
+    // delayed GUI attachment causes SIGWINCH/focus events that interrupt the app.
+    if (process.platform === 'linux') {
+      const start = Date.now();
+      while (Date.now() - start < 10000) {
+        try {
+          const { stdout } = await execa(tmuxAbsPath, ['list-clients', '-t', sessionName]);
+          if (stdout.trim().length > 0) {
+            // Small buffer to allow initial resize/focus escape sequences to settle
+            await new Promise((r) => setTimeout(r, 200));
+            break;
+          }
+        } catch {
+          // tmux list-clients returns an error if no clients are attached yet
+        }
+        await new Promise((r) => setTimeout(r, 100));
+      }
+    }
   }
 
   public async close(): Promise<void> {
