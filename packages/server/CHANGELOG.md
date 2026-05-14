@@ -1,3 +1,19 @@
+## @dragoscirjan/mcp-tuikit [1.1.3](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit@1.1.2...@dragoscirjan/mcp-tuikit@1.1.3) (2026-05-14)
+
+
+### Bug Fixes
+
+* fixing Kitty run under xvfb headless ([2638e32](https://github.com/dragoscirjan/mcp-tuikit/commit/2638e32df469e5a4dbbc53901fd3d26555e9c651))
+
+
+### Dependencies
+
+* **@dragoscirjan/mcp-tuikit-flow-engine:** upgraded to 1.0.8
+* **@dragoscirjan/mcp-tuikit-spawn:** upgraded to 1.1.2
+* **@dragoscirjan/mcp-tuikit-terminals:** upgraded to 1.0.8
+* **@dragoscirjan/mcp-tuikit-tmux:** upgraded to 1.0.7
+* **@dragoscirjan/mcp-tuikit-test:** upgraded to 1.0.7
+
 ## @dragoscirjan/mcp-tuikit [1.1.2](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit@1.1.1...@dragoscirjan/mcp-tuikit@1.1.2) (2026-05-10)
 
 ### Bug Fixes
