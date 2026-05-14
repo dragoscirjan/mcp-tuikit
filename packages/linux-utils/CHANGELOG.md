@@ -1,3 +1,10 @@
+## @dragoscirjan/mcp-tuikit-linux-utils [1.0.2](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-linux-utils@1.0.1...@dragoscirjan/mcp-tuikit-linux-utils@1.0.2) (2026-05-14)
+
+
+### Bug Fixes
+
+* fixing Kitty run under xvfb headless ([2638e32](https://github.com/dragoscirjan/mcp-tuikit/commit/2638e32df469e5a4dbbc53901fd3d26555e9c651))
+
 ## @dragoscirjan/mcp-tuikit-linux-utils [1.0.1](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-linux-utils@1.0.0...@dragoscirjan/mcp-tuikit-linux-utils@1.0.1) (2026-05-01)
 
 ### Bug Fixes
