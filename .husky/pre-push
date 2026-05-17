@@ -1,2 +1,2 @@
 mise run build
-mise run test
+mise run test:unit

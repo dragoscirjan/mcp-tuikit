@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const describeLinux = process.platform === 'linux' ? describe : describe.skip;
 import { LinuxNativeSpawner } from './LinuxNativeSpawner.js';
 
+vi.mock('@dragoscirjan/mcp-tuikit-linux-utils', () => ({
+  isX11DisplayServer: vi.fn().mockResolvedValue(true),
+}));
+
 vi.mock('node:child_process', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:child_process')>();
   return {
