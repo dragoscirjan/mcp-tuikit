@@ -35,23 +35,23 @@ Here are all the supported actions according to the schema:
 ## Example
 
 ```yaml
-version: "1.0"
-description: "Neovim Boot Test"
+version: '1.0'
+description: 'Neovim Boot Test'
 steps:
-  - action: "spawn"
-    cmd: "nvim"
+  - action: 'spawn'
+    cmd: 'nvim'
 
-  - action: "wait_for"
-    pattern: "lazy.nvim"
+  - action: 'wait_for'
+    pattern: 'lazy.nvim'
     timeoutMs: 10000
 
-  - action: "snapshot"
-    format: "png"
-    outputPath: "nvim-boot.png"
-    intent: "Neovim loaded successfully"
+  - action: 'snapshot'
+    format: 'png'
+    outputPath: 'nvim-boot.png'
+    intent: 'Neovim loaded successfully'
 
-  - action: "type"
-    text: ":qa!"
+  - action: 'type'
+    text: ':qa!'
     submit: true
 ```
 

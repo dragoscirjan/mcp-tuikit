@@ -1,15 +1,13 @@
 ## @dragoscirjan/mcp-tuikit-spawn [1.1.3](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-spawn@1.1.2...@dragoscirjan/mcp-tuikit-spawn@1.1.3) (2026-05-17)
 
-
 ### Bug Fixes
 
-* **ci:** cache pnpm store and always run pnpm install ([1c5b8ed](https://github.com/dragoscirjan/mcp-tuikit/commit/1c5b8ed573afab2a7733c0e725051d7b46137870))
-
+- **ci:** cache pnpm store and always run pnpm install ([1c5b8ed](https://github.com/dragoscirjan/mcp-tuikit/commit/1c5b8ed573afab2a7733c0e725051d7b46137870))
 
 ### Dependencies
 
-* **@dragoscirjan/mcp-tuikit-test:** upgraded to 1.0.8
-* **@dragoscirjan/mcp-tuikit-linux-utils:** upgraded to 1.0.3
+- **@dragoscirjan/mcp-tuikit-test:** upgraded to 1.0.8
+- **@dragoscirjan/mcp-tuikit-linux-utils:** upgraded to 1.0.3
 
 ## @dragoscirjan/mcp-tuikit-spawn [1.1.2](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-spawn@1.1.1...@dragoscirjan/mcp-tuikit-spawn@1.1.2) (2026-05-14)
 

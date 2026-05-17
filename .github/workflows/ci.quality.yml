@@ -55,7 +55,7 @@ jobs:
 
           # Run pnpm pack in all workspaces. 
           # This generates a .tgz file inside each package's directory.
-          mise exec -- pnpm -r pack
+          mise exec -- pnpm -r exec pnpm pack
 
           # Move all generated tarballs from the packages to our centralized folder
           mv packages/*/*.tgz dist-archives/ || true
