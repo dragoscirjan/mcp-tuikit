@@ -5,4 +5,10 @@ export default [
     ignores: ['.jscpd/**', '.specs/**', '.ai.tmp/**', 'site/**', '.venv/**'],
   },
   ...templEslintConfig,
+  {
+    files: ['**/*.md/*.yaml', '**/*.md/*.yml'],
+    rules: {
+      'yml/quotes': ['error', { prefer: 'double', avoidEscape: true }],
+    },
+  },
 ];

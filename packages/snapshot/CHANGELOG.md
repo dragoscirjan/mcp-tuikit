@@ -1,15 +1,13 @@
 ## @dragoscirjan/mcp-tuikit-snapshot [1.0.10](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-snapshot@1.0.9...@dragoscirjan/mcp-tuikit-snapshot@1.0.10) (2026-05-17)
 
-
 ### Bug Fixes
 
-* **ci:** use exec for pnpm pack in workspaces ([9189dad](https://github.com/dragoscirjan/mcp-tuikit/commit/9189dadc02e0351af4613690ea61b28a34a79c6b))
-
+- **ci:** use exec for pnpm pack in workspaces ([9189dad](https://github.com/dragoscirjan/mcp-tuikit/commit/9189dadc02e0351af4613690ea61b28a34a79c6b))
 
 ### Dependencies
 
-* **@dragoscirjan/mcp-tuikit-tmux:** upgraded to 1.0.9
-* **@dragoscirjan/mcp-tuikit-linux-utils:** upgraded to 1.0.4
+- **@dragoscirjan/mcp-tuikit-tmux:** upgraded to 1.0.9
+- **@dragoscirjan/mcp-tuikit-linux-utils:** upgraded to 1.0.4
 
 ## @dragoscirjan/mcp-tuikit-snapshot [1.0.9](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-snapshot@1.0.8...@dragoscirjan/mcp-tuikit-snapshot@1.0.9) (2026-05-17)
 
