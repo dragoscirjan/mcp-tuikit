@@ -6,6 +6,11 @@ export default [
   },
   ...templEslintConfig,
   {
+    rules: {
+      'yml/no-empty-mapping-value': 'off',
+    },
+  },
+  {
     files: ['**/*.md/*.yaml', '**/*.md/*.yml'],
     rules: {
       'yml/quotes': ['error', { prefer: 'double', avoidEscape: true }],
