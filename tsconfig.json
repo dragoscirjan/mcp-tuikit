@@ -1,5 +1,10 @@
 {
   "extends": "@templ-project/tsconfig/base.json",
+  "compilerOptions": {
+    "paths": {
+      "@dragoscirjan/mcp-tuikit-*": ["./packages/*/src/index.ts"]
+    }
+  },
   "files": [],
   "references": [
     { "path": "./packages/server" },

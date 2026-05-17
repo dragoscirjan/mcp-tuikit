@@ -109,7 +109,9 @@ jobs:
       - name: Run Tests
         env:
           PYTHONIOENCODING: utf-8
-        run: mise run test:unit
+        run: |
+          mise run build
+          mise run test:unit
         shell: bash
       #
       # - name: Run Tests with Coverage
