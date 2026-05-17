@@ -46,35 +46,33 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Project: $NAME v$VERSION"
 
-      # - name: Create distribution archives
-      #   if: inputs.runs-on == 'ubuntu-latest'
-      #   id: archive
-      #   shell: bash
-      #   run: |
-      #     mkdir -p dist
-      #     NAME="${{ steps.project.outputs.name }}"
-      #     VERSION="${{ steps.project.outputs.version }}"
-      #
-      #     # Create pnpm package tarballs
-      #     mise exec -- pnpm -r pack
-      #     mv packages/*/*.tgz dist/ || true
-      #     mv *.tgz dist/ || true
-      #
-      #     # Create dist tarball if compiled output exists
-      #     if [ -f dist/index.js ]; then
-      #       tar -czf "dist/${NAME}-${VERSION}-dist.tar.gz" dist/index.js dist/index.d.ts dist/index.d.ts.map dist/index.js.map 2>/dev/null || true
-      #       echo "Created distribution archive"
-      #     fi
-      #
-      #     ls -lah dist/
-      #
-      # - name: Upload distribution artifacts
-      #   if: inputs.runs-on == 'ubuntu-latest'
-      #   uses: actions/upload-artifact@v7
-      #   with:
-      #     name: dist-archives
-      #     path: dist/*
-      #     retention-days: 1
+      - name: Create distribution archives
+        if: inputs.runs-on == 'ubuntu-latest'
+        id: archive
+        shell: bash
+        run: |
+          mkdir -p dist-archives
+
+          # Run pnpm pack in all workspaces. 
+          # This generates a .tgz file inside each package's directory.
+          mise exec -- pnpm -r pack
+
+          # Move all generated tarballs from the packages to our centralized folder
+          mv packages/*/*.tgz dist-archives/ || true
+
+          # (Optional) If the root workspace itself is packable, move it too
+          mv *.tgz dist-archives/ || true
+
+          echo "Generated archives:"
+          ls -lah dist-archives/
+
+      - name: Upload distribution artifacts
+        if: inputs.runs-on == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-packages
+          path: dist-archives/*.tgz
+          retention-days: 5
 
   lint:
     runs-on: ${{ inputs.runs-on }}
