@@ -1,3 +1,16 @@
+## @dragoscirjan/mcp-tuikit-spawn [1.1.4](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-spawn@1.1.3...@dragoscirjan/mcp-tuikit-spawn@1.1.4) (2026-05-17)
+
+
+### Bug Fixes
+
+* **ci:** use exec for pnpm pack in workspaces ([9189dad](https://github.com/dragoscirjan/mcp-tuikit/commit/9189dadc02e0351af4613690ea61b28a34a79c6b))
+
+
+### Dependencies
+
+* **@dragoscirjan/mcp-tuikit-test:** upgraded to 1.0.9
+* **@dragoscirjan/mcp-tuikit-linux-utils:** upgraded to 1.0.4
+
 ## @dragoscirjan/mcp-tuikit-spawn [1.1.3](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-spawn@1.1.2...@dragoscirjan/mcp-tuikit-spawn@1.1.3) (2026-05-17)
 
 ### Bug Fixes
