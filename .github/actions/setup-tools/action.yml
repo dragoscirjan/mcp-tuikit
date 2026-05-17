@@ -1,19 +1,19 @@
-name: "Setup Development Tools"
-description: "Install Task, mise, and project tools with caching"
+name: 'Setup Development Tools'
+description: 'Install Task, mise, and project tools with caching'
 inputs:
   github-token:
     description: Github Token to be passed to the installer tools
     required: true
   refresh-deps:
-    description: "Force refresh dependencies by bypassing cache"
+    description: 'Force refresh dependencies by bypassing cache'
     required: false
-    default: "false"
+    default: 'false'
   cache-version:
-    description: "Cache version suffix - increment to invalidate all caches"
+    description: 'Cache version suffix - increment to invalidate all caches'
     required: false
-    default: "003"
+    default: '003'
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     # ==========================================================================
     # Mise Installation
@@ -101,14 +101,16 @@ runs:
     # ==========================================================================
     # Cache Restore - Node modules
     # ==========================================================================
-    - name: Restore Node modules cache
-      id: node-cache
+    - name: Restore Pnpm store cache
+      id: pnpm-cache
       uses: actions/cache/restore@v5
       with:
-        key: node-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ inputs.cache-version }}
+        key: pnpm-store-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ inputs.cache-version }}
         restore-keys: |
-          node-${{ runner.os }}-${{ runner.arch }}-
-        path: node_modules
+          pnpm-store-${{ runner.os }}-${{ runner.arch }}-
+        path: |
+          ~/.local/share/pnpm/store
+          ~/AppData/Local/pnpm/store
 
     # ==========================================================================
     # System Dependencies
@@ -132,8 +134,8 @@ runs:
         GITHUB_API_TOKEN: ${{ inputs.github-token }}
         MISE_GITHUB_TOKEN: ${{ inputs.github-token }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        MISE_GITHUB_GITHUB_ATTESTATIONS: "0"
-        MISE_GITHUB_SLSA: "0"
+        MISE_GITHUB_GITHUB_ATTESTATIONS: '0'
+        MISE_GITHUB_SLSA: '0'
         MISE_HTTP_TIMEOUT: 600
         PYTHONIOENCODING: utf-8
       run: |
@@ -151,8 +153,8 @@ runs:
         GITHUB_API_TOKEN: ${{ inputs.github-token }}
         MISE_GITHUB_TOKEN: ${{ inputs.github-token }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        MISE_GITHUB_GITHUB_ATTESTATIONS: "0"
-        MISE_GITHUB_SLSA: "0"
+        MISE_GITHUB_GITHUB_ATTESTATIONS: '0'
+        MISE_GITHUB_SLSA: '0'
         MISE_HTTP_TIMEOUT: 600
         PYTHONIOENCODING: utf-8
       run: |
@@ -162,13 +164,9 @@ runs:
 
         mise run deps:$ACTION:mise
 
-        # Only sync pnpm if node_modules cache missed
-        if [ "${{ steps.node-cache.outputs.cache-hit }}" != "true" ]; then
-          echo "Node modules cache miss - running pnpm install"
-          mise run deps:$ACTION:pnpm
-        else
-          echo "Node modules cache hit - skipping pnpm install"
-        fi
+        # Always run pnpm install to ensure workspace links and node_modules are created
+        echo "Running pnpm install"
+        mise run deps:$ACTION:pnpm
 
         # Only sync uv if venv cache missed
         if [ "${{ steps.venv-cache.outputs.cache-hit }}" != "true" ]; then
@@ -229,9 +227,11 @@ runs:
         key: venv-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('uv.lock') }}-${{ inputs.cache-version }}
         path: .venv
 
-    - name: Save Node modules cache
-      if: steps.node-cache.outputs.cache-hit != 'true'
+    - name: Save Pnpm store cache
+      if: steps.pnpm-cache.outputs.cache-hit != 'true'
       uses: actions/cache/save@v5
       with:
-        key: node-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ inputs.cache-version }}
-        path: node_modules
+        key: pnpm-store-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ inputs.cache-version }}
+        path: |
+          ~/.local/share/pnpm/store
+          ~/AppData/Local/pnpm/store

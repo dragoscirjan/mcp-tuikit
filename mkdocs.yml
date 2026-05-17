@@ -59,7 +59,6 @@ markdown_extensions:
       # eslint-disable-next-line yml/no-empty-mapping-value
       emoji_index: !!python/name:material.extensions.emoji.twemoji # eslint-disable-next-line yml/no-empty-mapping-value
 
-
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - attr_list
   - md_in_html
