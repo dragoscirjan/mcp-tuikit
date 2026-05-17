@@ -65,3 +65,4 @@ snapshots/
 site/
 .venv
 packages/server/README.md
+.web_stash.db

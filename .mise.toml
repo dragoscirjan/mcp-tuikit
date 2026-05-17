@@ -1,11 +1,51 @@
+[settings]
+experimental = true
+lockfile = true
+
+############################################################################
+# Tools Configuration                                                      #
+############################################################################
+
 [tools]
 rust = "latest"
-node = "lts"
-pnpm = "latest"
+node = "20"
+pnpm = "9"
 
-[tasks.install]
-description = "Install all dependencies across the monorepo (root + all workspace packages)"
-run = "pnpm install"
+# Python and package manager (for linting helpers and docs)
+python = "3.11"
+uv = "latest"
+
+# CLI Tools
+[tools."github:koalaman/shellcheck"]
+version = "0.11.0"
+
+[tools."github:PowerShell/PowerShell"]
+version = "latest"
+
+[tools."github:koalaman/shellcheck".platforms]
+linux-x64 = { asset_pattern = "shellcheck-*.linux.x86_64.tar.xz" }
+macos-arm64 = { asset_pattern = "shellcheck-*.darwin.aarch64.tar.xz" }
+windows-x64 = { asset_pattern = "shellcheck-*.zip" }
+
+[tools."github:PowerShell/PowerShell".platforms]
+linux-x64 = { asset_pattern = "powershell-*-linux-x64.tar.gz" }
+macos-arm64 = { asset_pattern = "powershell-*-osx-arm64.tar.gz" }
+windows-x64 = { asset_pattern = "PowerShell-*-win-x64.zip" }
+
+############################################################################
+# Hooks                                                                    #
+############################################################################
+
+[hooks]
+postinstall = "{% if os() == 'windows' %}powershell.exe -NoProfile -ExecutionPolicy Bypass -File .scripts/fix-mise-pwsh.ps1{% else %}bash .scripts/fix-mise-pwsh.sh 2>/dev/null{% endif %}"
+
+############################################################################
+# Tasks                                                                    #
+############################################################################
+
+[tasks.build]
+description = "Build the monorepo"
+run = "pnpm run build"
 
 [tasks.clean]
 description = "Remove all dist/ build artefacts across the monorepo"
@@ -15,32 +55,96 @@ run = [
 ]
 run_windows = "powershell.exe -NoProfile -Command \"Get-ChildItem -Path . -Filter 'dist' -Recurse -Directory | Where-Object { $_.FullName -notmatch 'node_modules' } | Remove-Item -Recurse -Force\""
 
-[tasks.build]
-description = "Build the monorepo"
-depends = ["clean"]
-run = ["pnpm -r run build", "pnpm run build"]
-
-[tasks.test]
-description = "Run vitest unit tests (*.spec.ts co-located with source)"
-depends = ["build"]
-run = "pnpm vitest run --reporter=verbose --project=unit"
-
-[tasks."test:integration"]
-description = "Run integration/e2e tests (requires macOS + iTerm2 + Alacritty + nvim + btop)"
-depends = ["build"]
-run = "pnpm vitest run --reporter=verbose --project=integration"
-
-[tasks.lint]
-description = "Run ESLint"
-run = "pnpm eslint --fix ."
-
 [tasks.format]
-description = "Format with Prettier"
+description = "Format code and fix issues"
 run = "pnpm prettier --write ."
 
-[tasks.jscpd]
-description = "Run JSCPD to check for duplicated code"
+[tasks."format:check"]
+description = "Check code formatting"
+run = "pnpm prettier --check ."
+
+[tasks.lint]
+description = "Run linter and fix issues"
+run = "pnpm eslint --fix ."
+
+[tasks."lint:check"]
+description = "Run linter without fixing"
+run = "pnpm eslint ."
+
+[tasks."duplicate-check"]
+description = "Check for duplicate code using jscpd"
 run = "pnpm jscpd ."
+
+[tasks.test]
+description = "Run tests"
+run = ["mise run test:unit", "mise run test:integration"]
+
+[tasks."test:unit"]
+description = "Run tests"
+run = "pnpm vitest run  --reporter=verbose --project=unit"
+
+[tasks."test:integration"]
+description = "Run tests"
+run = "pnpm vitest run --reporter=verbose --project=integration"
+
+[tasks."test:coverage"]
+description = "Generate test coverage report"
+run = "pnpm vitest run --coverage"
+
+[tasks.validate]
+description = "Run CI pipeline for validation"
+run = [
+  "mise run format",
+  "mise run clean",
+  "mise run build",
+  "mise run lint",
+  "mise run duplicate-check",
+  "mise run clean",
+  "mise run test",
+  "mise run docs",
+]
+
+[tasks.docs]
+description = "Build documentation with MkDocs"
+run = "uv run mkdocs build --strict"
+
+[tasks.run]
+description = "Run application"
+run = "pnpm run start"
+
+[tasks."deps:sync"]
+description = "Install all project dependencies"
+depends = ["deps:sync:mise", "deps:sync:pnpm", "deps:sync:uv"]
+
+[tasks."deps:sync:mise"]
+run = "mise install --yes"
+
+[tasks."deps:sync:pnpm"]
+run = "pnpm install"
+
+[tasks."deps:sync:uv"]
+run = "uv sync"
+
+[tasks."deps:clean"]
+description = "Clean all project dependencies"
+run = [
+  "rm -rf node_modules pnpm-lock.yaml",
+  "rm -rf ~/.local/share/mise/installs ~/AppData/mise/installs",
+  "rm -rf .venv uv.lock",
+]
+
+[tasks."deps:refresh"]
+description = "Refresh all project dependencies"
+depends = ["deps:refresh:mise", "deps:refresh:pnpm", "deps:refresh:uv"]
+
+[tasks."deps:refresh:mise"]
+run = "mise upgrade"
+
+[tasks."deps:refresh:pnpm"]
+run = ["pnpm update", "pnpm audit fix"]
+
+[tasks."deps:refresh:uv"]
+run = "uv sync --upgrade"
 
 [tasks."docs:build"]
 description = "Build the MkDocs documentation site"
