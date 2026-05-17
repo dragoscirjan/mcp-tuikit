@@ -1,3 +1,10 @@
+## @dragoscirjan/mcp-tuikit-linux-utils [1.0.4](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-linux-utils@1.0.3...@dragoscirjan/mcp-tuikit-linux-utils@1.0.4) (2026-05-17)
+
+
+### Bug Fixes
+
+* **ci:** use exec for pnpm pack in workspaces ([9189dad](https://github.com/dragoscirjan/mcp-tuikit/commit/9189dadc02e0351af4613690ea61b28a34a79c6b))
+
 ## @dragoscirjan/mcp-tuikit-linux-utils [1.0.3](https://github.com/dragoscirjan/mcp-tuikit/compare/@dragoscirjan/mcp-tuikit-linux-utils@1.0.2...@dragoscirjan/mcp-tuikit-linux-utils@1.0.3) (2026-05-17)
 
 ### Bug Fixes
