@@ -51,33 +51,38 @@ jobs:
       version: ${{ steps.bump.outputs.version }}
     steps:
       - uses: actions/checkout@v6
-
-      - name: Bump version with Bumpalicious
-        id: bump
-        uses: dragoscops/bumpalicious@v3
+      - uses: ./.github/actions/setup-tools
         with:
-          github_token: ${{ secrets.GH_TOKEN }}
-          pr: true
-          workspaces: .:node
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Output new version
-        run: |
-          echo "New version tag: ${{ steps.bump.outputs.tag }}"
-          echo "New version: ${{ steps.bump.outputs.version }}"
+      # TODO: bumpalicious is not ready yet for mono-repositories... some sort of dependency between components, must be defined
 
-          # Create JSON output file
-          mkdir -p version-output
-          cat > version-output/version.json << EOF
-          {
-            "tag": "${{ steps.bump.outputs.tag }}",
-            "version": "${{ steps.bump.outputs.version }}"
-          }
-          EOF
+      # - name: Bump version with Bumpalicious
+      #   id: bump
+      #   uses: dragoscops/bumpalicious@v3
+      #   with:
+      #     github_token: ${{ secrets.GH_TOKEN }}
+      #     pr: true
+      #     workspaces: .:node
 
-          cat version-output/version.json
+      # - name: Output new version
+      #   run: |
+      #     echo "New version tag: ${{ steps.bump.outputs.tag }}"
+      #     echo "New version: ${{ steps.bump.outputs.version }}"
+      #
+      #     # Create JSON output file
+      #     mkdir -p version-output
+      #     cat > version-output/version.json << EOF
+      #     {
+      #       "tag": "${{ steps.bump.outputs.tag }}",
+      #       "version": "${{ steps.bump.outputs.version }}"
+      #     }
+      #     EOF
+      #
+      #     cat version-output/version.json
 
       - name: Upload version output
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: version-output
           path: version-output/version.json

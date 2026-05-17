@@ -63,21 +63,21 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
           fetch-depth: 0
 
       - name: Setup Node.js for npm publish
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
 
       - name: Download build artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
-          name: dist-archives
+          name: npm-packages
           path: release-assets
 
       - name: List release assets
@@ -96,19 +96,17 @@ jobs:
       - name: Publish to npm
         shell: bash
         run: |
-          TARBALL=$(find release-assets -maxdepth 1 -name '*.tgz' | head -n 1)
-          if [ -z "$TARBALL" ]; then
-            echo "No npm tarball found in release-assets/"
-            exit 1
-          fi
-
-          echo "Publishing $TARBALL"
-          npm publish "./$TARBALL" --access public
+          for TARBALL in release-assets/*.tgz; do
+            if [ -f "$TARBALL" ]; then
+              echo "Publishing $TARBALL"
+              npm publish "$TARBALL" --access public
+            fi
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag }}
           name: Release ${{ inputs.tag }}
@@ -126,12 +124,12 @@ jobs:
     if: always() && needs.release.result == 'success'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v5
 
       - name: Build MkDocs
         run: |
@@ -139,27 +137,27 @@ jobs:
           uv run mkdocs build --strict
 
       - name: Checkout GitHub Pages repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           repository: dragoscirjan/dragoscirjan.github.io
           ref: main
           token: ${{ secrets.GH_TOKEN }}
           path: docs-repo
 
-      - name: Deploy docs to mcp-searchable subfolder
+      - name: Deploy docs to mcp-tuikit subfolder
         shell: bash
         run: |
-          rm -rf docs-repo/mcp-searchable
-          cp -R site docs-repo/mcp-searchable
+          rm -rf docs-repo/mcp-tuikit
+          cp -R site docs-repo/mcp-tuikit
 
           cd docs-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add mcp-searchable
+          git add mcp-tuikit
 
           if git diff --staged --quiet; then
             echo "No documentation changes to deploy."
           else
-            git commit -m "docs(mcp-searchable): update documentation site"
+            git commit -m "docs(mcp-tuikit): update documentation site"
             git push origin main
           fi
