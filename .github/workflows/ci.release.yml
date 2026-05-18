@@ -63,19 +63,19 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.tag }}
           fetch-depth: 0
 
       - name: Setup Node.js for npm publish
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: npm-packages
           path: release-assets
@@ -106,7 +106,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ inputs.tag }}
           name: Release ${{ inputs.tag }}
@@ -124,12 +124,12 @@ jobs:
     if: always() && needs.release.result == 'success'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.tag }}
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
 
       - name: Build MkDocs
         run: |
@@ -137,7 +137,7 @@ jobs:
           uv run mkdocs build --strict
 
       - name: Checkout GitHub Pages repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: dragoscirjan/dragoscirjan.github.io
           ref: main
