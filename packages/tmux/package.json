@@ -12,8 +12,8 @@
     "nanoid": "^5.1.7"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "vitest": "^1.0.0"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
   },
   "publishConfig": {
     "access": "public"
