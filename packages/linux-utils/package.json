@@ -10,11 +10,11 @@
     "clean": "rm -rf dist tsconfig.tsbuildinfo"
   },
   "dependencies": {
-    "koffi": "^2.16.1"
+    "koffi": "^3.0.2"
   },
   "devDependencies": {
-    "@types/node": "^22.13.5",
-    "typescript": "^5.7.3"
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
   },
   "publishConfig": {
     "access": "public"
