@@ -12,14 +12,14 @@
     "@dragoscirjan/mcp-tuikit-flow-engine": "workspace:*",
     "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
     "@dragoscirjan/mcp-tuikit-terminals": "workspace:*",
-    "nanoid": "^5.1.9"
+    "nanoid": "^5.1.15"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^26.0.0",
     "@types/sharp": "^0.32.0",
-    "sharp": "^0.34.5",
-    "typescript": "^5.0.0",
-    "vitest": "^2.1.8"
+    "sharp": "^0.35.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
   },
   "exports": {
     ".": {

@@ -18,18 +18,18 @@
   "dependencies": {
     "@dragoscirjan/mcp-tuikit-spawn": "workspace:*",
     "@dragoscirjan/mcp-tuikit-terminals": "workspace:*",
-    "js-yaml": "^4.1.0",
-    "nanoid": "^5.1.9",
-    "zod": "^3.24.2"
+    "js-yaml": "^5.0.0",
+    "nanoid": "^5.1.15",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@dragoscirjan/mcp-tuikit-test": "workspace:*",
     "@templ-project/tsconfig": "latest",
     "@types/fs-extra": "^11.0.4",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^2.1.0"
+    "@types/node": "^26.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
   },
   "publishConfig": {
     "access": "public"
