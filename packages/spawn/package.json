@@ -10,8 +10,8 @@
   },
   "devDependencies": {
     "@dragoscirjan/mcp-tuikit-test": "workspace:*",
-    "typescript": "^5.0.0",
-    "vitest": "^1.0.0"
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
   },
   "exports": {
     ".": {
@@ -21,7 +21,7 @@
     }
   },
   "dependencies": {
-    "execa": "^9.6.1"
+    "execa": "^10.0.1"
   },
   "optionalDependencies": {
     "@dragoscirjan/mcp-tuikit-linux-utils": "workspace:*"
